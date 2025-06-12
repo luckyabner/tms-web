@@ -1,3 +1,0 @@
-{
-  "plugins": ["prettier-plugin-tailwindcss"] //对tailwindcss进行格式化
-}
