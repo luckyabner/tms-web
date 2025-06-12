@@ -45,18 +45,21 @@ const mockPerformanceData = [
           description: "完成前端系统的重构工作，提升性能和用户体验",
           weight: 40,
           completion: "进行中",
+          score: "-",
         },
         {
           title: "代码质量",
           description: "提高代码质量，完善单元测试覆盖率",
           weight: 30,
           completion: "已完成",
+          score: "95",
         },
         {
           title: "技术分享",
           description: "进行至少2次技术分享，促进团队技术交流",
           weight: 30,
           completion: "进行中",
+          score: "-",
         },
       ],
     },
@@ -211,13 +214,30 @@ export default function PerformanceDetailPage() {
                         {goal.description}
                       </p>
                     </div>
-                    <Badge variant={goal.completion === '已完成' ? 'success' : 'secondary'}>
-                      {goal.completion}
-                    </Badge>
+                    <div className="flex items-center gap-4">
+                      <Badge variant={goal.completion === '已完成' ? 'success' : 'secondary'}>
+                        {goal.completion}
+                      </Badge>
+                      {goal.score !== '-' && (
+                        <span className="font-medium text-sm">
+                          得分：{goal.score}
+                        </span>
+                      )}
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm text-muted-foreground">权重</span>
-                    <span className="text-sm font-medium">{goal.weight}%</span>
+                  <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm text-muted-foreground">权重</span>
+                      <span className="text-sm font-medium">{goal.weight}%</span>
+                    </div>
+                    {goal.score !== '-' && (
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm text-muted-foreground">加权得分</span>
+                        <span className="text-sm font-medium">
+                          {(parseFloat(goal.score) * goal.weight / 100).toFixed(1)}
+                        </span>
+                      </div>
+                    )}
                   </div>
                 </div>
               ))}
