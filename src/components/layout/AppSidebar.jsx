@@ -36,6 +36,11 @@ const mainItems = [
 		icon: Users,
 	},
 	{
+		title: '绩效管理',
+		url: '/performance',
+		icon: Award,
+	},
+	{
 		title: '关系分析',
 		url: '/performance',
 		icon: TrendingUp,
