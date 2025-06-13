@@ -140,6 +140,7 @@ export default function PerformancePage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedDepartment, setSelectedDepartment] = useState('全部');
   const [selectedStatus, setSelectedStatus] = useState('全部');
+  const [sortBy, setSortBy] = useState('default');
 
   // 过滤绩效数据
   const filteredPerformance = mockPerformanceData.filter((item) => {
@@ -152,6 +153,19 @@ export default function PerformancePage() {
     const matchesStatus =
       selectedStatus === '全部' || item.status === selectedStatus;
     return matchesSearch && matchesDepartment && matchesStatus;
+  }).sort((a, b) => {
+    switch (sortBy) {
+      case 'score':
+        if (a.score === '-') return 1;
+        if (b.score === '-') return -1;
+        return parseInt(b.score) - parseInt(a.score);
+      case 'endDate':
+        return new Date(b.endDate) - new Date(a.endDate);
+      case 'department':
+        return a.department.localeCompare(b.department);
+      default:
+        return 0;
+    }
   });
 
   // 获取状态对应的图标和颜色
@@ -181,7 +195,7 @@ export default function PerformancePage() {
   };
 
   // 跳转到绩效详情页面
-  const handlePerformanceClick = (id) => {
+  const handleViewDetails = (id) => {
     router.push(`/performance/${id}`);
   };
 
@@ -198,29 +212,6 @@ export default function PerformancePage() {
           </p>
         </div>
         <div className="flex gap-3 w-full md:w-auto">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="w-full md:w-auto">
-                <Filter className="h-4 w-4 mr-2" />
-                筛选
-                <ChevronDown className="h-4 w-4 ml-2" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-[200px]">
-              <DropdownMenuItem>
-                <BarChart3 className="h-4 w-4 mr-2" />
-                按绩效分数
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <TrendingUp className="h-4 w-4 mr-2" />
-                按完成时间
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <Users className="h-4 w-4 mr-2" />
-                按部门
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
           <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
             <Plus className="h-4 w-4 mr-2" />
             新建考核
@@ -332,8 +323,31 @@ export default function PerformancePage() {
 
       {/* 绩效列表 */}
       <Card className="hover:shadow-lg transition-shadow duration-200">
-        <CardHeader>
+        <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>绩效列表</CardTitle>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm">
+                <Filter className="h-4 w-4 mr-2" />
+                筛选
+                <ChevronDown className="h-4 w-4 ml-2" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-[200px]">
+              <DropdownMenuItem onClick={() => setSortBy('score')}>
+                <BarChart3 className="h-4 w-4 mr-2" />
+                按绩效分数
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setSortBy('endDate')}>
+                <TrendingUp className="h-4 w-4 mr-2" />
+                按完成时间
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setSortBy('department')}>
+                <Users className="h-4 w-4 mr-2" />
+                按部门
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </CardHeader>
         <CardContent>
           <Table>
@@ -354,8 +368,7 @@ export default function PerformancePage() {
                 return (
                   <TableRow 
                     key={item.id} 
-                    className="hover:bg-gray-50 cursor-pointer"
-                    onClick={() => handlePerformanceClick(item.id)}
+                    className="hover:bg-gray-50"
                   >
                     <TableCell className="font-medium">{item.employeeName}</TableCell>
                     <TableCell>{item.department}</TableCell>
@@ -390,7 +403,7 @@ export default function PerformancePage() {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleViewDetails(item.id)}>
                             <Eye className="h-4 w-4 mr-2" />
                             查看详情
                           </DropdownMenuItem>
