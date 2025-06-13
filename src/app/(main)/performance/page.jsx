@@ -253,9 +253,9 @@ export default function PerformancePage() {
             </div>
             <div className="flex items-center mt-2">
               <div className="h-1 w-12 bg-gray-200 rounded-full">
-                <div className="h-1 bg-blue-500 rounded-full" style={{ width: '40%' }} />
+                <div className="h-1 bg-blue-500 rounded-full" style={{ width: '80%' }} />
               </div>
-              <span className="text-xs text-muted-foreground ml-2">较上月 -1</span>
+              <span className="text-xs text-muted-foreground ml-2">较上月 +5</span>
             </div>
           </CardContent>
         </Card>
@@ -272,155 +272,131 @@ export default function PerformancePage() {
             </div>
             <div className="flex items-center mt-2">
               <div className="h-1 w-12 bg-gray-200 rounded-full">
-                <div className="h-1 bg-green-500 rounded-full" style={{ width: '80%' }} />
+                <div className="h-1 bg-green-500 rounded-full" style={{ width: '40%' }} />
               </div>
-              <span className="text-xs text-muted-foreground ml-2">较上月 +5</span>
+              <span className="text-xs text-muted-foreground ml-2">较上月 -3</span>
             </div>
           </CardContent>
         </Card>
       </div>
 
       {/* 搜索和筛选区域 */}
-      <Card className="hover:shadow-lg transition-shadow duration-200">
-        <CardContent className="pt-6">
-          <div className="flex flex-col sm:flex-row gap-4">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-              <Input
-                placeholder="搜索员工姓名、职位或部门..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
-              />
-            </div>
-            <Select value={selectedDepartment} onValueChange={setSelectedDepartment}>
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="选择部门" />
-              </SelectTrigger>
-              <SelectContent>
-                {departments.map((dept) => (
-                  <SelectItem key={dept} value={dept}>
-                    {dept}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Select value={selectedStatus} onValueChange={setSelectedStatus}>
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="选择状态" />
-              </SelectTrigger>
-              <SelectContent>
-                {statusOptions.map((status) => (
-                  <SelectItem key={status} value={status}>
-                    {status}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </CardContent>
-      </Card>
+      <div className="flex flex-col md:flex-row gap-4">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+          <Input
+            placeholder="搜索员工姓名、部门或职位..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10"
+          />
+        </div>
+        <div className="flex gap-2">
+          <Select value={selectedDepartment} onValueChange={setSelectedDepartment}>
+            <SelectTrigger className="w-[120px]">
+              <SelectValue placeholder="选择部门" />
+            </SelectTrigger>
+            <SelectContent>
+              {departments.map((dept) => (
+                <SelectItem key={dept} value={dept}>
+                  {dept}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select value={selectedStatus} onValueChange={setSelectedStatus}>
+            <SelectTrigger className="w-[120px]">
+              <SelectValue placeholder="选择状态" />
+            </SelectTrigger>
+            <SelectContent>
+              {statusOptions.map((status) => (
+                <SelectItem key={status} value={status}>
+                  {status}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
 
       {/* 绩效列表 */}
-      <Card className="hover:shadow-lg transition-shadow duration-200">
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle>绩效列表</CardTitle>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm">
-                <Filter className="h-4 w-4 mr-2" />
-                筛选
-                <ChevronDown className="h-4 w-4 ml-2" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-[200px]">
-              <DropdownMenuItem onClick={() => setSortBy('score')}>
-                <BarChart3 className="h-4 w-4 mr-2" />
-                按绩效分数
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setSortBy('endDate')}>
-                <TrendingUp className="h-4 w-4 mr-2" />
-                按完成时间
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setSortBy('department')}>
-                <Users className="h-4 w-4 mr-2" />
-                按部门
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </CardHeader>
-        <CardContent>
+      <Card>
+        <CardContent className="p-0">
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>员工姓名</TableHead>
+                <TableHead>员工</TableHead>
                 <TableHead>部门</TableHead>
-                <TableHead>职位</TableHead>
                 <TableHead>考核周期</TableHead>
+                <TableHead>评估人</TableHead>
                 <TableHead>状态</TableHead>
-                <TableHead>评分</TableHead>
+                <TableHead>得分</TableHead>
                 <TableHead className="text-right">操作</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredPerformance.map((item) => {
-                const statusBadge = getStatusBadge(item.status);
-                return (
-                  <TableRow 
-                    key={item.id} 
-                    className="hover:bg-gray-50"
-                  >
-                    <TableCell className="font-medium">{item.employeeName}</TableCell>
-                    <TableCell>{item.department}</TableCell>
-                    <TableCell>{item.position}</TableCell>
-                    <TableCell>{item.period}</TableCell>
-                    <TableCell>
-                      <Badge variant={statusBadge.variant} className="flex items-center gap-1">
-                        {statusBadge.icon}
-                        {item.status}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      {item.score === '-' ? (
-                        <span className="text-muted-foreground">-</span>
-                      ) : (
-                        <div className="flex items-center gap-2">
-                          <span className="font-medium">{item.score}</span>
-                          <div className="h-1 w-12 bg-gray-200 rounded-full">
-                            <div 
-                              className="h-1 bg-blue-600 rounded-full" 
-                              style={{ width: `${(parseInt(item.score) / 100) * 100}%` }}
-                            />
-                          </div>
+              {filteredPerformance.map((item) => (
+                <TableRow key={item.id} className="hover:bg-gray-50">
+                  <TableCell>
+                    <div>
+                      <div className="font-medium">{item.employeeName}</div>
+                      <div className="text-sm text-muted-foreground">
+                        {item.position}
+                      </div>
+                    </div>
+                  </TableCell>
+                  <TableCell>{item.department}</TableCell>
+                  <TableCell>
+                    <div>
+                      <div>{item.period}</div>
+                      <div className="text-sm text-muted-foreground">
+                        {item.startDate} ~ {item.endDate}
+                      </div>
+                    </div>
+                  </TableCell>
+                  <TableCell>{item.evaluator}</TableCell>
+                  <TableCell>
+                    <div className="flex items-center">
+                      {getStatusBadge(item.status).icon}
+                      <span>{item.status}</span>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    {item.score === '-' ? (
+                      <span className="text-muted-foreground">-</span>
+                    ) : (
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium">{item.score}</span>
+                        <div className="h-1 w-12 bg-gray-200 rounded-full">
+                          <div
+                            className="h-1 bg-blue-600 rounded-full"
+                            style={{ width: `${parseInt(item.score)}%` }}
+                          />
                         </div>
-                      )}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="sm">
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => handleViewDetails(item.id)}>
-                            <Eye className="h-4 w-4 mr-2" />
-                            查看详情
-                          </DropdownMenuItem>
-                          <DropdownMenuItem>
-                            <FileEdit className="h-4 w-4 mr-2" />
-                            编辑考核
-                          </DropdownMenuItem>
-                          <DropdownMenuItem className="text-red-600">
-                            <AlertCircle className="h-4 w-4 mr-2" />
-                            取消考核
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
+                      </div>
+                    )}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="sm">
+                          <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => handleViewDetails(item.id)}>
+                          <Eye className="h-4 w-4 mr-2" />
+                          查看详情
+                        </DropdownMenuItem>
+                        <DropdownMenuItem>
+                          <FileEdit className="h-4 w-4 mr-2" />
+                          编辑评估
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </TableCell>
+                </TableRow>
+              ))}
             </TableBody>
           </Table>
         </CardContent>

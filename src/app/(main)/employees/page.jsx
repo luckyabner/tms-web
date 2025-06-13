@@ -250,24 +250,6 @@ export default function EmployeesPage() {
 					</Card>
 				))}
 			</div>
-
-			{/* 空状态 */}
-			{filteredEmployees.length === 0 && (
-				<div className="text-center py-12">
-					<User className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-					<h3 className="text-lg font-semibold mb-2">未找到匹配的员工</h3>
-					<p className="text-muted-foreground mb-4">尝试调整搜索条件或筛选器</p>
-					<Button
-						variant="outline"
-						onClick={() => {
-							setSearchTerm('');
-							setSelectedDepartment('全部');
-						}}
-					>
-						清除筛选条件
-					</Button>
-				</div>
-			)}
 		</div>
 	);
-}
+} 
