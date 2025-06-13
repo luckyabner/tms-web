@@ -29,8 +29,26 @@ import {
   Clock, 
   CheckCircle2,
   AlertCircle,
-  Filter
+  Filter,
+  ChevronDown,
+  BarChart3,
+  TrendingUp,
+  Users,
+  MoreHorizontal
 } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 // 模拟绩效数据
 const mockPerformanceData = [
@@ -168,162 +186,228 @@ export default function PerformancePage() {
   };
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
-      <div className="flex justify-between items-center mb-6">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-6 space-y-6">
+      {/* 页面标题和操作按钮 */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">绩效管理</h1>
-          <p className="text-muted-foreground mt-2">
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+            绩效管理
+          </h1>
+          <p className="text-muted-foreground mt-1">
             管理和追踪员工的绩效考核流程
           </p>
         </div>
-        <div className="flex items-center space-x-2">
-          <Button variant="outline">
-            <Filter className="h-4 w-4 mr-2" />
-            导出数据
-          </Button>
-          <Button>
+        <div className="flex gap-3 w-full md:w-auto">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" className="w-full md:w-auto">
+                <Filter className="h-4 w-4 mr-2" />
+                筛选
+                <ChevronDown className="h-4 w-4 ml-2" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-[200px]">
+              <DropdownMenuItem>
+                <BarChart3 className="h-4 w-4 mr-2" />
+                按绩效分数
+              </DropdownMenuItem>
+              <DropdownMenuItem>
+                <TrendingUp className="h-4 w-4 mr-2" />
+                按完成时间
+              </DropdownMenuItem>
+              <DropdownMenuItem>
+                <Users className="h-4 w-4 mr-2" />
+                按部门
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+          <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
             <Plus className="h-4 w-4 mr-2" />
             新建考核
           </Button>
         </div>
       </div>
 
-      {/* 搜索和筛选区域 */}
-      <div className="flex flex-col sm:flex-row gap-4 mb-6">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-          <Input
-            placeholder="搜索员工姓名、职位或部门..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
-          />
-        </div>
-        <div className="flex gap-2">
-          {departments.map((dept) => (
-            <Button
-              key={dept}
-              variant={selectedDepartment === dept ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setSelectedDepartment(dept)}
-            >
-              {dept}
-            </Button>
-          ))}
-        </div>
-      </div>
-
-      <div className="grid gap-6 md:grid-cols-3 mb-6">
-        <Card>
+      {/* 统计卡片 */}
+      <div className="grid gap-6 md:grid-cols-3">
+        <Card className="hover:shadow-lg transition-shadow duration-200">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">待处理考核</CardTitle>
-            <AlertCircle className="h-4 w-4 text-yellow-500" />
+            <div className="p-2 bg-yellow-100 rounded-full">
+              <AlertCircle className="h-4 w-4 text-yellow-600" />
+            </div>
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-bold">
+            <div className="text-3xl font-bold">
               {mockPerformanceData.filter((item) => item.status === '待评估').length}
-            </p>
-            <p className="text-xs text-muted-foreground">需要您处理的绩效考核</p>
+            </div>
+            <div className="flex items-center mt-2">
+              <div className="h-1 w-12 bg-gray-200 rounded-full">
+                <div className="h-1 bg-yellow-500 rounded-full" style={{ width: '60%' }} />
+              </div>
+              <span className="text-xs text-muted-foreground ml-2">较上月 +2</span>
+            </div>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="hover:shadow-lg transition-shadow duration-200">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">进行中考核</CardTitle>
-            <Clock className="h-4 w-4 text-blue-500" />
+            <div className="p-2 bg-blue-100 rounded-full">
+              <Clock className="h-4 w-4 text-blue-600" />
+            </div>
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-bold">
+            <div className="text-3xl font-bold">
               {mockPerformanceData.filter((item) => item.status === '进行中').length}
-            </p>
-            <p className="text-xs text-muted-foreground">正在进行的绩效考核</p>
+            </div>
+            <div className="flex items-center mt-2">
+              <div className="h-1 w-12 bg-gray-200 rounded-full">
+                <div className="h-1 bg-blue-500 rounded-full" style={{ width: '40%' }} />
+              </div>
+              <span className="text-xs text-muted-foreground ml-2">较上月 -1</span>
+            </div>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="hover:shadow-lg transition-shadow duration-200">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">已完成考核</CardTitle>
-            <CheckCircle2 className="h-4 w-4 text-green-500" />
+            <div className="p-2 bg-green-100 rounded-full">
+              <CheckCircle2 className="h-4 w-4 text-green-600" />
+            </div>
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-bold">
+            <div className="text-3xl font-bold">
               {mockPerformanceData.filter((item) => item.status === '已完成').length}
-            </p>
-            <p className="text-xs text-muted-foreground">本季度已完成的考核</p>
+            </div>
+            <div className="flex items-center mt-2">
+              <div className="h-1 w-12 bg-gray-200 rounded-full">
+                <div className="h-1 bg-green-500 rounded-full" style={{ width: '80%' }} />
+              </div>
+              <span className="text-xs text-muted-foreground ml-2">较上月 +5</span>
+            </div>
           </CardContent>
         </Card>
       </div>
 
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle>绩效考核列表</CardTitle>
-              <CardDescription>
-                显示所有绩效考核记录，可以查看详情和进行评估
-              </CardDescription>
+      {/* 搜索和筛选区域 */}
+      <Card className="hover:shadow-lg transition-shadow duration-200">
+        <CardContent className="pt-6">
+          <div className="flex flex-col sm:flex-row gap-4">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+              <Input
+                placeholder="搜索员工姓名、职位或部门..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10"
+              />
             </div>
-            <div className="flex gap-2">
-              {statusOptions.map((status) => (
-                <Button
-                  key={status}
-                  variant={selectedStatus === status ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setSelectedStatus(status)}
-                >
-                  {status}
-                </Button>
-              ))}
-            </div>
+            <Select value={selectedDepartment} onValueChange={setSelectedDepartment}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="选择部门" />
+              </SelectTrigger>
+              <SelectContent>
+                {departments.map((dept) => (
+                  <SelectItem key={dept} value={dept}>
+                    {dept}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select value={selectedStatus} onValueChange={setSelectedStatus}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="选择状态" />
+              </SelectTrigger>
+              <SelectContent>
+                {statusOptions.map((status) => (
+                  <SelectItem key={status} value={status}>
+                    {status}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
+        </CardContent>
+      </Card>
+
+      {/* 绩效列表 */}
+      <Card className="hover:shadow-lg transition-shadow duration-200">
+        <CardHeader>
+          <CardTitle>绩效列表</CardTitle>
         </CardHeader>
         <CardContent>
           <Table>
             <TableHeader>
               <TableRow>
                 <TableHead>员工姓名</TableHead>
-                <TableHead>所属部门</TableHead>
+                <TableHead>部门</TableHead>
                 <TableHead>职位</TableHead>
                 <TableHead>考核周期</TableHead>
                 <TableHead>状态</TableHead>
-                <TableHead>考核结果</TableHead>
-                <TableHead>考核人</TableHead>
-                <TableHead>操作</TableHead>
+                <TableHead>评分</TableHead>
+                <TableHead className="text-right">操作</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredPerformance.map((item) => (
-                <TableRow key={item.id} className="cursor-pointer hover:bg-muted/50" onClick={() => handlePerformanceClick(item.id)}>
-                  <TableCell className="font-medium">{item.employeeName}</TableCell>
-                  <TableCell>{item.department}</TableCell>
-                  <TableCell>{item.position}</TableCell>
-                  <TableCell>{item.period}</TableCell>
-                  <TableCell>
-                    <div className="flex items-center">
-                      {getStatusBadge(item.status).icon}
-                      <Badge variant={getStatusBadge(item.status).variant}>
+              {filteredPerformance.map((item) => {
+                const statusBadge = getStatusBadge(item.status);
+                return (
+                  <TableRow 
+                    key={item.id} 
+                    className="hover:bg-gray-50 cursor-pointer"
+                    onClick={() => handlePerformanceClick(item.id)}
+                  >
+                    <TableCell className="font-medium">{item.employeeName}</TableCell>
+                    <TableCell>{item.department}</TableCell>
+                    <TableCell>{item.position}</TableCell>
+                    <TableCell>{item.period}</TableCell>
+                    <TableCell>
+                      <Badge variant={statusBadge.variant} className="flex items-center gap-1">
+                        {statusBadge.icon}
                         {item.status}
                       </Badge>
-                    </div>
-                  </TableCell>
-                  <TableCell>{item.score}</TableCell>
-                  <TableCell>{item.evaluator}</TableCell>
-                  <TableCell>
-                    <div className="flex space-x-2">
-                      <Button variant="ghost" size="icon" onClick={(e) => {
-                        e.stopPropagation();
-                        handlePerformanceClick(item.id);
-                      }}>
-                        <Eye className="h-4 w-4 text-blue-500" />
-                      </Button>
-                      <Button variant="ghost" size="icon" onClick={(e) => {
-                        e.stopPropagation();
-                        // 处理编辑操作
-                      }}>
-                        <FileEdit className="h-4 w-4 text-yellow-500" />
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
+                    </TableCell>
+                    <TableCell>
+                      {item.score === '-' ? (
+                        <span className="text-muted-foreground">-</span>
+                      ) : (
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium">{item.score}</span>
+                          <div className="h-1 w-12 bg-gray-200 rounded-full">
+                            <div 
+                              className="h-1 bg-blue-600 rounded-full" 
+                              style={{ width: `${(parseInt(item.score) / 100) * 100}%` }}
+                            />
+                          </div>
+                        </div>
+                      )}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="sm">
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem>
+                            <Eye className="h-4 w-4 mr-2" />
+                            查看详情
+                          </DropdownMenuItem>
+                          <DropdownMenuItem>
+                            <FileEdit className="h-4 w-4 mr-2" />
+                            编辑考核
+                          </DropdownMenuItem>
+                          <DropdownMenuItem className="text-red-600">
+                            <AlertCircle className="h-4 w-4 mr-2" />
+                            取消考核
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
             </TableBody>
           </Table>
         </CardContent>
