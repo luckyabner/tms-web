@@ -1,3 +1,5 @@
+'use client';
+
 import { Building2, Plus, Users, UserPlus, Search, MoreHorizontal } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -16,8 +18,11 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useState } from 'react';
 
 export default function DepartmentsPage() {
+  const [searchTerm, setSearchTerm] = useState('');
+
   // 模拟部门数据
   const departments = [
     { id: 1, name: '技术部', manager: '张三', employeeCount: 45, openPositions: 3, status: 'active' },
@@ -27,30 +32,34 @@ export default function DepartmentsPage() {
     { id: 5, name: '产品部', manager: '钱七', employeeCount: 20, openPositions: 2, status: 'active' },
   ];
 
+  // 过滤部门数据
+  const filteredDepartments = departments.filter((department) => {
+    return (
+      department.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      department.manager.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  });
+
   return (
-    <div className="p-6 space-y-6 min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-      {/* 页面标题和操作按钮 */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+    <div className="container mx-auto p-6 space-y-6">
+      {/* 页面标题 */}
+      <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
             部门管理
           </h1>
-          <p className="text-muted-foreground mt-1">管理公司各部门信息</p>
+          <p className="text-muted-foreground">管理和查看所有部门信息</p>
         </div>
-        <div className="flex gap-3 w-full md:w-auto">
-          <div className="relative flex-1 md:flex-none">
-            <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input placeholder="搜索部门..." className="pl-8 w-full md:w-[200px]" />
-          </div>
+        <div className="flex items-center space-x-2">
           <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
-            <Plus className="mr-2 h-4 w-4" />
+            <Plus className="h-4 w-4 mr-2" />
             添加部门
           </Button>
         </div>
       </div>
 
-      {/* 部门统计卡片 */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      {/* 统计卡片 */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <Card className="hover:shadow-lg transition-shadow duration-200">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">总部门数</CardTitle>
@@ -95,8 +104,17 @@ export default function DepartmentsPage() {
 
       {/* 部门列表 */}
       <Card className="hover:shadow-lg transition-shadow duration-200">
-        <CardHeader>
+        <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>部门列表</CardTitle>
+          <div className="relative w-64">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+            <Input
+              placeholder="搜索部门名称或主管..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10"
+            />
+          </div>
         </CardHeader>
         <CardContent>
           <Table>
@@ -111,7 +129,7 @@ export default function DepartmentsPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {departments.map((department) => (
+              {filteredDepartments.map((department) => (
                 <TableRow key={department.id} className="hover:bg-gray-50">
                   <TableCell className="font-medium">{department.name}</TableCell>
                   <TableCell>{department.manager}</TableCell>

@@ -119,7 +119,9 @@ export default function EmployeesPage() {
 			{/* 页面标题 */}
 			<div className="flex items-center justify-between">
 				<div>
-					<h1 className="text-3xl font-bold tracking-tight">员工管理</h1>
+					<h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+						员工管理
+					</h1>
 					<p className="text-muted-foreground">管理和查看所有员工信息</p>
 				</div>
 				<div className="flex items-center space-x-2">
@@ -127,7 +129,7 @@ export default function EmployeesPage() {
 						<Filter className="h-4 w-4 mr-2" />
 						导出
 					</Button>
-					<Button>
+					<Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
 						<User className="h-4 w-4 mr-2" />
 						添加员工
 					</Button>
