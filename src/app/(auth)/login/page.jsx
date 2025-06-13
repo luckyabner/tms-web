@@ -16,32 +16,45 @@ export default function Login() {
     password: '',
   });
   const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    setIsLoading(true);
     
     // 简单的表单验证
     if (!formData.email || !formData.password) {
       setError('请填写所有必填字段');
+      setIsLoading(false);
       return;
     }
     
     try {
+      // 模拟API调用延迟
+      await new Promise(resolve => setTimeout(resolve, 1000));
       // TODO: 这里添加实际的登录逻辑
-      // 模拟登录成功
       router.push('/dashboard');
     } catch (err) {
       setError('登录失败，请检查您的邮箱和密码');
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
     <div className="animate-fade-up">
-      <Card className="w-full max-w-[400px] border-none shadow-lg backdrop-blur-[2px] bg-white/90">
+      <Card className="w-full max-w-[400px] border-none shadow-2xl backdrop-blur-[8px] bg-white/90 relative overflow-hidden">
+        {/* 装饰元素 */}
+        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600"></div>
+        <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-blue-600/20 to-transparent rounded-full blur-2xl transform translate-x-1/2 -translate-y-1/2"></div>
+        <div className="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-tr from-purple-600/20 to-transparent rounded-full blur-2xl transform -translate-x-1/2 translate-y-1/2"></div>
+
         <CardHeader className="space-y-1 pb-8">
-          <CardTitle className="text-2xl font-bold text-center bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-            欢迎回来
+          <CardTitle className="text-2xl font-bold text-center">
+            <span className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+              欢迎回来
+            </span>
           </CardTitle>
           <CardDescription className="text-center text-gray-500">
             请登录您的账号以继续
@@ -50,7 +63,7 @@ export default function Login() {
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             {error && (
-              <div className="p-3 rounded-lg bg-red-50 text-red-600 text-sm flex items-center gap-2">
+              <div className="p-3 rounded-lg bg-red-50 text-red-600 text-sm flex items-center gap-2 animate-shake">
                 <AlertCircle className="h-4 w-4" />
                 {error}
               </div>
@@ -65,8 +78,9 @@ export default function Login() {
                   placeholder="请输入邮箱"
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  className="pl-10 transition-all border-gray-200 hover:border-gray-300 focus:border-blue-600 focus:ring-1 focus:ring-blue-600"
+                  className="pl-10 transition-all border-gray-200 hover:border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-600/20"
                   required
+                  disabled={isLoading}
                 />
               </div>
             </div>
@@ -75,7 +89,7 @@ export default function Login() {
                 <Label htmlFor="password" className="text-sm font-medium">密码</Label>
                 <Button
                   variant="link"
-                  className="px-0 text-xs text-gray-500 hover:text-blue-600"
+                  className="px-0 text-xs text-gray-500 hover:text-blue-600 transition-colors"
                   onClick={() => router.push('/forgot-password')}
                 >
                   忘记密码？
@@ -89,8 +103,9 @@ export default function Login() {
                   placeholder="请输入密码"
                   value={formData.password}
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                  className="pl-10 transition-all border-gray-200 hover:border-gray-300 focus:border-blue-600 focus:ring-1 focus:ring-blue-600"
+                  className="pl-10 transition-all border-gray-200 hover:border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-600/20"
                   required
+                  disabled={isLoading}
                 />
                 <Button
                   type="button"
@@ -98,6 +113,7 @@ export default function Login() {
                   size="icon"
                   className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
                   onClick={() => setShowPassword(!showPassword)}
+                  disabled={isLoading}
                 >
                   {showPassword ? (
                     <EyeOff className="h-4 w-4 text-gray-500 hover:text-blue-600 transition-colors" />
@@ -109,9 +125,15 @@ export default function Login() {
             </div>
             <Button 
               type="submit" 
-              className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] hover:shadow-lg"
+              className={`w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] hover:shadow-lg ${isLoading ? 'opacity-90 cursor-not-allowed' : ''}`}
+              disabled={isLoading}
             >
-              登录
+              {isLoading ? (
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin"></div>
+                  登录中...
+                </div>
+              ) : '登录'}
             </Button>
           </form>
         </CardContent>
