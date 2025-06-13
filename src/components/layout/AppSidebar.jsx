@@ -27,7 +27,7 @@ import {
 const mainItems = [
 	{
 		title: '工作台',
-		url: '/',
+		url: '/dashboard',
 		icon: LayoutDashboard,
 	},
 	{
