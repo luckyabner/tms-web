@@ -1,14 +1,11 @@
+"use client";
+
 import {
 	LayoutDashboard,
 	Users,
-	UserPlus,
-	Calendar,
-	TrendingUp,
-	FileText,
-	Award,
-	Settings,
 	Building,
-	UserCheck,
+	Settings,
+	Award,
 } from 'lucide-react';
 
 import {
@@ -21,7 +18,11 @@ import {
 	SidebarMenu,
 	SidebarMenuButton,
 	SidebarMenuItem,
+	SidebarSeparator,
 } from '@/components/ui/sidebar';
+
+import { cn } from '@/lib/utils';
+import { usePathname } from 'next/navigation';
 
 // 主要功能菜单
 const mainItems = [
@@ -40,11 +41,6 @@ const mainItems = [
 		url: '/performance',
 		icon: Award,
 	},
-	{
-		title: '关系分析',
-		url: '/performance',
-		icon: TrendingUp,
-	},
 ];
 
 // 组织管理菜单
@@ -54,20 +50,10 @@ const organizationItems = [
 		url: '/departments',
 		icon: Building,
 	},
-	{
-		title: '员工档案',
-		url: '/employees',
-		icon: UserCheck,
-	},
 ];
 
 // 系统设置菜单
 const systemItems = [
-	{
-		title: '报表分析',
-		url: '/reports',
-		icon: FileText,
-	},
 	{
 		title: '系统设置',
 		url: '/settings',
@@ -76,29 +62,47 @@ const systemItems = [
 ];
 
 export function AppSidebar() {
+	const pathname = usePathname();
+
+	const isActive = (url) => {
+		return pathname === url;
+	};
+
 	return (
-		<Sidebar>
-			<SidebarHeader className="flex items-center justify-center p-6 border-b">
-				<div className="flex items-center space-x-2">
-					<div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-						<span className="text-white font-bold text-sm">TM</span>
+		<Sidebar className="border-r border-gray-200">
+			<SidebarHeader className="flex items-center justify-center py-8 px-6 border-b border-gray-200">
+				<div className="flex items-center space-x-3">
+					<div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl flex items-center justify-center shadow-lg shadow-blue-200">
+						<span className="text-white font-bold text-lg">TM</span>
 					</div>
 					<div>
-						<h2 className="font-semibold text-lg">人才管理系统</h2>
-						<p className="text-sm text-muted-foreground">Talent Management</p>
+						<h2 className="font-bold text-xl text-gray-800">人才管理</h2>
+						<p className="text-sm text-gray-500 font-medium">Talent Management</p>
 					</div>
 				</div>
 			</SidebarHeader>
-			<SidebarContent>
+			<SidebarContent className="py-4">
 				<SidebarGroup>
-					<SidebarGroupLabel>主要功能</SidebarGroupLabel>
+					<SidebarGroupLabel className="px-6 text-xs font-semibold uppercase tracking-wider text-gray-500">
+						主要功能
+					</SidebarGroupLabel>
 					<SidebarGroupContent>
 						<SidebarMenu>
 							{mainItems.map((item) => (
 								<SidebarMenuItem key={item.title}>
-									<SidebarMenuButton asChild>
-										<a href={item.url}>
-											<item.icon />
+									<SidebarMenuButton
+										asChild
+										className={cn(
+											'mx-3 mb-1 transition-colors duration-200',
+											'hover:bg-blue-50 hover:text-blue-700',
+											isActive(item.url) && 'bg-blue-50 text-blue-700 font-medium'
+										)}
+									>
+										<a href={item.url} className="flex items-center space-x-3 px-3 py-2 rounded-lg">
+											<item.icon className={cn(
+												'h-5 w-5 transition-colors duration-200',
+												isActive(item.url) ? 'text-blue-600' : 'text-gray-400'
+											)} />
 											<span>{item.title}</span>
 										</a>
 									</SidebarMenuButton>
@@ -108,15 +112,29 @@ export function AppSidebar() {
 					</SidebarGroupContent>
 				</SidebarGroup>
 
+				<SidebarSeparator className="my-4" />
+
 				<SidebarGroup>
-					<SidebarGroupLabel>组织管理</SidebarGroupLabel>
+					<SidebarGroupLabel className="px-6 text-xs font-semibold uppercase tracking-wider text-gray-500">
+						组织管理
+					</SidebarGroupLabel>
 					<SidebarGroupContent>
 						<SidebarMenu>
 							{organizationItems.map((item) => (
 								<SidebarMenuItem key={item.title}>
-									<SidebarMenuButton asChild>
-										<a href={item.url}>
-											<item.icon />
+									<SidebarMenuButton
+										asChild
+										className={cn(
+											'mx-3 mb-1 transition-colors duration-200',
+											'hover:bg-blue-50 hover:text-blue-700',
+											isActive(item.url) && 'bg-blue-50 text-blue-700 font-medium'
+										)}
+									>
+										<a href={item.url} className="flex items-center space-x-3 px-3 py-2 rounded-lg">
+											<item.icon className={cn(
+												'h-5 w-5 transition-colors duration-200',
+												isActive(item.url) ? 'text-blue-600' : 'text-gray-400'
+											)} />
 											<span>{item.title}</span>
 										</a>
 									</SidebarMenuButton>
@@ -126,15 +144,29 @@ export function AppSidebar() {
 					</SidebarGroupContent>
 				</SidebarGroup>
 
+				<SidebarSeparator className="my-4" />
+
 				<SidebarGroup>
-					<SidebarGroupLabel>系统管理</SidebarGroupLabel>
+					<SidebarGroupLabel className="px-6 text-xs font-semibold uppercase tracking-wider text-gray-500">
+						系统管理
+					</SidebarGroupLabel>
 					<SidebarGroupContent>
 						<SidebarMenu>
 							{systemItems.map((item) => (
 								<SidebarMenuItem key={item.title}>
-									<SidebarMenuButton asChild>
-										<a href={item.url}>
-											<item.icon />
+									<SidebarMenuButton
+										asChild
+										className={cn(
+											'mx-3 mb-1 transition-colors duration-200',
+											'hover:bg-blue-50 hover:text-blue-700',
+											isActive(item.url) && 'bg-blue-50 text-blue-700 font-medium'
+										)}
+									>
+										<a href={item.url} className="flex items-center space-x-3 px-3 py-2 rounded-lg">
+											<item.icon className={cn(
+												'h-5 w-5 transition-colors duration-200',
+												isActive(item.url) ? 'text-blue-600' : 'text-gray-400'
+											)} />
 											<span>{item.title}</span>
 										</a>
 									</SidebarMenuButton>
