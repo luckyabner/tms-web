@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { Eye, EyeOff, Mail, Lock, User, AlertCircle, CheckCircle2, Info } from 'lucide-react';
+import { Eye, EyeOff, Phone, Lock, User, AlertCircle, CheckCircle2, Info } from 'lucide-react';
 
 export default function Register() {
   const router = useRouter();
@@ -14,7 +14,7 @@ export default function Register() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
-    email: '',
+    phone: '',
     password: '',
     confirmPassword: '',
   });
@@ -37,14 +37,25 @@ export default function Register() {
 
   const passwordStrength = getPasswordStrength(formData.password);
 
+  // 验证手机号格式
+  const isValidPhone = (phone) => {
+    return /^1[3-9]\d{9}$/.test(phone);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setIsLoading(true);
 
     // 表单验证
-    if (!formData.name || !formData.email || !formData.password || !formData.confirmPassword) {
+    if (!formData.name || !formData.phone || !formData.password || !formData.confirmPassword) {
       setError('请填写所有必填字段');
+      setIsLoading(false);
+      return;
+    }
+
+    if (!isValidPhone(formData.phone)) {
+      setError('请输入有效的手机号码');
       setIsLoading(false);
       return;
     }
@@ -122,20 +133,27 @@ export default function Register() {
               </div>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="email" className="text-sm font-medium">邮箱</Label>
+              <Label htmlFor="phone" className="text-sm font-medium">手机号码</Label>
               <div className="relative group">
-                <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-500 transition-colors group-hover:text-blue-600" />
+                <Phone className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-500 transition-colors group-hover:text-blue-600" />
                 <Input
-                  id="email"
-                  type="email"
-                  placeholder="请输入邮箱"
-                  value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  id="phone"
+                  type="tel"
+                  placeholder="请输入手机号码"
+                  value={formData.phone}
+                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                   className="pl-10 transition-all border-gray-200 hover:border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-600/20"
                   required
                   disabled={isLoading}
+                  pattern="^1[3-9]\d{9}$"
                 />
               </div>
+              {formData.phone && !isValidPhone(formData.phone) && (
+                <p className="text-xs text-red-500 mt-1 flex items-center gap-1">
+                  <AlertCircle className="h-3 w-3" />
+                  请输入有效的手机号码
+                </p>
+              )}
             </div>
             <div className="space-y-2">
               <Label htmlFor="password" className="text-sm font-medium">密码</Label>
@@ -168,19 +186,38 @@ export default function Register() {
               </div>
               {formData.password && (
                 <div className="mt-2">
-                  <div className="flex items-center gap-2 mb-1">
-                    <div className="flex-1 h-1 rounded-full bg-gray-200 overflow-hidden">
-                      <div 
+                  <div className="space-y-2">
+                    <div className="h-1 w-full bg-gray-200 rounded-full overflow-hidden">
+                      <div
                         className={`h-full transition-all duration-300 ${
-                          passwordStrength.score >= 4 ? 'bg-green-500' :
-                          passwordStrength.score >= 3 ? 'bg-blue-500' :
-                          passwordStrength.score >= 2 ? 'bg-yellow-500' :
-                          'bg-red-500'
+                          passwordStrength.score === 0
+                            ? 'w-0'
+                            : passwordStrength.score === 1
+                            ? 'w-1/5 bg-red-500'
+                            : passwordStrength.score === 2
+                            ? 'w-2/5 bg-orange-500'
+                            : passwordStrength.score === 3
+                            ? 'w-3/5 bg-yellow-500'
+                            : passwordStrength.score === 4
+                            ? 'w-4/5 bg-lime-500'
+                            : 'w-full bg-green-500'
                         }`}
-                        style={{ width: `${(passwordStrength.score / 5) * 100}%` }}
-                      />
+                      ></div>
                     </div>
-                    <span className="text-xs text-gray-500">{passwordStrength.text}</span>
+                    <div className="text-xs text-gray-500 flex justify-between items-center">
+                      <span>密码强度：</span>
+                      <span className={`font-medium ${
+                        passwordStrength.score <= 1
+                          ? 'text-red-500'
+                          : passwordStrength.score === 2
+                          ? 'text-orange-500'
+                          : passwordStrength.score === 3
+                          ? 'text-yellow-500'
+                          : passwordStrength.score === 4
+                          ? 'text-lime-500'
+                          : 'text-green-500'
+                      }`}>{passwordStrength.text}</span>
+                    </div>
                   </div>
                   <div className="grid grid-cols-2 gap-2 text-xs text-gray-500">
                     <div className="flex items-center gap-1">
