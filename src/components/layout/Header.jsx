@@ -11,6 +11,7 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import Link from 'next/link';
 
 export default function Header() {
 	return (
@@ -73,13 +74,17 @@ export default function Header() {
 					>
 						<DropdownMenuLabel>我的账户</DropdownMenuLabel>
 						<DropdownMenuSeparator />
-						<DropdownMenuItem>
-							<User className="mr-2 h-4 w-4" />
-							个人资料
+						<DropdownMenuItem asChild>
+							<Link href="/profile" className="flex items-center">
+								<User className="mr-2 h-4 w-4" />
+								个人资料
+							</Link>
 						</DropdownMenuItem>
-						<DropdownMenuItem>
-							<Settings className="mr-2 h-4 w-4" />
-							设置
+						<DropdownMenuItem asChild>
+							<Link href="/settings" className="flex items-center">
+								<Settings className="mr-2 h-4 w-4" />
+								设置
+							</Link>
 						</DropdownMenuItem>
 						<DropdownMenuSeparator />
 						<DropdownMenuItem className="text-red-600">
