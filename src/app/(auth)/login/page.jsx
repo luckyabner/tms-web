@@ -6,17 +6,22 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { Eye, EyeOff, Mail, Lock, AlertCircle } from 'lucide-react';
+import { Eye, EyeOff, Phone, Lock, AlertCircle } from 'lucide-react';
 
 export default function Login() {
   const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
-    email: '',
+    phone: '',
     password: '',
   });
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+
+  // 验证手机号格式
+  const isValidPhone = (phone) => {
+    return /^1[3-9]\d{9}$/.test(phone);
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -24,8 +29,14 @@ export default function Login() {
     setIsLoading(true);
     
     // 简单的表单验证
-    if (!formData.email || !formData.password) {
+    if (!formData.phone || !formData.password) {
       setError('请填写所有必填字段');
+      setIsLoading(false);
+      return;
+    }
+
+    if (!isValidPhone(formData.phone)) {
+      setError('请输入有效的手机号码');
       setIsLoading(false);
       return;
     }
@@ -36,7 +47,7 @@ export default function Login() {
       // TODO: 这里添加实际的登录逻辑
       router.push('/dashboard');
     } catch (err) {
-      setError('登录失败，请检查您的邮箱和密码');
+      setError('登录失败，请检查您的手机号和密码');
     } finally {
       setIsLoading(false);
     }
@@ -69,20 +80,27 @@ export default function Login() {
               </div>
             )}
             <div className="space-y-2">
-              <Label htmlFor="email" className="text-sm font-medium">邮箱</Label>
+              <Label htmlFor="phone" className="text-sm font-medium">手机号码</Label>
               <div className="relative group">
-                <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-500 transition-colors group-hover:text-blue-600" />
+                <Phone className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-500 transition-colors group-hover:text-blue-600" />
                 <Input
-                  id="email"
-                  type="email"
-                  placeholder="请输入邮箱"
-                  value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  id="phone"
+                  type="tel"
+                  placeholder="请输入手机号码"
+                  value={formData.phone}
+                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                   className="pl-10 transition-all border-gray-200 hover:border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-600/20"
                   required
                   disabled={isLoading}
+                  pattern="^1[3-9]\d{9}$"
                 />
               </div>
+              {formData.phone && !isValidPhone(formData.phone) && (
+                <p className="text-xs text-red-500 mt-1 flex items-center gap-1">
+                  <AlertCircle className="h-3 w-3" />
+                  请输入有效的手机号码
+                </p>
+              )}
             </div>
             <div className="space-y-2">
               <div className="flex items-center justify-between">
