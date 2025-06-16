@@ -1,20 +1,28 @@
+"use client";
+
 import { Users, UserPlus, TrendingUp, Calendar, Clock, CheckCircle, AlertTriangle, Star } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { StatCard } from '@/components/ui/stat-card';
 import { Button } from '@/components/ui/button';
+import { RealTimeClock } from '@/components/ui/real-time-clock';
 
 export default function Dashboard() {
   return (
     <div className="p-6 space-y-6 bg-gray-50 min-h-screen">
       {/* 欢迎区域 */}
       <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg text-white p-6">
-        <h1 className="text-2xl font-bold mb-2">欢迎回来，张管理员！</h1>
-        <p className="text-blue-100">今天是 {new Date().toLocaleDateString('zh-CN', { 
-          year: 'numeric', 
-          month: 'long', 
-          day: 'numeric',
-          weekday: 'long'
-        })}</p>
+        <div className="flex justify-between items-start">
+          <div>
+            <h1 className="text-2xl font-bold mb-2">欢迎回来，张三丰！</h1>
+            <p className="text-blue-100">今天是 {new Date().toLocaleDateString('zh-CN', { 
+              year: 'numeric', 
+              month: 'long', 
+              day: 'numeric',
+              weekday: 'long'
+            })}</p>
+          </div>
+          <RealTimeClock />
+        </div>
       </div>
 
       {/* 统计卡片 */}

@@ -62,8 +62,8 @@ export default function Header() {
 								<User className="h-4 w-4 text-white" />
 							</div>
 							<div className="text-left">
-								<div className="text-sm font-medium">张管理员</div>
-								<div className="text-xs text-muted-foreground">系统管理员</div>
+								<div className="text-sm font-medium">张三丰</div>
+								<div className="text-xs text-muted-foreground">人事专员</div>
 							</div>
 							<ChevronDown className="h-4 w-4" />
 						</Button>
