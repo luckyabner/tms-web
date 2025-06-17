@@ -45,7 +45,7 @@ export default function Login() {
       // 模拟API调用延迟
       await new Promise(resolve => setTimeout(resolve, 1000));
       // TODO: 这里添加实际的登录逻辑
-      router.push('/dashboard');
+      router.push('/hr/dashboard');
     } catch (err) {
       setError('登录失败，请检查您的手机号和密码');
     } finally {

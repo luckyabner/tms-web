@@ -28,17 +28,17 @@ import { usePathname } from 'next/navigation';
 const mainItems = [
 	{
 		title: '工作台',
-		url: '/dashboard',
+		url: '/hr/dashboard',
 		icon: LayoutDashboard,
 	},
 	{
 		title: '员工档案',
-		url: '/employees',
+		url: '/hr/employees',
 		icon: Users,
 	},
 	{
 		title: '绩效管理',
-		url: '/performance',
+		url: '/hr/performance',
 		icon: Award,
 	},
 ];
@@ -47,7 +47,7 @@ const mainItems = [
 const organizationItems = [
 	{
 		title: '部门管理',
-		url: '/departments',
+		url: '/hr/departments',
 		icon: Building,
 	},
 ];
@@ -56,7 +56,7 @@ const organizationItems = [
 const systemItems = [
 	{
 		title: '系统设置',
-		url: '/settings',
+		url: '/hr/settings',
 		icon: Settings,
 	},
 ];
