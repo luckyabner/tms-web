@@ -1,3 +1,5 @@
+"use client";
+
 import React from 'react';
 import { Bell, Search, User, Settings, LogOut, ChevronDown } from 'lucide-react';
 import { SidebarTrigger } from '@/components/ui/sidebar';
@@ -12,8 +14,12 @@ import {
 	DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 
 export default function Header() {
+	const pathname = usePathname();
+	const isAdminPath = pathname?.startsWith('/admin');
+	
 	return (
 		<header className="flex items-center justify-between px-6 py-3 bg-white border-b shadow-sm">
 			{/* 左侧：侧边栏触发器和面包屑 */}
@@ -58,12 +64,12 @@ export default function Header() {
 							variant="ghost"
 							className="flex items-center space-x-2 px-3"
 						>
-							<div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
+							<div className={`w-8 h-8 ${isAdminPath ? 'bg-purple-600' : 'bg-blue-600'} rounded-full flex items-center justify-center`}>
 								<User className="h-4 w-4 text-white" />
 							</div>
 							<div className="text-left">
-								<div className="text-sm font-medium">张三丰</div>
-								<div className="text-xs text-muted-foreground">人事专员</div>
+								<div className="text-sm font-medium">{isAdminPath ? '张无忌' : '张三丰'}</div>
+								<div className="text-xs text-muted-foreground">{isAdminPath ? '系统管理员' : '人事专员'}</div>
 							</div>
 							<ChevronDown className="h-4 w-4" />
 						</Button>
