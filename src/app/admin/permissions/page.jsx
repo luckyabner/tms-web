@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -55,30 +55,22 @@ export default function PermissionsPage() {
     },
     { 
       id: 2, 
-      name: '人事专员', 
-      description: '管理员工档案、招聘和绩效',
+      name: '公司高层', 
+      description: '查看所有数据，无修改权限',
       userCount: 5,
       isSystem: true,
-      permissions: ['employee.view', 'employee.create', 'employee.edit', 'employee.delete', 'recruitment.manage', 'performance.manage']
+      permissions: ['employee.view', 'department.view', 'performance.view', 'recruitment.view', 'salary.view', 'reports.view', 'reports.finance', 'reports.hr']
     },
     { 
       id: 3, 
-      name: '部门主管', 
-      description: '管理部门员工和工作',
+      name: '人事专员', 
+      description: '管理员工档案、招聘和绩效',
       userCount: 12,
       isSystem: true,
-      permissions: ['department.view', 'employee.view', 'employee.edit', 'performance.view', 'performance.edit']
+      permissions: ['employee.view', 'employee.create', 'employee.edit', 'employee.delete', 'recruitment.manage', 'performance.manage', 'department.view']
     },
     { 
       id: 4, 
-      name: '财务人员', 
-      description: '管理薪资和财务数据',
-      userCount: 4,
-      isSystem: false,
-      permissions: ['employee.view', 'salary.view', 'salary.edit', 'reports.finance']
-    },
-    { 
-      id: 5, 
       name: '普通员工', 
       description: '基本系统访问权限',
       userCount: 87,
@@ -160,42 +152,42 @@ export default function PermissionsPage() {
   const users = [
     { 
       id: 1, 
-      name: '张三', 
-      email: 'zhangsan@company.com',
+      name: '张无忌', 
+      email: 'zhangwuji@company.com',
       department: '技术部',
       role: '系统管理员',
       lastLogin: '2023-09-15 14:30:22'
     },
     { 
       id: 2, 
-      name: '李四', 
-      email: 'lisi@company.com',
-      department: '人事部',
-      role: '人事专员',
+      name: '宋远桥', 
+      email: 'songyuanqiao@company.com',
+      department: '董事会',
+      role: '公司高层',
       lastLogin: '2023-09-15 11:22:05'
     },
     { 
       id: 3, 
-      name: '王五', 
-      email: 'wangwu@company.com',
-      department: '设计部',
-      role: '部门主管',
+      name: '张三丰', 
+      email: 'zhangsanfeng@company.com',
+      department: '人事部',
+      role: '人事专员',
       lastLogin: '2023-09-14 17:45:33'
     },
     { 
       id: 4, 
-      name: '赵六', 
-      email: 'zhaoliu@company.com',
-      department: '财务部',
-      role: '财务人员',
+      name: '周芷若', 
+      email: 'zhouzhiruo@company.com',
+      department: '市场部',
+      role: '普通员工',
       lastLogin: '2023-09-15 09:12:48'
     },
     { 
       id: 5, 
-      name: '钱七', 
-      email: 'qianqi@company.com',
-      department: '市场部',
-      role: '部门主管',
+      name: '赵敏', 
+      email: 'zhaomin@company.com',
+      department: '财务部',
+      role: '普通员工',
       lastLogin: '2023-09-15 10:05:17'
     }
   ];

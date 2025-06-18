@@ -46,7 +46,7 @@ const mockEmployees = [
     department: '产品部',
     email: 'lisi@company.com',
     phone: '139-8765-4321',
-    role: '部门主管',
+    role: '公司高层',
     status: 'active',
     permissions: ['查看部门信息', '审批工作报告', '考勤管理']
   },
@@ -79,7 +79,7 @@ const mockEmployees = [
     department: '数据部',
     email: 'qianqi@company.com',
     phone: '188-7539-4826',
-    role: '部门主管',
+    role: '公司高层',
     status: 'active',
     permissions: ['查看部门信息', '审批工作报告', '考勤管理']
   },
@@ -111,7 +111,7 @@ const mockEmployees = [
 const roles = [
   { id: 1, name: '系统管理员', description: '拥有系统最高权限' },
   { id: 2, name: '人事专员', description: '管理员工档案、招聘和绩效' },
-  { id: 3, name: '部门主管', description: '管理部门员工和工作' },
+  { id: 3, name: '公司高层', description: '查看所有数据，无修改权限' },
   { id: 4, name: '普通员工', description: '基本系统访问权限' }
 ];
 
@@ -225,7 +225,7 @@ export default function AdminEmployeesPage() {
                   <SelectItem value="all">所有角色</SelectItem>
                   <SelectItem value="系统管理员">系统管理员</SelectItem>
                   <SelectItem value="人事专员">人事专员</SelectItem>
-                  <SelectItem value="部门主管">部门主管</SelectItem>
+                  <SelectItem value="公司高层">公司高层</SelectItem>
                   <SelectItem value="普通员工">普通员工</SelectItem>
                 </SelectContent>
               </Select>
@@ -292,7 +292,7 @@ export default function AdminEmployeesPage() {
                         <Badge variant={
                           employee.role === '系统管理员' ? 'destructive' :
                           employee.role === '人事专员' ? 'purple' :
-                          employee.role === '部门主管' ? 'blue' : 'outline'
+                          employee.role === '公司高层' ? 'blue' : 'outline'
                         }>
                           {employee.role}
                         </Badge>
@@ -378,13 +378,13 @@ export default function AdminEmployeesPage() {
                       <div className="h-2 w-full bg-gray-100 rounded-full">
                         <div 
                           className="h-2 bg-purple-600 rounded-full" 
-                          style={{ width: role.name === '普通员工' ? '70%' : role.name === '部门主管' ? '20%' : '5%' }}
+                          style={{ width: role.name === '普通员工' ? '70%' : role.name === '公司高层' ? '20%' : '5%' }}
                         />
                       </div>
                       <span className="text-xs text-muted-foreground">
                         {role.name === '系统管理员' ? '2' : 
                          role.name === '人事专员' ? '3' : 
-                         role.name === '部门主管' ? '8' : '45'}
+                         role.name === '公司高层' ? '8' : '45'}
                       </span>
                     </div>
                   </div>
@@ -394,19 +394,19 @@ export default function AdminEmployeesPage() {
                     <div className="flex space-x-1">
                       {Array.from({ length: role.name === '系统管理员' ? 5 : 
                                            role.name === '人事专员' ? 4 : 
-                                           role.name === '部门主管' ? 3 : 1 }).map((_, i) => (
+                                           role.name === '公司高层' ? 3 : 1 }).map((_, i) => (
                         <div 
                           key={i} 
                           className={`h-1.5 flex-1 rounded-full ${
                             role.name === '系统管理员' ? 'bg-red-500' : 
                             role.name === '人事专员' ? 'bg-amber-500' : 
-                            role.name === '部门主管' ? 'bg-blue-500' : 'bg-green-500'
+                            role.name === '公司高层' ? 'bg-blue-500' : 'bg-green-500'
                           }`} 
                         />
                       ))}
                       {Array.from({ length: 5 - (role.name === '系统管理员' ? 5 : 
                                                 role.name === '人事专员' ? 4 : 
-                                                role.name === '部门主管' ? 3 : 1) }).map((_, i) => (
+                                                role.name === '公司高层' ? 3 : 1) }).map((_, i) => (
                         <div key={i + 5} className="h-1.5 flex-1 rounded-full bg-gray-100" />
                       ))}
                     </div>
@@ -443,7 +443,7 @@ export default function AdminEmployeesPage() {
                       <TableHead>描述</TableHead>
                       <TableHead>系统管理员</TableHead>
                       <TableHead>人事专员</TableHead>
-                      <TableHead>部门主管</TableHead>
+                      <TableHead>公司高层</TableHead>
                       <TableHead>普通员工</TableHead>
                     </TableRow>
                   </TableHeader>
