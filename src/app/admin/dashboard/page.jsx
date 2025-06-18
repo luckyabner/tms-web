@@ -19,6 +19,7 @@ import {
   Legend
 } from 'recharts';
 import { Users, Building, ShieldAlert, ClipboardList, ArrowUpRight, ArrowDownRight } from 'lucide-react';
+import { RealTimeClock } from '@/components/ui/real-time-clock';
 
 export default function AdminDashboardPage() {
   // 模拟统计数据
@@ -70,9 +71,9 @@ export default function AdminDashboardPage() {
 
   // 模拟用户角色分布数据
   const userRoleData = [
-    { name: '管理员', value: 5 },
+    { name: '系统管理员', value: 5 },
     { name: '人事专员', value: 15 },
-    { name: '部门主管', value: 25 },
+    { name: '公司高层', value: 25 },
     { name: '普通员工', value: 150 },
   ];
 
@@ -90,12 +91,20 @@ export default function AdminDashboardPage() {
 
   return (
     <div className="container mx-auto p-6 space-y-6">
-      {/* 页面标题 */}
-      <div>
-        <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">
-          系统概览
-        </h1>
-        <p className="text-muted-foreground">欢迎回来，系统管理员</p>
+      {/* 欢迎区域 */}
+      <div className="bg-gradient-to-r from-purple-600 to-indigo-600 rounded-lg text-white p-6">
+        <div className="flex justify-between items-start">
+          <div>
+            <h1 className="text-2xl font-bold mb-2">欢迎回来，张无忌！</h1>
+            <p className="text-purple-100">今天是 {new Date().toLocaleDateString('zh-CN', { 
+              year: 'numeric', 
+              month: 'long', 
+              day: 'numeric',
+              weekday: 'long'
+            })}</p>
+          </div>
+          <RealTimeClock />
+        </div>
       </div>
 
       {/* 统计卡片 */}

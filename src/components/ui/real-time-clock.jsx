@@ -27,7 +27,7 @@ export function RealTimeClock() {
   });
 
   return (
-    <div className="flex items-center gap-2 text-blue-100">
+    <div className="flex items-center gap-2 text-purple-100">
       <ClockIcon className="h-5 w-5" />
       <span className="font-medium">{formattedTime}</span>
     </div>
