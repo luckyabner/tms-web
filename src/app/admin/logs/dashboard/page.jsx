@@ -280,26 +280,58 @@ export default function LogsDashboardPage() {
             <CardDescription>系统日志来源分类</CardDescription>
           </CardHeader>
           <CardContent className="h-80">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={logSourceData}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={false}
-                  label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                  outerRadius={80}
-                  fill="#8884d8"
-                  dataKey="value"
-                >
-                  {logSourceData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip />
-                <Legend />
-              </PieChart>
-            </ResponsiveContainer>
+            <div className="flex flex-col h-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart margin={{ top: 5, right: 35, left: 35, bottom: 5 }}>
+                  <Pie
+                    data={logSourceData}
+                    cx="50%"
+                    cy="45%"
+                    labelLine={false}
+                    label={({ name, value, percent, x, y, midAngle }) => {
+                      const RADIAN = Math.PI / 180;
+                      const radius = 25 + (40 * 0.8);
+                      const x1 = x + Math.cos(-midAngle * RADIAN) * radius;
+                      const y1 = y + Math.sin(-midAngle * RADIAN) * radius;
+                      
+                      return (
+                        <g>
+                          <text 
+                            x={x1} 
+                            y={y1} 
+                            fill="#666"
+                            textAnchor={x1 > x ? 'start' : 'end'} 
+                            dominantBaseline="central"
+                            style={{ fontSize: '0.7em' }}
+                          >
+                            {`${(percent * 100).toFixed(0)}%`}
+                          </text>
+                        </g>
+                      );
+                    }}
+                    outerRadius={60}
+                    innerRadius={0}
+                    paddingAngle={2}
+                    fill="#8884d8"
+                    dataKey="value"
+                  >
+                    {logSourceData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip formatter={(value, name) => [`${value}%`, name]} />
+                  <Legend 
+                    layout="horizontal" 
+                    verticalAlign="bottom" 
+                    align="center"
+                    wrapperStyle={{ paddingTop: '20px' }}
+                    formatter={(value) => <span style={{ fontSize: '0.75em', display: 'inline-block', maxWidth: '70px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{value}</span>}
+                    iconSize={8}
+                    iconType="circle"
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
           </CardContent>
         </Card>
       </div>
