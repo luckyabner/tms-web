@@ -171,9 +171,9 @@ export default function AdminDashboardPage() {
                   data={userRoleData}
                   cx="50%"
                   cy="50%"
-                  labelLine={false}
-                  label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                  outerRadius={80}
+                  labelLine={true}
+                  outerRadius={70}
+                  label={({ name, percent }) => `${(percent * 100).toFixed(0)}%`}
                   fill="#8884d8"
                   dataKey="value"
                 >
@@ -181,8 +181,8 @@ export default function AdminDashboardPage() {
                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                   ))}
                 </Pie>
-                <Tooltip />
-                <Legend />
+                <Tooltip formatter={(value, name) => [`${value} 人`, name]} />
+                <Legend layout="horizontal" verticalAlign="bottom" align="center" />
               </PieChart>
             </ResponsiveContainer>
           </CardContent>
