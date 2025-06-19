@@ -287,29 +287,9 @@ export default function LogsDashboardPage() {
                     data={logSourceData}
                     cx="50%"
                     cy="45%"
-                    labelLine={false}
-                    label={({ name, value, percent, x, y, midAngle }) => {
-                      const RADIAN = Math.PI / 180;
-                      const radius = 25 + (40 * 0.8);
-                      const x1 = x + Math.cos(-midAngle * RADIAN) * radius;
-                      const y1 = y + Math.sin(-midAngle * RADIAN) * radius;
-                      
-                      return (
-                        <g>
-                          <text 
-                            x={x1} 
-                            y={y1} 
-                            fill="#666"
-                            textAnchor={x1 > x ? 'start' : 'end'} 
-                            dominantBaseline="central"
-                            style={{ fontSize: '0.7em' }}
-                          >
-                            {`${(percent * 100).toFixed(0)}%`}
-                          </text>
-                        </g>
-                      );
-                    }}
+                    labelLine={true}
                     outerRadius={60}
+                    label={({ name, percent }) => `${(percent * 100).toFixed(0)}%`}
                     innerRadius={0}
                     paddingAngle={2}
                     fill="#8884d8"
