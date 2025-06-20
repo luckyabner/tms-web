@@ -1,7 +1,7 @@
 import React from 'react';
-import { EmployeeTable } from './_components/employee-table';
-import { employeeColumns } from './_components/employeeColoums';
+import { employeeColumns } from '@/components/employee/employeeColoums';
 import { getAllEmployees } from '@/lib/data/enployee';
+import { BasicTable } from '@/components/shared/tables/BasicTable';
 
 export default async function EmployeesPage() {
 	const employees = await getAllEmployees();
@@ -17,7 +17,7 @@ export default async function EmployeesPage() {
 			</div>
 
 			{/* 员工表格组件 */}
-			<EmployeeTable
+			<BasicTable
 				columns={employeeColumns}
 				data={employees}
 			/>
