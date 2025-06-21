@@ -39,10 +39,10 @@ import EmployeeForm from '@/components/admin/EmployeeForm';
 
 // 系统角色列表
 const roles = [
-  { id: 1, name: '系统管理员', description: '拥有系统最高权限' },
-  { id: 2, name: '人事专员', description: '管理员工档案、招聘和绩效' },
-  { id: 3, name: '公司高层', description: '查看所有数据，无修改权限' },
-  { id: 4, name: '普通员工', description: '基本系统访问权限' }
+  { id: 1, name: '系统管理员', description: '拥有系统最高权限', count: 1, color: 'red', icon: 'ShieldAlert' },
+  { id: 2, name: '人事专员', description: '管理员工档案、招聘和绩效', count: 2, color: 'amber', icon: 'Users' },
+  { id: 3, name: '公司高层', description: '查看所有数据，无修改权限', count: 4, color: 'blue', icon: 'Briefcase' },
+  { id: 4, name: '普通员工', description: '基本系统访问权限', count: 8, color: 'green', icon: 'User' }
 ];
 
 // 权限列表
@@ -351,7 +351,7 @@ export default function AdminEmployeesPage() {
         <TabsList>
           <TabsTrigger value="employees">员工列表</TabsTrigger>
           <TabsTrigger value="roles">角色管理</TabsTrigger>
-          <TabsTrigger value="permissions">权限设置</TabsTrigger>
+          <TabsTrigger value="permissions">权限查看</TabsTrigger>
         </TabsList>
 
         {/* 员工列表选项卡 */}
@@ -576,164 +576,266 @@ export default function AdminEmployeesPage() {
         </TabsContent>
 
         {/* 角色管理选项卡 */}
-        <TabsContent value="roles" className="space-y-4">
+        <TabsContent value="roles" className="space-y-6">
           <div className="flex justify-between items-center">
             <div>
-              <h2 className="text-xl font-semibold">系统角色</h2>
+              <h2 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">系统角色</h2>
               <p className="text-sm text-muted-foreground">管理系统中的用户角色及其权限</p>
             </div>
-            <Button className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700">
+            <Button className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 shadow-md hover:shadow-lg transition-all duration-200">
+              <UserPlus className="h-4 w-4 mr-2" />
               新增角色
             </Button>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {roles.map((role) => (
-              <Card key={role.id} className="hover:shadow-md transition-shadow">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-lg">{role.name}</CardTitle>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon">
-                        <MoreHorizontal className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem>编辑角色</DropdownMenuItem>
-                      <DropdownMenuItem>配置权限</DropdownMenuItem>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem className="text-red-600">删除角色</DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <p className="text-sm text-muted-foreground">{role.description}</p>
-                  
-                  <div>
-                    <h4 className="text-sm font-medium mb-2">用户数量</h4>
-                    <div className="flex items-center space-x-2">
-                      <div className="h-2 w-full bg-gray-100 rounded-full">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {roles.map((role) => {
+              // 根据角色选择图标
+              let RoleIcon;
+              switch(role.icon) {
+                case 'ShieldAlert': RoleIcon = Shield; break;
+                case 'Users': RoleIcon = UserCog; break;
+                case 'Briefcase': RoleIcon = Building; break;
+                case 'User': 
+                default: RoleIcon = User;
+              }
+              
+              return (
+                <Card key={role.id} className="overflow-hidden hover:shadow-lg transition-all duration-300 border-t-4" style={{ borderTopColor: `var(--${role.color}-500)` }}>
+                  <CardHeader className="flex flex-row items-center justify-between pb-2">
+                    <div className="flex items-center">
+                      <div className={`w-10 h-10 rounded-lg flex items-center justify-center bg-${role.color}-100 text-${role.color}-600 mr-3`}>
+                        <RoleIcon className="h-5 w-5" />
+                      </div>
+                      <div>
+                        <CardTitle className="text-lg font-semibold">{role.name}</CardTitle>
+                        <p className="text-sm text-muted-foreground">{role.description}</p>
+                      </div>
+                    </div>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon" className="rounded-full h-8 w-8">
+                          <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem>
+                          <UserCog className="h-4 w-4 mr-2" />
+                          编辑角色
+                        </DropdownMenuItem>
+                        <DropdownMenuItem>
+                          <Shield className="h-4 w-4 mr-2" />
+                          配置权限
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem className="text-red-600">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4 mr-2">
+                            <path d="M3 6h18"></path>
+                            <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
+                            <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
+                          </svg>
+                          删除角色
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </CardHeader>
+                  <CardContent className="pt-4 pb-6">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center">
+                        <User className="h-4 w-4 text-muted-foreground mr-1" />
+                        <span className="text-sm font-medium">用户数量</span>
+                      </div>
+                      <Badge variant="outline" className={`bg-${role.color}-50 text-${role.color}-700 border-${role.color}-200`}>
+                        {role.count} 人
+                      </Badge>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <div className="flex justify-between items-center">
+                        <span className="text-xs text-muted-foreground">权限级别</span>
+                        <span className={`text-xs font-medium text-${role.color}-600`}>
+                          {role.name === '系统管理员' ? '最高权限' : 
+                           role.name === '人事专员' ? '高级权限' : 
+                           role.name === '公司高层' ? '中级权限' : '基础权限'}
+                        </span>
+                      </div>
+                      
+                      <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
                         <div 
-                          className="h-2 bg-purple-600 rounded-full" 
-                          style={{ width: role.name === '普通员工' ? '70%' : role.name === '公司高层' ? '20%' : '5%' }}
+                          className={`h-full bg-${role.color}-500 rounded-full`} 
+                          style={{ 
+                            width: role.name === '系统管理员' ? '100%' : 
+                                   role.name === '人事专员' ? '80%' : 
+                                   role.name === '公司高层' ? '60%' : '30%' 
+                          }}
                         />
                       </div>
-                      <span className="text-xs text-muted-foreground">
-                        {role.name === '系统管理员' ? '2' : 
-                         role.name === '人事专员' ? '3' : 
-                         role.name === '公司高层' ? '8' : '45'}
-                      </span>
                     </div>
-                  </div>
-                  
-                  <div>
-                    <h4 className="text-sm font-medium mb-2">权限级别</h4>
-                    <div className="flex space-x-1">
-                      {Array.from({ length: role.name === '系统管理员' ? 5 : 
-                                           role.name === '人事专员' ? 4 : 
-                                           role.name === '公司高层' ? 3 : 1 }).map((_, i) => (
-                        <div 
-                          key={i} 
-                          className={`h-1.5 flex-1 rounded-full ${
-                            role.name === '系统管理员' ? 'bg-red-500' : 
-                            role.name === '人事专员' ? 'bg-amber-500' : 
-                            role.name === '公司高层' ? 'bg-blue-500' : 'bg-green-500'
-                          }`} 
-                        />
-                      ))}
-                      {Array.from({ length: 5 - (role.name === '系统管理员' ? 5 : 
-                                                role.name === '人事专员' ? 4 : 
-                                                role.name === '公司高层' ? 3 : 1) }).map((_, i) => (
-                        <div key={i + 5} className="h-1.5 flex-1 rounded-full bg-gray-100" />
-                      ))}
+                    
+                    <div className="mt-6">
+                      <Button variant="outline" className="w-full border-gray-200 hover:bg-gray-50">
+                        <Shield className="mr-2 h-4 w-4" />
+                        管理权限
+                      </Button>
                     </div>
-                  </div>
-                  
-                  <Button variant="outline" className="w-full">
-                    <Shield className="mr-2 h-4 w-4" />
-                    管理权限
-                  </Button>
-                </CardContent>
-              </Card>
-            ))}
+                  </CardContent>
+                </Card>
+              );
+            })}
           </div>
         </TabsContent>
 
-        {/* 权限设置选项卡 */}
-        <TabsContent value="permissions" className="space-y-4">
+        {/* 权限查看选项卡 */}
+        <TabsContent value="permissions" className="space-y-6">
           <div>
-            <h2 className="text-xl font-semibold">权限管理</h2>
-            <p className="text-sm text-muted-foreground">配置系统权限和访问控制</p>
+            <h2 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">权限查看</h2>
+            <p className="text-sm text-muted-foreground">查看系统各角色的权限分配情况</p>
           </div>
 
-          {permissionGroups.map((group) => (
-            <Card key={group.name} className="hover:shadow-md transition-shadow">
-              <CardHeader>
-                <CardTitle className="text-lg">{group.name}</CardTitle>
-                <CardDescription>管理{group.name}相关的系统权限</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>权限名称</TableHead>
-                      <TableHead>描述</TableHead>
-                      <TableHead>系统管理员</TableHead>
-                      <TableHead>人事专员</TableHead>
-                      <TableHead>公司高层</TableHead>
-                      <TableHead>普通员工</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {group.permissions.map((permission) => (
-                      <TableRow key={permission.id}>
-                        <TableCell className="font-medium">{permission.name}</TableCell>
-                        <TableCell>{permission.description}</TableCell>
-                        <TableCell>
-                          <div className="flex justify-center">
-                            <div className="w-4 h-4 rounded-full bg-green-500"></div>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex justify-center">
-                            {(permission.name.includes('员工档案') || 
-                              permission.name.includes('招聘') || 
-                              permission.name.includes('绩效') || 
-                              permission.name.includes('考勤') || 
-                              group.name === '个人权限') ? (
-                              <div className="w-4 h-4 rounded-full bg-green-500"></div>
-                            ) : (
-                              <div className="w-4 h-4 rounded-full bg-red-500"></div>
-                            )}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex justify-center">
-                            {(permission.name.includes('部门') || 
-                              group.name === '个人权限') ? (
-                              <div className="w-4 h-4 rounded-full bg-green-500"></div>
-                            ) : (
-                              <div className="w-4 h-4 rounded-full bg-red-500"></div>
-                            )}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex justify-center">
-                            {(permission.name === '查看个人信息' || 
-                              permission.name === '提交工作报告') ? (
-                              <div className="w-4 h-4 rounded-full bg-green-500"></div>
-                            ) : (
-                              <div className="w-4 h-4 rounded-full bg-red-500"></div>
-                            )}
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </CardContent>
-            </Card>
-          ))}
+          {permissionGroups.map((group) => {
+            // 根据权限组选择图标
+            let GroupIcon;
+            if (group.name === '个人权限') {
+              GroupIcon = User;
+            } else if (group.name === '部门权限') {
+              GroupIcon = Building;
+            } else {
+              GroupIcon = Shield;
+            }
+            
+            return (
+              <Card key={group.name} className="overflow-hidden hover:shadow-lg transition-all duration-300 border-l-4" style={{ borderLeftColor: group.name === '个人权限' ? 'var(--green-500)' : group.name === '部门权限' ? 'var(--blue-500)' : 'var(--purple-500)' }}>
+                <CardHeader className="bg-gradient-to-r from-gray-50 to-white">
+                  <div className="flex items-center gap-3">
+                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
+                      group.name === '个人权限' ? 'bg-green-100 text-green-600' : 
+                      group.name === '部门权限' ? 'bg-blue-100 text-blue-600' : 
+                      'bg-purple-100 text-purple-600'
+                    }`}>
+                      <GroupIcon className="h-5 w-5" />
+                    </div>
+                    <div>
+                      <CardTitle className="text-lg font-semibold">{group.name}</CardTitle>
+                      <CardDescription>查看{group.name}相关的系统权限</CardDescription>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent className="p-0">
+                  <div className="overflow-x-auto">
+                    <Table>
+                      <TableHeader className="bg-gray-50">
+                        <TableRow>
+                          <TableHead className="w-[180px] font-medium">权限名称</TableHead>
+                          <TableHead className="font-medium">描述</TableHead>
+                          <TableHead className="w-[100px] text-center font-medium">
+                            <div className="flex flex-col items-center">
+                              <Shield className="h-4 w-4 text-red-500 mb-1" />
+                              <span>系统管理员</span>
+                            </div>
+                          </TableHead>
+                          <TableHead className="w-[100px] text-center font-medium">
+                            <div className="flex flex-col items-center">
+                              <UserCog className="h-4 w-4 text-amber-500 mb-1" />
+                              <span>人事专员</span>
+                            </div>
+                          </TableHead>
+                          <TableHead className="w-[100px] text-center font-medium">
+                            <div className="flex flex-col items-center">
+                              <Building className="h-4 w-4 text-blue-500 mb-1" />
+                              <span>公司高层</span>
+                            </div>
+                          </TableHead>
+                          <TableHead className="w-[100px] text-center font-medium">
+                            <div className="flex flex-col items-center">
+                              <User className="h-4 w-4 text-green-500 mb-1" />
+                              <span>普通员工</span>
+                            </div>
+                          </TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {group.permissions.map((permission) => (
+                          <TableRow key={permission.id} className="hover:bg-gray-50/70">
+                            <TableCell className="font-medium">{permission.name}</TableCell>
+                            <TableCell>{permission.description}</TableCell>
+                            <TableCell>
+                              <div className="flex justify-center">
+                                <div className="w-6 h-6 rounded-full bg-green-100 flex items-center justify-center">
+                                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-green-600">
+                                    <polyline points="20 6 9 17 4 12"></polyline>
+                                  </svg>
+                                </div>
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex justify-center">
+                                {(permission.name.includes('员工档案') || 
+                                  permission.name.includes('招聘') || 
+                                  permission.name.includes('绩效') || 
+                                  permission.name.includes('考勤') || 
+                                  group.name === '个人权限') ? (
+                                  <div className="w-6 h-6 rounded-full bg-green-100 flex items-center justify-center">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-green-600">
+                                      <polyline points="20 6 9 17 4 12"></polyline>
+                                    </svg>
+                                  </div>
+                                ) : (
+                                  <div className="w-6 h-6 rounded-full bg-red-100 flex items-center justify-center">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-red-600">
+                                      <line x1="18" y1="6" x2="6" y2="18"></line>
+                                      <line x1="6" y1="6" x2="18" y2="18"></line>
+                                    </svg>
+                                  </div>
+                                )}
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex justify-center">
+                                {(permission.name.includes('部门') || 
+                                  group.name === '个人权限') ? (
+                                  <div className="w-6 h-6 rounded-full bg-green-100 flex items-center justify-center">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-green-600">
+                                      <polyline points="20 6 9 17 4 12"></polyline>
+                                    </svg>
+                                  </div>
+                                ) : (
+                                  <div className="w-6 h-6 rounded-full bg-red-100 flex items-center justify-center">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-red-600">
+                                      <line x1="18" y1="6" x2="6" y2="18"></line>
+                                      <line x1="6" y1="6" x2="18" y2="18"></line>
+                                    </svg>
+                                  </div>
+                                )}
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex justify-center">
+                                {(permission.name === '查看个人信息' || 
+                                  permission.name === '提交工作报告') ? (
+                                  <div className="w-6 h-6 rounded-full bg-green-100 flex items-center justify-center">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-green-600">
+                                      <polyline points="20 6 9 17 4 12"></polyline>
+                                    </svg>
+                                  </div>
+                                ) : (
+                                  <div className="w-6 h-6 rounded-full bg-red-100 flex items-center justify-center">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-red-600">
+                                      <line x1="18" y1="6" x2="6" y2="18"></line>
+                                      <line x1="6" y1="6" x2="18" y2="18"></line>
+                                    </svg>
+                                  </div>
+                                )}
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
         </TabsContent>
       </Tabs>
       
