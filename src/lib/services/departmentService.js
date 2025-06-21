@@ -1,5 +1,59 @@
 import api from '../api';
 
+// 缓存员工数据，避免重复请求
+let employeesCache = null;
+
+/**
+ * 获取所有员工数据，并缓存结果
+ * @returns {Promise<Array>} 员工数据列表
+ */
+const fetchEmployeesData = async () => {
+  if (employeesCache) {
+    return employeesCache;
+  }
+  
+  try {
+    const response = await api.get('/employees');
+    
+    // 处理可能的不同数据格式
+    let employees = [];
+    
+    if (Array.isArray(response.data)) {
+      employees = response.data;
+    } else if (response.data && response.data.data && Array.isArray(response.data.data)) {
+      employees = response.data.data;
+    } else {
+      console.error('未知的员工API响应格式:', response.data);
+      employees = [];
+    }
+    
+    // 缓存员工数据
+    employeesCache = employees.map(emp => ({
+      id: emp.id || emp.emp_id,
+      name: emp.name || emp.emp_name || '',
+    }));
+    
+    return employeesCache;
+  } catch (error) {
+    console.error('获取员工数据失败:', error);
+    return [];
+  }
+};
+
+/**
+ * 根据员工ID获取员工姓名
+ * @param {string|number} employeeId 员工ID
+ * @returns {Promise<string>} 员工姓名，如果未找到则返回ID
+ */
+const getEmployeeNameById = async (employeeId) => {
+  if (!employeeId) return '未指定';
+  
+  const employees = await fetchEmployeesData();
+  const employee = employees.find(emp => emp.id.toString() === employeeId.toString());
+  
+  return employee ? employee.name : `ID: ${employeeId}`;
+};
+
 /**
  * 获取所有部门列表
  * @returns {Promise} 返回部门列表数据
@@ -28,6 +82,9 @@ export const getAllDepartments = async () => {
       console.log('第一个部门数据结构:', JSON.stringify(departments[0], null, 2));
     }
     
+    // 获取所有员工数据，用于查找主管姓名
+    const employees = await fetchEmployeesData();
+    
     // 处理字段映射，确保前端需要的字段都存在
     const processedDepartments = departments.map(dept => {
       // 创建基本部门对象
@@ -47,9 +104,12 @@ export const getAllDepartments = async () => {
         processedDept.managerName = dept.managerName;
       } else if (dept.manager) {
         processedDept.managerName = dept.manager;
+      } else if (dept.managerId) {
+        // 如果没有managerName，但有managerId，查找对应的员工姓名
+        const manager = employees.find(emp => emp.id.toString() === dept.managerId.toString());
+        processedDept.managerName = manager ? manager.name : `ID: ${dept.managerId}`;
       } else {
-        // 如果没有managerName，根据managerId生成一个临时值
-        processedDept.managerName = dept.managerId ? `ID: ${dept.managerId}` : '未指定';
+        processedDept.managerName = '未指定';
       }
       
       // 确保parentName字段存在
@@ -104,12 +164,24 @@ export const getDepartmentById = async (id) => {
       throw new Error('未找到部门数据');
     }
     
+    // 获取员工数据，用于查找主管姓名
+    const employees = await fetchEmployeesData();
+    
+    // 处理managerId，获取对应的员工姓名
+    const managerId = department.managerId || department.manager_id;
+    let managerName = department.managerName || department.manager || '';
+    
+    if (!managerName && managerId) {
+      const manager = employees.find(emp => emp.id.toString() === managerId.toString());
+      managerName = manager ? manager.name : `ID: ${managerId}`;
+    }
+    
     // 处理字段映射
     return {
       id: department.id || department.dep_id,
       name: department.name || department.dep_name || '',
-      managerId: department.managerId || department.manager_id,
-      managerName: department.managerName || department.manager || '',
+      managerId: managerId,
+      managerName: managerName,
       parentId: department.parentId || department.parent_id,
       parentName: department.parentName || '',
       employeeCount: department.employeeCount || 0,
