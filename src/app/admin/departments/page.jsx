@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -21,13 +21,22 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Building2, Plus, Users, UserPlus, Search, MoreHorizontal, Pencil, Trash2, User } from 'lucide-react';
+import { Building2, Plus, Users, UserPlus, Search, MoreHorizontal, Pencil, Trash2, User, Loader2 } from 'lucide-react';
+import { getAllDepartments, deleteDepartment } from '@/lib/services/departmentService';
+import { format } from 'date-fns';
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
+import DepartmentForm from '@/components/admin/DepartmentForm';
 
 export default function AdminDepartmentsPage() {
   const [searchTerm, setSearchTerm] = useState('');
+  const [departments, setDepartments] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [selectedDepartment, setSelectedDepartment] = useState(null);
 
-  // 模拟部门数据
-  const departments = [
+  // 模拟部门数据（作为API失败时的后备数据）
+  const mockDepartments = [
     { 
       id: 1, 
       name: '技术部', 
@@ -110,18 +119,95 @@ export default function AdminDepartmentsPage() {
     },
   ];
 
+  // 获取部门数据
+  const fetchDepartments = async () => {
+    try {
+      setLoading(true);
+      console.log('正在获取部门数据...');
+      const data = await getAllDepartments();
+      console.log('获取到的部门数据:', data);
+      
+      // 确保data是数组
+      if (Array.isArray(data)) {
+        setDepartments(data);
+        console.log(`成功设置${data.length}条部门数据`);
+      } else {
+        console.error('API返回的不是数组:', data);
+        setDepartments([]);
+        setError('API返回数据格式错误');
+      }
+    } catch (err) {
+      console.error('获取部门数据失败:', err);
+      setError('获取部门数据失败，请稍后重试');
+      // 如果API失败，使用模拟数据作为后备
+      setDepartments(mockDepartments);
+      console.log('已加载模拟数据作为后备');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchDepartments();
+  }, []);
+
+  // 处理删除部门
+  const handleDeleteDepartment = async (id) => {
+    if (window.confirm('确定要删除该部门吗？此操作无法撤销。')) {
+      try {
+        await deleteDepartment(id);
+        // 删除成功后更新列表
+        setDepartments(prevDepartments => Array.isArray(prevDepartments) ? prevDepartments.filter(dept => dept.id !== id) : []);
+      } catch (err) {
+        console.error('删除部门失败:', err);
+        alert('删除部门失败，请稍后重试');
+      }
+    }
+  };
+
+  // 处理编辑部门
+  const handleEditDepartment = (department) => {
+    setSelectedDepartment(department);
+    setIsFormOpen(true);
+  };
+
+  // 处理添加部门
+  const handleAddDepartment = () => {
+    setSelectedDepartment(null);
+    setIsFormOpen(true);
+  };
+
+  // 处理表单成功提交
+  const handleFormSuccess = () => {
+    setIsFormOpen(false);
+    fetchDepartments();
+  };
+
+  // 确保departments是数组
+  const departmentsArray = Array.isArray(departments) ? departments : [];
+
   // 过滤部门数据
-  const filteredDepartments = departments.filter((department) => {
+  const filteredDepartments = departmentsArray.filter((department) => {
     return (
-      department.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      department.manager.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      department.description.toLowerCase().includes(searchTerm.toLowerCase())
+      department.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      department.manager?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      department.description?.toLowerCase().includes(searchTerm.toLowerCase())
     );
   });
 
   // 计算统计数据
-  const totalEmployees = departments.reduce((sum, dept) => sum + dept.employeeCount, 0);
-  const totalOpenPositions = departments.reduce((sum, dept) => sum + dept.openPositions, 0);
+  const totalEmployees = departmentsArray.reduce((sum, dept) => sum + (dept.employeeCount || 0), 0);
+  const totalOpenPositions = departmentsArray.reduce((sum, dept) => sum + (dept.openPositions || 0), 0);
+
+  // 格式化日期
+  const formatDate = (dateString) => {
+    try {
+      if (!dateString) return '-';
+      return format(new Date(dateString), 'yyyy-MM-dd');
+    } catch (error) {
+      return dateString || '-';
+    }
+  };
 
   return (
     <div className="container mx-auto p-6 space-y-6">
@@ -134,7 +220,10 @@ export default function AdminDepartmentsPage() {
           <p className="text-muted-foreground">管理公司部门结构和人员配置</p>
         </div>
         <div className="flex items-center space-x-2">
-          <Button className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700">
+          <Button 
+            className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700"
+            onClick={handleAddDepartment}
+          >
             <Plus className="h-4 w-4 mr-2" />
             添加部门
           </Button>
@@ -142,41 +231,89 @@ export default function AdminDepartmentsPage() {
       </div>
 
       {/* 统计卡片 */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid gap-4 md:grid-cols-3">
         <Card className="hover:shadow-md transition-shadow">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">总部门数</CardTitle>
-            <div className="p-2 bg-purple-100 rounded-full">
-              <Building2 className="h-4 w-4 text-purple-600" />
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">总部门数</p>
+                <h3 className="text-2xl font-bold mt-1">{departmentsArray.length}</h3>
+              </div>
+              <div className="h-12 w-12 rounded-full bg-purple-100 flex items-center justify-center">
+                <Building2 className="h-6 w-6 text-purple-600" />
+              </div>
             </div>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{departments.length}</div>
-            <p className="text-xs text-muted-foreground mt-1">公司现有部门总数</p>
+            <div className="mt-4">
+              <div className="h-1 w-full bg-gray-100 rounded-full">
+                <div 
+                  className="h-1 bg-purple-600 rounded-full" 
+                  style={{ width: `${Math.min(100, (departmentsArray.length / 10) * 100)}%` }}
+                />
+              </div>
+              <p className="text-xs text-muted-foreground mt-2">
+                {departmentsArray.length > 0 
+                  ? `上次更新: ${formatDate(departmentsArray[departmentsArray.length - 1].createdAt)}`
+                  : '暂无部门数据'}
+              </p>
+            </div>
           </CardContent>
         </Card>
+
         <Card className="hover:shadow-md transition-shadow">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">总员工数</CardTitle>
-            <div className="p-2 bg-indigo-100 rounded-full">
-              <Users className="h-4 w-4 text-indigo-600" />
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">总员工数</p>
+                <h3 className="text-2xl font-bold mt-1">{totalEmployees}</h3>
+              </div>
+              <div className="h-12 w-12 rounded-full bg-indigo-100 flex items-center justify-center">
+                <Users className="h-6 w-6 text-indigo-600" />
+              </div>
             </div>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{totalEmployees}</div>
-            <p className="text-xs text-muted-foreground mt-1">所有部门员工总数</p>
+            <div className="mt-4">
+              <div className="h-1 w-full bg-gray-100 rounded-full">
+                <div 
+                  className="h-1 bg-indigo-600 rounded-full" 
+                  style={{ width: `${Math.min(100, (totalEmployees / 200) * 100)}%` }}
+                />
+              </div>
+              <p className="text-xs text-muted-foreground mt-2">
+                平均每个部门 {departmentsArray.length > 0 ? Math.round(totalEmployees / departmentsArray.length) : 0} 名员工
+              </p>
+            </div>
           </CardContent>
         </Card>
+
         <Card className="hover:shadow-md transition-shadow">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">在招职位</CardTitle>
-            <div className="p-2 bg-blue-100 rounded-full">
-              <UserPlus className="h-4 w-4 text-blue-600" />
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">部门结构</p>
+                <h3 className="text-2xl font-bold mt-1">
+                  {departmentsArray.filter(d => !d.parentId).length} 个主部门
+                </h3>
+              </div>
+              <div className="h-12 w-12 rounded-full bg-green-100 flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-6 w-6 text-green-600">
+                  <path d="M3 3v18h18"></path>
+                  <path d="M7 17V9"></path>
+                  <path d="M11 17V5"></path>
+                  <path d="M15 17v-5"></path>
+                  <path d="M19 17v-2"></path>
+                </svg>
+              </div>
             </div>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{totalOpenPositions}</div>
-            <p className="text-xs text-muted-foreground mt-1">当前开放招聘职位数</p>
+            <div className="mt-4">
+              <div className="h-1 w-full bg-gray-100 rounded-full">
+                <div 
+                  className="h-1 bg-green-600 rounded-full" 
+                  style={{ width: `${departmentsArray.length > 0 ? (departmentsArray.filter(d => d.parentId).length / departmentsArray.length) * 100 : 0}%` }}
+                />
+              </div>
+              <p className="text-xs text-muted-foreground mt-2">
+                {departmentsArray.filter(d => d.parentId).length} 个子部门
+              </p>
+            </div>
           </CardContent>
         </Card>
       </div>
@@ -199,117 +336,130 @@ export default function AdminDepartmentsPage() {
           </div>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>部门名称</TableHead>
-                <TableHead>部门主管</TableHead>
-                <TableHead>员工数量</TableHead>
-                <TableHead>在招职位</TableHead>
-                <TableHead>创建时间</TableHead>
-                <TableHead>状态</TableHead>
-                <TableHead className="text-right">操作</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredDepartments.map((department) => (
-                <TableRow key={department.id} className="hover:bg-gray-50">
-                  <TableCell>
-                    <div className="flex items-center space-x-2">
-                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center text-white font-semibold">
-                        {department.name.charAt(0)}
-                      </div>
-                      <div>
-                        <div className="font-medium">{department.name}</div>
-                        <div className="text-xs text-muted-foreground truncate max-w-[200px]">{department.description}</div>
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center space-x-2">
-                      <User className="h-4 w-4 text-muted-foreground" />
-                      <span>{department.manager}</span>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      <span>{department.employeeCount}</span>
-                      <div className="h-1 w-12 bg-gray-200 rounded-full">
-                        <div 
-                          className="h-1 bg-indigo-600 rounded-full" 
-                          style={{ width: `${(department.employeeCount / 50) * 100}%` }}
-                        />
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    {department.openPositions > 0 ? (
-                      <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
-                        {department.openPositions} 个职位
-                      </Badge>
-                    ) : (
-                      <Badge variant="outline" className="bg-gray-50 text-gray-700 border-gray-200">
-                        暂无职位
-                      </Badge>
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    <span className="text-sm text-muted-foreground">{department.createdAt}</span>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200">
-                      正常运营
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon">
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>部门操作</DropdownMenuLabel>
-                        <DropdownMenuItem>
-                          <Building2 className="mr-2 h-4 w-4" />
-                          查看详情
-                        </DropdownMenuItem>
-                        <DropdownMenuItem>
-                          <Pencil className="mr-2 h-4 w-4" />
-                          编辑部门
-                        </DropdownMenuItem>
-                        <DropdownMenuItem>
-                          <Users className="mr-2 h-4 w-4" />
-                          管理成员
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem className="text-red-600">
-                          <Trash2 className="mr-2 h-4 w-4" />
-                          删除部门
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
+          {loading ? (
+            <div className="flex justify-center items-center py-10">
+              <Loader2 className="h-8 w-8 animate-spin text-indigo-600" />
+              <span className="ml-2 text-muted-foreground">加载中...</span>
+            </div>
+          ) : error ? (
+            <div className="flex justify-center items-center py-10">
+              <p className="text-red-500">{error}</p>
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>部门名称</TableHead>
+                  <TableHead>部门主管</TableHead>
+                  <TableHead>上级部门</TableHead>
+                  <TableHead>员工数量</TableHead>
+                  <TableHead>创建时间</TableHead>
+                  <TableHead className="text-center">操作</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {filteredDepartments.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={6} className="text-center py-10 text-muted-foreground">
+                      暂无部门数据
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  filteredDepartments.map((department) => (
+                    <TableRow key={department.id} className="hover:bg-gray-50">
+                      <TableCell>
+                        <div className="flex items-center space-x-2">
+                          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center text-white font-semibold">
+                            {department.name?.charAt(0) || '?'}
+                          </div>
+                          <div>
+                            <div className="font-medium">{department.name}</div>
+                            <div className="text-xs text-muted-foreground truncate max-w-[200px]">{department.description}</div>
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        {department.managerName ? (
+                          <div className="flex items-center space-x-2">
+                            <User className="h-4 w-4 text-muted-foreground" />
+                            <span>{department.managerName}</span>
+                          </div>
+                        ) : (
+                          <span className="text-gray-400 text-sm">未指定</span>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {department.parentName ? (
+                          <div className="flex items-center space-x-2">
+                            <Building2 className="h-4 w-4 text-muted-foreground" />
+                            <span>{department.parentName}</span>
+                          </div>
+                        ) : (
+                          <span className="text-gray-400 text-sm">无上级部门</span>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <span>{department.employeeCount || 0}</span>
+                          <div className="h-1 w-12 bg-gray-200 rounded-full">
+                            <div 
+                              className="h-1 bg-indigo-600 rounded-full" 
+                              style={{ width: `${((department.employeeCount || 0) / 50) * 100}%` }}
+                            />
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        {formatDate(department.createdAt)}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex justify-center space-x-1">
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="h-8 w-8 p-0 text-blue-600 hover:text-blue-800 hover:bg-blue-50"
+                            onClick={() => handleEditDepartment(department)}
+                            title="编辑部门"
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="h-8 w-8 p-0 text-red-600 hover:text-red-800 hover:bg-red-50"
+                            onClick={() => handleDeleteDepartment(department.id)}
+                            title="删除部门"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          )}
         </CardContent>
       </Card>
 
-      {/* 部门结构图 */}
-      <Card className="hover:shadow-md transition-shadow">
-        <CardHeader>
-          <CardTitle>部门结构</CardTitle>
-          <CardDescription>公司组织架构图</CardDescription>
-        </CardHeader>
-        <CardContent className="flex justify-center">
-          <div className="bg-gray-50 p-6 rounded-lg w-full text-center">
-            <p className="text-muted-foreground">此处可以放置组织架构图表</p>
-            <p className="text-sm text-muted-foreground mt-2">可以使用树形图或其他可视化组件展示部门层级关系</p>
+      {/* 部门表单侧边抽屉 */}
+      <Sheet open={isFormOpen} onOpenChange={setIsFormOpen}>
+        <SheetContent className="w-full sm:max-w-xl overflow-y-auto">
+          <SheetHeader className="pb-5 border-b">
+            <SheetTitle className="text-xl font-semibold text-gray-800">
+              {selectedDepartment ? '编辑部门' : '添加新部门'}
+            </SheetTitle>
+          </SheetHeader>
+          <div className="py-6">
+            <DepartmentForm 
+              department={selectedDepartment}
+              onSuccess={handleFormSuccess}
+              onCancel={() => setIsFormOpen(false)}
+            />
           </div>
-        </CardContent>
-      </Card>
+        </SheetContent>
+      </Sheet>
     </div>
   );
 } 
