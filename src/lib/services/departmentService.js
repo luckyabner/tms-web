@@ -206,14 +206,25 @@ export const createDepartment = async (departmentData) => {
     
     // 转换为API需要的格式
     const apiData = {
-      dep_name: departmentData.name,
-      parent_id: departmentData.parentId || null,
-      manager_id: departmentData.managerId || null,
+      name: departmentData.name || '',
+      parentId: departmentData.parentId === '' ? null : departmentData.parentId,
+      managerId: departmentData.managerId === '' ? null : departmentData.managerId,
       employeeCount: departmentData.employeeCount || 0,
       description: departmentData.description || ''
     };
     
-    console.log('转换后的API数据:', apiData);
+    // 确保parentId和managerId是数字或null
+    if (apiData.parentId !== null && apiData.parentId !== undefined) {
+      const parentId = parseInt(apiData.parentId);
+      apiData.parentId = isNaN(parentId) ? null : parentId;
+    }
+    
+    if (apiData.managerId !== null && apiData.managerId !== undefined) {
+      const managerId = parseInt(apiData.managerId);
+      apiData.managerId = isNaN(managerId) ? null : managerId;
+    }
+    
+    console.log('转换后的API数据:', JSON.stringify(apiData, null, 2));
     
     const response = await api.post('/departments', apiData);
     
@@ -243,26 +254,32 @@ export const updateDepartment = async (id, departmentData) => {
     
     // 转换为API需要的格式，特别处理各种类型的值
     const apiData = {
-      dep_name: departmentData.name || '',
-      parent_id: departmentData.parentId === '' ? null : departmentData.parentId,
-      manager_id: departmentData.managerId === '' ? null : departmentData.managerId,
+      name: departmentData.name || '',
+      parentId: departmentData.parentId === '' ? null : departmentData.parentId,
+      managerId: departmentData.managerId === '' ? null : departmentData.managerId,
       description: departmentData.description || ''
     };
     
-    // 确保parent_id和manager_id是数字或null
-    if (apiData.parent_id !== null && apiData.parent_id !== undefined) {
-      const parentId = parseInt(apiData.parent_id);
-      apiData.parent_id = isNaN(parentId) ? null : parentId;
+    // 确保parentId和managerId是数字或null
+    if (apiData.parentId !== null && apiData.parentId !== undefined) {
+      const parentId = parseInt(apiData.parentId);
+      apiData.parentId = isNaN(parentId) ? null : parentId;
     }
     
-    if (apiData.manager_id !== null && apiData.manager_id !== undefined) {
-      const managerId = parseInt(apiData.manager_id);
-      apiData.manager_id = isNaN(managerId) ? null : managerId;
+    if (apiData.managerId !== null && apiData.managerId !== undefined) {
+      const managerId = parseInt(apiData.managerId);
+      apiData.managerId = isNaN(managerId) ? null : managerId;
     }
     
     console.log('转换后的API数据:', JSON.stringify(apiData, null, 2));
     
-    const response = await api.put(`/departments/${id}`, apiData);
+    // 确保id是数字类型
+    const numericId = parseInt(id);
+    if (isNaN(numericId)) {
+      throw new Error(`无效的部门ID: ${id}`);
+    }
+    
+    const response = await api.put(`/departments/${numericId}`, apiData);
     
     console.log('API响应数据:', JSON.stringify(response.data, null, 2));
     

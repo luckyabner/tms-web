@@ -312,7 +312,7 @@ app.post('/departments', (req, res) => {
     const now = new Date().toISOString().split('T')[0];
     
     // 检查必填字段
-    if (!req.body.dep_name && !req.body.name) {
+    if (!req.body.name) {
       console.error('POST /departments - 缺少部门名称字段');
       return res.status(400).json({
         code: '400',
@@ -323,9 +323,9 @@ app.post('/departments', (req, res) => {
     
     const newDepartment = {
       dep_id: departments.length > 0 ? Math.max(...departments.map(d => d.dep_id)) + 1 : 1,
-      dep_name: req.body.dep_name || req.body.name,
-      parent_id: req.body.parent_id || req.body.parentId || null,
-      manager_id: req.body.manager_id || req.body.managerId || null,
+      dep_name: req.body.name,
+      parent_id: req.body.parentId || null,
+      manager_id: req.body.managerId || null,
       employeeCount: req.body.employeeCount || 0,
       description: req.body.description || '',
       is_deleted: 0,
@@ -384,18 +384,18 @@ app.put('/departments/:id', (req, res) => {
     console.log(`PUT /departments/${id} - 原始部门数据:`, JSON.stringify(departments[index], null, 2));
     
     // 安全地获取请求中的字段
-    const dep_name = req.body.dep_name !== undefined ? req.body.dep_name : departments[index].dep_name;
+    const dep_name = req.body.name !== undefined ? req.body.name : departments[index].dep_name;
     
     // 特别处理parent_id和manager_id，确保null值被正确处理
     let parent_id = departments[index].parent_id;
-    if (req.body.parent_id !== undefined) {
-      parent_id = req.body.parent_id;
+    if (req.body.parentId !== undefined) {
+      parent_id = req.body.parentId;
       console.log(`PUT /departments/${id} - 更新parent_id:`, parent_id);
     }
     
     let manager_id = departments[index].manager_id;
-    if (req.body.manager_id !== undefined) {
-      manager_id = req.body.manager_id;
+    if (req.body.managerId !== undefined) {
+      manager_id = req.body.managerId;
       console.log(`PUT /departments/${id} - 更新manager_id:`, manager_id);
     }
     
