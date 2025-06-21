@@ -601,7 +601,7 @@ export default function AdminEmployeesPage() {
               }
               
               return (
-                <Card key={role.id} className="overflow-hidden hover:shadow-lg transition-all duration-300 border-t-4" style={{ borderTopColor: `var(--${role.color}-500)` }}>
+                <Card key={role.id} className="overflow-hidden hover:shadow-lg transition-all duration-300">
                   <CardHeader className="flex flex-row items-center justify-between pb-2">
                     <div className="flex items-center">
                       <div className={`w-10 h-10 rounded-lg flex items-center justify-center bg-${role.color}-100 text-${role.color}-600 mr-3`}>
@@ -612,13 +612,13 @@ export default function AdminEmployeesPage() {
                         <p className="text-sm text-muted-foreground">{role.description}</p>
                       </div>
                     </div>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
                         <Button variant="ghost" size="icon" className="rounded-full h-8 w-8">
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
+                        <MoreHorizontal className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
                         <DropdownMenuItem>
                           <UserCog className="h-4 w-4 mr-2" />
                           编辑角色
@@ -627,7 +627,7 @@ export default function AdminEmployeesPage() {
                           <Shield className="h-4 w-4 mr-2" />
                           配置权限
                         </DropdownMenuItem>
-                        <DropdownMenuSeparator />
+                      <DropdownMenuSeparator />
                         <DropdownMenuItem className="text-red-600">
                           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4 mr-2">
                             <path d="M3 6h18"></path>
@@ -636,9 +636,9 @@ export default function AdminEmployeesPage() {
                           </svg>
                           删除角色
                         </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </CardHeader>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </CardHeader>
                   <CardContent className="pt-4 pb-6">
                     <div className="flex items-center justify-between mb-4">
                       <div className="flex items-center">
@@ -658,8 +658,8 @@ export default function AdminEmployeesPage() {
                            role.name === '人事专员' ? '高级权限' : 
                            role.name === '公司高层' ? '中级权限' : '基础权限'}
                         </span>
-                      </div>
-                      
+                  </div>
+                  
                       <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
                         <div 
                           className={`h-full bg-${role.color}-500 rounded-full`} 
@@ -669,17 +669,17 @@ export default function AdminEmployeesPage() {
                                    role.name === '公司高层' ? '60%' : '30%' 
                           }}
                         />
-                      </div>
                     </div>
-                    
+                  </div>
+                  
                     <div className="mt-6">
                       <Button variant="outline" className="w-full border-gray-200 hover:bg-gray-50">
-                        <Shield className="mr-2 h-4 w-4" />
-                        管理权限
-                      </Button>
+                    <Shield className="mr-2 h-4 w-4" />
+                    管理权限
+                  </Button>
                     </div>
-                  </CardContent>
-                </Card>
+                </CardContent>
+              </Card>
               );
             })}
           </div>
@@ -704,7 +704,7 @@ export default function AdminEmployeesPage() {
             }
             
             return (
-              <Card key={group.name} className="overflow-hidden hover:shadow-lg transition-all duration-300 border-l-4" style={{ borderLeftColor: group.name === '个人权限' ? 'var(--green-500)' : group.name === '部门权限' ? 'var(--blue-500)' : 'var(--purple-500)' }}>
+              <Card key={group.name} className="overflow-hidden hover:shadow-lg transition-all duration-300">
                 <CardHeader className="bg-gradient-to-r from-gray-50 to-white">
                   <div className="flex items-center gap-3">
                     <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
@@ -719,12 +719,12 @@ export default function AdminEmployeesPage() {
                       <CardDescription>查看{group.name}相关的系统权限</CardDescription>
                     </div>
                   </div>
-                </CardHeader>
+              </CardHeader>
                 <CardContent className="p-0">
                   <div className="overflow-x-auto">
-                    <Table>
+                <Table>
                       <TableHeader className="bg-gray-50">
-                        <TableRow>
+                    <TableRow>
                           <TableHead className="w-[180px] font-medium">权限名称</TableHead>
                           <TableHead className="font-medium">描述</TableHead>
                           <TableHead className="w-[100px] text-center font-medium">
@@ -751,89 +751,89 @@ export default function AdminEmployeesPage() {
                               <span>普通员工</span>
                             </div>
                           </TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {group.permissions.map((permission) => (
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {group.permissions.map((permission) => (
                           <TableRow key={permission.id} className="hover:bg-gray-50/70">
-                            <TableCell className="font-medium">{permission.name}</TableCell>
-                            <TableCell>{permission.description}</TableCell>
-                            <TableCell>
-                              <div className="flex justify-center">
+                        <TableCell className="font-medium">{permission.name}</TableCell>
+                        <TableCell>{permission.description}</TableCell>
+                        <TableCell>
+                          <div className="flex justify-center">
                                 <div className="w-6 h-6 rounded-full bg-green-100 flex items-center justify-center">
                                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-green-600">
                                     <polyline points="20 6 9 17 4 12"></polyline>
                                   </svg>
                                 </div>
-                              </div>
-                            </TableCell>
-                            <TableCell>
-                              <div className="flex justify-center">
-                                {(permission.name.includes('员工档案') || 
-                                  permission.name.includes('招聘') || 
-                                  permission.name.includes('绩效') || 
-                                  permission.name.includes('考勤') || 
-                                  group.name === '个人权限') ? (
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex justify-center">
+                            {(permission.name.includes('员工档案') || 
+                              permission.name.includes('招聘') || 
+                              permission.name.includes('绩效') || 
+                              permission.name.includes('考勤') || 
+                              group.name === '个人权限') ? (
                                   <div className="w-6 h-6 rounded-full bg-green-100 flex items-center justify-center">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-green-600">
                                       <polyline points="20 6 9 17 4 12"></polyline>
                                     </svg>
                                   </div>
-                                ) : (
+                            ) : (
                                   <div className="w-6 h-6 rounded-full bg-red-100 flex items-center justify-center">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-red-600">
                                       <line x1="18" y1="6" x2="6" y2="18"></line>
                                       <line x1="6" y1="6" x2="18" y2="18"></line>
                                     </svg>
                                   </div>
-                                )}
-                              </div>
-                            </TableCell>
-                            <TableCell>
-                              <div className="flex justify-center">
-                                {(permission.name.includes('部门') || 
-                                  group.name === '个人权限') ? (
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex justify-center">
+                            {(permission.name.includes('部门') || 
+                              group.name === '个人权限') ? (
                                   <div className="w-6 h-6 rounded-full bg-green-100 flex items-center justify-center">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-green-600">
                                       <polyline points="20 6 9 17 4 12"></polyline>
                                     </svg>
                                   </div>
-                                ) : (
+                            ) : (
                                   <div className="w-6 h-6 rounded-full bg-red-100 flex items-center justify-center">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-red-600">
                                       <line x1="18" y1="6" x2="6" y2="18"></line>
                                       <line x1="6" y1="6" x2="18" y2="18"></line>
                                     </svg>
                                   </div>
-                                )}
-                              </div>
-                            </TableCell>
-                            <TableCell>
-                              <div className="flex justify-center">
-                                {(permission.name === '查看个人信息' || 
-                                  permission.name === '提交工作报告') ? (
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex justify-center">
+                            {(permission.name === '查看个人信息' || 
+                              permission.name === '提交工作报告') ? (
                                   <div className="w-6 h-6 rounded-full bg-green-100 flex items-center justify-center">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-green-600">
                                       <polyline points="20 6 9 17 4 12"></polyline>
                                     </svg>
                                   </div>
-                                ) : (
+                            ) : (
                                   <div className="w-6 h-6 rounded-full bg-red-100 flex items-center justify-center">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-red-600">
                                       <line x1="18" y1="6" x2="6" y2="18"></line>
                                       <line x1="6" y1="6" x2="18" y2="18"></line>
                                     </svg>
                                   </div>
-                                )}
-                              </div>
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
+                            )}
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
                   </div>
-                </CardContent>
-              </Card>
+              </CardContent>
+            </Card>
             );
           })}
         </TabsContent>
