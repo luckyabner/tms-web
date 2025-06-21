@@ -3,7 +3,6 @@
 import {
 	LayoutDashboard,
 	Users,
-	Building,
 	Settings,
 	Award,
 } from 'lucide-react';
@@ -40,15 +39,6 @@ const mainItems = [
 		title: '绩效管理',
 		url: '/hr/performance',
 		icon: Award,
-	},
-];
-
-// 组织管理菜单
-const organizationItems = [
-	{
-		title: '部门管理',
-		url: '/hr/departments',
-		icon: Building,
 	},
 ];
 
@@ -89,38 +79,6 @@ export function AppSidebar() {
 					<SidebarGroupContent>
 						<SidebarMenu>
 							{mainItems.map((item) => (
-								<SidebarMenuItem key={item.title}>
-									<SidebarMenuButton
-										asChild
-										className={cn(
-											'mx-3 mb-1 transition-colors duration-200',
-											'hover:bg-blue-50 hover:text-blue-700',
-											isActive(item.url) && 'bg-blue-50 text-blue-700 font-medium'
-										)}
-									>
-										<a href={item.url} className="flex items-center space-x-3 px-3 py-2 rounded-lg">
-											<item.icon className={cn(
-												'h-5 w-5 transition-colors duration-200',
-												isActive(item.url) ? 'text-blue-600' : 'text-gray-400'
-											)} />
-											<span>{item.title}</span>
-										</a>
-									</SidebarMenuButton>
-								</SidebarMenuItem>
-							))}
-						</SidebarMenu>
-					</SidebarGroupContent>
-				</SidebarGroup>
-
-				<SidebarSeparator className="my-4" />
-
-				<SidebarGroup>
-					<SidebarGroupLabel className="px-6 text-xs font-semibold uppercase tracking-wider text-gray-500">
-						组织管理
-					</SidebarGroupLabel>
-					<SidebarGroupContent>
-						<SidebarMenu>
-							{organizationItems.map((item) => (
 								<SidebarMenuItem key={item.title}>
 									<SidebarMenuButton
 										asChild
