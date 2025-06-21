@@ -48,21 +48,22 @@ process.on('uncaughtException', (err) => {
 
 // 模拟员工数据
 const employees = [
-  { emp_id: 1, emp_name: '张三', phone: '13800138001', gender: '男', hire_date: '2020-01-01', status: '在职', emp_type: '系统管理员' },
-  { emp_id: 2, emp_name: '李四', phone: '13800138002', gender: '男', hire_date: '2020-02-01', status: '在职', emp_type: '高层' },
-  { emp_id: 3, emp_name: '王五', phone: '13800138003', gender: '男', hire_date: '2020-03-01', status: '在职', emp_type: '人事专员' },
-  { emp_id: 4, emp_name: '赵六', phone: '13800138004', gender: '男', hire_date: '2020-04-01', status: '在职', emp_type: '高层' },
-  { emp_id: 5, emp_name: '钱七', phone: '13800138005', gender: '女', hire_date: '2020-05-01', status: '在职', emp_type: '高层' },
-  { emp_id: 6, emp_name: '孙八', phone: '13800138006', gender: '女', hire_date: '2020-06-01', status: '在职', emp_type: '普通用户' },
-  { emp_id: 7, emp_name: '周九', phone: '13800138007', gender: '男', hire_date: '2020-07-01', status: '在职', emp_type: '普通用户' },
-  { emp_id: 8, emp_name: '吴十', phone: '13800138008', gender: '女', hire_date: '2020-08-01', status: '在职', emp_type: '普通用户' },
-  { emp_id: 9, emp_name: '郑十一', phone: '13800138009', gender: '男', hire_date: '2020-09-01', status: '在职', emp_type: '普通用户' },
-  { emp_id: 10, emp_name: '王十二', phone: '13800138010', gender: '女', hire_date: '2020-10-01', status: '在职', emp_type: '普通用户' },
-  { emp_id: 11, emp_name: '李十三', phone: '13800138011', gender: '男', hire_date: '2020-11-01', status: '在职', emp_type: '普通用户' },
-  { emp_id: 12, emp_name: '赵十四', phone: '13800138012', gender: '女', hire_date: '2020-12-01', status: '在职', emp_type: '普通用户' },
-  { emp_id: 13, emp_name: '钱十五', phone: '13800138013', gender: '男', hire_date: '2021-01-01', status: '在职', emp_type: '普通用户' },
-  { emp_id: 14, emp_name: '孙十六', phone: '13800138014', gender: '女', hire_date: '2021-02-01', status: '在职', emp_type: '普通用户' },
-  { emp_id: 15, emp_name: '周十七', phone: '13800138015', gender: '男', hire_date: '2021-03-01', status: '在职', emp_type: '普通用户' },
+  { emp_id: 1, emp_name: '张三', phone: '13800138001', gender: '男', hire_date: '2020-01-01', status: '在职', emp_type: '系统管理员', education: '本科生', school: '北京大学', position: 'IT管理员' },
+  { emp_id: 2, emp_name: '李四', phone: '13800138002', gender: '男', hire_date: '2020-02-01', status: '在职', emp_type: '高层', education: '硕士', school: '清华大学', position: '部门经理' },
+  { emp_id: 3, emp_name: '王五', phone: '13800138003', gender: '男', hire_date: '2020-03-01', status: '在职', emp_type: '人事专员', education: '本科生', school: '复旦大学', position: '人力资源专员' },
+  { emp_id: 4, emp_name: '赵六', phone: '13800138004', gender: '男', hire_date: '2020-04-01', status: '在职', emp_type: '高层', education: '硕士', school: '上海交大', position: '部门经理' },
+  { emp_id: 5, emp_name: '钱七', phone: '13800138005', gender: '女', hire_date: '2020-05-01', status: '在职', emp_type: '高层', education: '博士', school: '浙江大学', position: '部门经理' },
+  { emp_id: 6, emp_name: '孙八', phone: '13800138006', gender: '女', hire_date: '2020-06-01', status: '在职', emp_type: '普通用户', education: '本科生', school: '南京大学', position: '前端开发工程师' },
+  { emp_id: 7, emp_name: '周九', phone: '13800138007', gender: '男', hire_date: '2020-07-01', status: '在职', emp_type: '人事专员', education: '本科生', school: '武汉大学', position: '人力资源专员' },
+  { emp_id: 8, emp_name: '吴十', phone: '13800138008', gender: '女', hire_date: '2020-08-01', status: '在职', emp_type: '人事专员', education: '大专', school: '深圳职业技术学院', position: '人力资源专员' },
+  { emp_id: 9, emp_name: '郑十一', phone: '13800138009', gender: '男', hire_date: '2020-09-01', status: '离职', emp_type: '普通用户', education: '本科生', school: '中山大学', position: '测试工程师' },
+  { emp_id: 10, emp_name: '王十二', phone: '13800138010', gender: '女', hire_date: '2020-10-01', status: '在职', emp_type: '普通用户', education: '硕士', school: '华南理工大学', position: '产品经理' },
+  { emp_id: 11, emp_name: '李十三', phone: '13800138011', gender: '男', hire_date: '2020-11-01', status: '借调', emp_type: '普通用户', education: '本科生', school: '厦门大学', position: '运维工程师' },
+  { emp_id: 12, emp_name: '赵十四', phone: '13800138012', gender: '女', hire_date: '2020-12-01', status: '在职', emp_type: '普通用户', education: '本科生', school: '四川大学', position: '数据分析师' },
+  { emp_id: 13, emp_name: '钱十五', phone: '13800138013', gender: '男', hire_date: '2021-01-01', status: '在职', emp_type: '普通用户', education: '硕士', school: '重庆大学', position: '算法工程师' },
+  { emp_id: 14, emp_name: '孙十六', phone: '13800138014', gender: '女', hire_date: '2021-02-01', status: '离职', emp_type: '普通用户', education: '大专', school: '广州大学', position: '市场专员' },
+  { emp_id: 15, emp_name: '周十七', phone: '13800138015', gender: '男', hire_date: '2021-03-01', status: '在职', emp_type: '普通用户', education: '本科生', school: '天津大学', position: '财务专员' },
+  { emp_id: 16, emp_name: '张无忌', phone: '13800138016', gender: '男', hire_date: '2021-04-01', status: '在职', emp_type: '系统管理员', education: '硕士', school: '华中科技大学', position: '系统架构师' },
 ];
 
 // 模拟部门数据
@@ -288,19 +289,64 @@ app.get('/departments/:id', (req, res) => {
   });
 });
 
-// 获取所有员工（用于选择部门主管）
+// 获取所有员工
 app.get('/employees', (req, res) => {
   console.log('GET /employees - 返回所有员工数据:', employees.length, '条记录');
+  
+  // 为员工添加部门信息
+  const employeesWithDepartment = employees.map(emp => {
+    // 查找员工所属部门
+    const department = departments.find(d => {
+      // 检查部门的员工列表中是否包含该员工
+      return d.employeeCount > 0 && d.manager_id === emp.emp_id;
+    });
+    
+    return {
+      ...emp,
+      department: department ? department.dep_name : '未分配',
+      departmentId: department ? department.dep_id : null
+    };
+  });
   
   res.json({
     code: '200',
     msg: '请求成功',
-    data: employees.map(emp => ({
-      emp_id: emp.emp_id,
-      emp_name: emp.emp_name,
-      id: emp.emp_id, // 兼容前端使用id字段
-      name: emp.emp_name // 兼容前端使用name字段
-    }))
+    data: employeesWithDepartment
+  });
+});
+
+// 获取单个员工
+app.get('/employees/:id', (req, res) => {
+  const id = parseInt(req.params.id);
+  const employee = employees.find(e => e.emp_id === id);
+  
+  if (!employee) {
+    console.log(`GET /employees/${id} - 未找到员工`);
+    return res.status(404).json({
+      code: '404',
+      msg: '员工不存在',
+      data: null
+    });
+  }
+  
+  // 查找员工所属部门
+  const department = departments.find(d => {
+    // 检查部门的员工列表中是否包含该员工
+    return d.employeeCount > 0 && d.manager_id === employee.emp_id;
+  });
+  
+  const employeeWithDetails = {
+    ...employee,
+    department: department ? department.dep_name : '未分配',
+    departmentId: department ? department.dep_id : null
+  };
+  
+  console.log(`GET /employees/${id} - 返回员工信息:`, employeeWithDetails.emp_name);
+  
+  res.json({
+    code: '200',
+    msg: '请求成功',
+    data: employeeWithDetails
   });
 });
 
@@ -475,6 +521,214 @@ app.delete('/departments/:id', (req, res) => {
   });
 });
 
+// 创建员工
+app.post('/employees', (req, res) => {
+  console.log('POST /employees - 请求体:', req.body);
+  
+  try {
+    // 检查必填字段
+    if (!req.body.name) {
+      console.error('POST /employees - 缺少员工姓名字段');
+      return res.status(400).json({
+        code: '400',
+        msg: '员工姓名不能为空',
+        data: null
+      });
+    }
+    
+    const newEmployee = {
+      emp_id: employees.length > 0 ? Math.max(...employees.map(e => e.emp_id)) + 1 : 1,
+      emp_name: req.body.name,
+      phone: req.body.phone || '',
+      gender: req.body.gender || '男',
+      hire_date: req.body.hireDate || new Date().toISOString().split('T')[0],
+      status: req.body.status === 'active' ? '在职' : '离职',
+      emp_type: req.body.role || '普通用户',
+      position: req.body.position || '',
+      email: req.body.email || `${req.body.name.toLowerCase()}@company.com`,
+      departmentId: req.body.departmentId || null
+    };
+    
+    // 如果指定了部门，更新部门员工数量
+    if (newEmployee.departmentId) {
+      const departmentIndex = departments.findIndex(d => d.dep_id === parseInt(newEmployee.departmentId));
+      if (departmentIndex !== -1) {
+        departments[departmentIndex].employeeCount += 1;
+      }
+    }
+    
+    employees.push(newEmployee);
+    console.log('POST /employees - 创建新员工:', newEmployee.emp_name);
+    
+    // 构建返回数据
+    const responseEmployee = {
+      ...newEmployee,
+      id: newEmployee.emp_id,
+      name: newEmployee.emp_name,
+      department: newEmployee.departmentId ? 
+        (departments.find(d => d.dep_id === parseInt(newEmployee.departmentId))?.dep_name || '未知部门') : 
+        '未分配'
+    };
+    
+    res.status(201).json({
+      code: '200',
+      msg: '创建成功',
+      data: responseEmployee
+    });
+  } catch (err) {
+    console.error('POST /employees - 处理请求时出错:', err);
+    res.status(500).json({
+      code: '500',
+      msg: '服务器内部错误',
+      data: null
+    });
+  }
+});
+
+// 更新员工
+app.put('/employees/:id', (req, res) => {
+  const id = parseInt(req.params.id);
+  console.log(`PUT /employees/${id} - 请求体:`, JSON.stringify(req.body, null, 2));
+  
+  try {
+    // 验证id参数
+    if (isNaN(id)) {
+      console.error(`PUT /employees/${id} - 无效的ID参数`);
+      return res.status(400).json({
+        code: '400',
+        msg: '无效的员工ID',
+        data: null
+      });
+    }
+    
+    const index = employees.findIndex(e => e.emp_id === id);
+    
+    if (index === -1) {
+      console.log(`PUT /employees/${id} - 未找到员工`);
+      return res.status(404).json({
+        code: '404',
+        msg: '员工不存在',
+        data: null
+      });
+    }
+    
+    // 打印原始员工数据
+    console.log(`PUT /employees/${id} - 原始员工数据:`, JSON.stringify(employees[index], null, 2));
+    
+    // 安全地获取请求中的字段
+    const emp_name = req.body.name !== undefined ? req.body.name : employees[index].emp_name;
+    const phone = req.body.phone !== undefined ? req.body.phone : employees[index].phone;
+    const gender = req.body.gender !== undefined ? req.body.gender : employees[index].gender;
+    const hire_date = req.body.hireDate !== undefined ? req.body.hireDate : employees[index].hire_date;
+    const status = req.body.status !== undefined ? 
+      (req.body.status === 'active' ? '在职' : '离职') : 
+      employees[index].status;
+    const emp_type = req.body.role !== undefined ? req.body.role : employees[index].emp_type;
+    const position = req.body.position !== undefined ? req.body.position : employees[index].position;
+    const email = req.body.email !== undefined ? req.body.email : employees[index].email;
+    
+    // 处理部门变更
+    let departmentId = employees[index].departmentId;
+    if (req.body.departmentId !== undefined) {
+      // 如果原来有部门，减少原部门的员工数量
+      if (employees[index].departmentId) {
+        const oldDepartmentIndex = departments.findIndex(d => d.dep_id === parseInt(employees[index].departmentId));
+        if (oldDepartmentIndex !== -1 && departments[oldDepartmentIndex].employeeCount > 0) {
+          departments[oldDepartmentIndex].employeeCount -= 1;
+        }
+      }
+      
+      departmentId = req.body.departmentId;
+      
+      // 如果新分配了部门，增加新部门的员工数量
+      if (departmentId) {
+        const newDepartmentIndex = departments.findIndex(d => d.dep_id === parseInt(departmentId));
+        if (newDepartmentIndex !== -1) {
+          departments[newDepartmentIndex].employeeCount += 1;
+        }
+      }
+    }
+    
+    // 更新员工信息
+    employees[index] = { 
+      ...employees[index], 
+      emp_name,
+      phone,
+      gender,
+      hire_date,
+      status,
+      emp_type,
+      position,
+      email,
+      departmentId
+    };
+    
+    console.log(`PUT /employees/${id} - 更新后的员工数据:`, JSON.stringify(employees[index], null, 2));
+    
+    // 构建返回数据
+    const responseEmployee = {
+      ...employees[index],
+      id: employees[index].emp_id,
+      name: employees[index].emp_name,
+      department: employees[index].departmentId ? 
+        (departments.find(d => d.dep_id === parseInt(employees[index].departmentId))?.dep_name || '未知部门') : 
+        '未分配'
+    };
+    
+    res.json({
+      code: '200',
+      msg: '更新成功',
+      data: responseEmployee
+    });
+  } catch (err) {
+    console.error(`PUT /employees/${id} - 处理请求时出错:`, err);
+    res.status(500).json({
+      code: '500',
+      msg: '服务器内部错误: ' + err.message,
+      data: null
+    });
+  }
+});
+
+// 删除员工
+app.delete('/employees/:id', (req, res) => {
+  const id = parseInt(req.params.id);
+  const index = employees.findIndex(e => e.emp_id === id);
+  
+  if (index === -1) {
+    console.log(`DELETE /employees/${id} - 未找到员工`);
+    return res.status(404).json({
+      code: '404',
+      msg: '员工不存在',
+      data: null
+    });
+  }
+  
+  const deletedEmployee = employees[index];
+  
+  // 如果员工有关联的部门，更新部门员工数量
+  if (deletedEmployee.departmentId) {
+    const departmentIndex = departments.findIndex(d => d.dep_id === parseInt(deletedEmployee.departmentId));
+    if (departmentIndex !== -1 && departments[departmentIndex].employeeCount > 0) {
+      departments[departmentIndex].employeeCount -= 1;
+    }
+  }
+  
+  // 从员工列表中移除
+  employees.splice(index, 1);
+  
+  console.log(`DELETE /employees/${id} - 删除员工:`, deletedEmployee.emp_name);
+  
+  res.json({
+    code: '200',
+    msg: '删除成功',
+    data: {
+      emp_id: deletedEmployee.emp_id,
+      emp_name: deletedEmployee.emp_name
+    }
+  });
+});
+
 // 健康检查端点
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
@@ -490,5 +744,9 @@ app.listen(PORT, () => {
   console.log('  PUT    /departments/:id    - 更新部门');
   console.log('  DELETE /departments/:id    - 删除部门');
   console.log('  GET    /employees          - 获取所有员工');
+  console.log('  GET    /employees/:id      - 获取单个员工');
+  console.log('  POST   /employees          - 创建新员工');
+  console.log('  PUT    /employees/:id      - 更新员工');
+  console.log('  DELETE /employees/:id      - 删除员工');
   console.log('  GET    /health             - 健康检查\n');
 }); 
