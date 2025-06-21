@@ -5,8 +5,10 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/componen
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { createEmployee, updateEmployee, getAllDepartments } from '@/lib/services/employeeService';
-import { AlertCircle, Loader2, Building2, User, Phone, Calendar, GraduationCap, Save, UserCircle, BadgeCheck } from 'lucide-react';
+import { AlertCircle, Loader2, Building2, User, UserCircle, Phone, Calendar, GraduationCap, School, BadgeCheck, Save } from 'lucide-react';
+import { Tooltip } from '@/components/ui/tooltip';
 
 export default function EmployeeForm({ employee = null, onSuccess, onCancel }) {
   const isEditing = !!employee;
@@ -90,28 +92,14 @@ export default function EmployeeForm({ employee = null, onSuccess, onCancel }) {
 
   return (
     <Card className="w-full border-0 shadow-lg transition-all duration-300 hover:shadow-xl">
-      <CardHeader className="bg-gradient-to-r from-purple-50 to-indigo-50 rounded-t-xl pb-2">
-        <CardTitle className="text-xl font-bold text-gray-800">
-          {isEditing ? '编辑员工信息' : '添加新员工'}
-        </CardTitle>
-      </CardHeader>
-      
       <form onSubmit={handleSubmit} className="space-y-4">
-        <CardContent className="space-y-4 pt-4">
-          {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg flex items-center animate-pulse">
-              <AlertCircle className="h-4 w-4 mr-2 flex-shrink-0" />
-              <span>{error}</span>
-            </div>
-          )}
-          
-          {loadingOptions && (
-            <div className="flex justify-center py-2">
-              <Loader2 className="h-5 w-5 animate-spin text-purple-600" />
-              <span className="ml-2 text-sm text-gray-500">加载数据中...</span>
-            </div>
-          )}
-          
+        <CardTitle className="text-xl font-bold text-gray-800 flex items-center px-6 pt-6 pb-2">
+          <User className="h-5 w-5 text-purple-600 mr-2" />
+          <span className="bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">
+            {isEditing ? '编辑员工信息' : '添加新员工'}
+          </span>
+        </CardTitle>
+        <CardContent className="space-y-4 pt-2 rounded-t-xl bg-gradient-to-r from-purple-50 to-indigo-50">
           <div className="space-y-1">
             <Label htmlFor="name" className="flex items-center gap-2 font-medium text-gray-700">
               <span className="flex items-center">
@@ -130,6 +118,20 @@ export default function EmployeeForm({ employee = null, onSuccess, onCancel }) {
               className="focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200"
             />
           </div>
+          
+          {error && (
+            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg flex items-center animate-pulse">
+              <AlertCircle className="h-4 w-4 mr-2 flex-shrink-0" />
+              <span>{error}</span>
+            </div>
+          )}
+          
+          {loadingOptions && (
+            <div className="flex justify-center py-2">
+              <Loader2 className="h-5 w-5 animate-spin text-purple-600" />
+              <span className="ml-2 text-sm text-gray-500">加载数据中...</span>
+            </div>
+          )}
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-1">

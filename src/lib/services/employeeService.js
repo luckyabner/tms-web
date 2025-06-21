@@ -33,7 +33,7 @@ export const getAllEmployees = async () => {
         department: emp.department || emp.dep_name || '',
         departmentId: emp.departmentId || emp.dep_id || null,
         phone: emp.phone || '',
-        role: emp.role || emp.emp_type || '普通员工',
+        role: emp.role || emp.empType || emp.emp_type || '普通员工',
         status: emp.status || '在职',
         gender: emp.gender || '无',
         hireDate: emp.hireDate || emp.hire_date || '',
@@ -47,6 +47,8 @@ export const getAllEmployees = async () => {
       } else if (processedEmp.role === '高层') {
         processedEmp.role = '公司高层';
       }
+      
+      console.log(`员工角色映射: ${emp.empType || emp.emp_type || emp.role || '无'} -> ${processedEmp.role}`);
       
       return processedEmp;
     });
@@ -84,20 +86,31 @@ export const getEmployeeById = async (id) => {
     }
     
     // 处理字段映射
-    return {
+    const processedEmp = {
       id: employee.id || employee.emp_id,
       name: employee.name || employee.emp_name || '',
       position: employee.position || employee.emp_position || '',
       department: employee.department || employee.dep_name || '',
       departmentId: employee.departmentId || employee.dep_id || null,
       phone: employee.phone || '',
-      role: employee.role || employee.emp_type || '普通用户',
+      role: employee.role || employee.empType || employee.emp_type || '普通员工',
       status: employee.status || '在职',
       gender: employee.gender || '无',
       hireDate: employee.hireDate || employee.hire_date || '',
       education: employee.education || '未知',
       school: employee.school || ''
     };
+    
+    // 确保角色名称一致性
+    if (processedEmp.role === '普通用户') {
+      processedEmp.role = '普通员工';
+    } else if (processedEmp.role === '高层') {
+      processedEmp.role = '公司高层';
+    }
+    
+    console.log(`获取员工详情，角色: ${employee.empType || employee.emp_type || employee.role || '无'} -> ${processedEmp.role}`);
+    
+    return processedEmp;
   } catch (error) {
     console.error(`获取员工ID=${id}详情失败:`, error);
     throw error;
@@ -119,13 +132,20 @@ export const createEmployee = async (employeeData) => {
       position: employeeData.position || '',
       departmentId: employeeData.departmentId || null,
       phone: employeeData.phone || '',
-      role: employeeData.role || '普通用户',
+      empType: employeeData.role || '普通员工',
       status: employeeData.status || '在职',
       gender: employeeData.gender || '无',
       hireDate: employeeData.hireDate || new Date().toISOString().split('T')[0],
       education: employeeData.education || '未知',
       school: employeeData.school || ''
     };
+    
+    // 确保角色名称与后端一致
+    if (apiData.empType === '普通员工') {
+      apiData.empType = '普通用户';
+    } else if (apiData.empType === '公司高层') {
+      apiData.empType = '高层';
+    }
     
     console.log('转换后的API数据:', JSON.stringify(apiData, null, 2));
     
@@ -161,7 +181,7 @@ export const updateEmployee = async (id, employeeData) => {
       position: employeeData.position || '',
       departmentId: employeeData.departmentId === '' ? null : employeeData.departmentId,
       phone: employeeData.phone || '',
-      role: employeeData.role || '普通用户',
+      empType: employeeData.role || '普通员工',
       status: employeeData.status || '在职',
       gender: employeeData.gender || '无',
       hireDate: employeeData.hireDate || '',
@@ -169,13 +189,20 @@ export const updateEmployee = async (id, employeeData) => {
       school: employeeData.school || ''
     };
     
+    // 确保角色名称与后端一致
+    if (apiData.empType === '普通员工') {
+      apiData.empType = '普通用户';
+    } else if (apiData.empType === '公司高层') {
+      apiData.empType = '高层';
+    }
+    
+    console.log('转换后的API数据:', JSON.stringify(apiData, null, 2));
+    
     // 确保departmentId是数字或null
     if (apiData.departmentId !== null && apiData.departmentId !== undefined) {
       const departmentId = parseInt(apiData.departmentId);
       apiData.departmentId = isNaN(departmentId) ? null : departmentId;
     }
-    
-    console.log('转换后的API数据:', JSON.stringify(apiData, null, 2));
     
     // 确保id是数字类型
     const numericId = parseInt(id);

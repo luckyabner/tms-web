@@ -293,7 +293,7 @@ app.get('/departments/:id', (req, res) => {
 app.get('/employees', (req, res) => {
   console.log('GET /employees - 返回所有员工数据:', employees.length, '条记录');
   
-  // 为员工添加部门信息
+  // 处理员工数据，添加关联信息
   const employeesWithDepartment = employees.map(emp => {
     // 查找员工所属部门
     const department = departments.find(d => {
@@ -301,8 +301,30 @@ app.get('/employees', (req, res) => {
       return d.employeeCount > 0 && d.manager_id === emp.emp_id;
     });
     
+    // 确保角色名称正确映射
+    let role = emp.emp_type;
+    if (role === '普通用户') {
+      role = '普通员工';
+    } else if (role === '高层') {
+      role = '公司高层';
+    }
+    
+    console.log(`员工 ${emp.emp_name} 的角色: ${emp.emp_type} -> ${role}`);
+    
     return {
-      ...emp,
+      id: emp.emp_id,
+      name: emp.emp_name,
+      emp_id: emp.emp_id,
+      emp_name: emp.emp_name,
+      phone: emp.phone,
+      gender: emp.gender,
+      hire_date: emp.hire_date,
+      status: emp.status,
+      emp_type: emp.emp_type,
+      role: role,
+      education: emp.education,
+      school: emp.school,
+      position: emp.position,
       department: department ? department.dep_name : '未分配',
       departmentId: department ? department.dep_id : null
     };
@@ -335,13 +357,26 @@ app.get('/employees/:id', (req, res) => {
     return d.employeeCount > 0 && d.manager_id === employee.emp_id;
   });
   
+  // 确保角色名称正确映射
+  let role = employee.emp_type;
+  if (role === '普通用户') {
+    role = '普通员工';
+  } else if (role === '高层') {
+    role = '公司高层';
+  }
+  
+  console.log(`获取员工 ${employee.emp_name} 的角色: ${employee.emp_type} -> ${role}`);
+  
   const employeeWithDetails = {
     ...employee,
+    id: employee.emp_id,
+    name: employee.emp_name,
+    role: role,
     department: department ? department.dep_name : '未分配',
     departmentId: department ? department.dep_id : null
   };
   
-  console.log(`GET /employees/${id} - 返回员工信息:`, employeeWithDetails.emp_name);
+  console.log(`GET /employees/${id} - 返回员工信息:`, employeeWithDetails.emp_name, `角色: ${employeeWithDetails.role}`);
   
   res.json({
     code: '200',
@@ -536,6 +571,10 @@ app.post('/employees', (req, res) => {
       });
     }
     
+    // 处理角色映射，确保与数据库一致
+    let emp_type = req.body.role || '普通用户';
+    console.log(`创建员工，接收到的角色: ${emp_type}`);
+    
     const newEmployee = {
       emp_id: employees.length > 0 ? Math.max(...employees.map(e => e.emp_id)) + 1 : 1,
       emp_name: req.body.name,
@@ -543,7 +582,7 @@ app.post('/employees', (req, res) => {
       gender: req.body.gender || '男',
       hire_date: req.body.hireDate || new Date().toISOString().split('T')[0],
       status: req.body.status === 'active' ? '在职' : '离职',
-      emp_type: req.body.role || '普通用户',
+      emp_type: emp_type,
       position: req.body.position || '',
       email: req.body.email || `${req.body.name.toLowerCase()}@company.com`,
       departmentId: req.body.departmentId || null
@@ -560,11 +599,20 @@ app.post('/employees', (req, res) => {
     employees.push(newEmployee);
     console.log('POST /employees - 创建新员工:', newEmployee.emp_name);
     
+    // 角色映射回前端格式
+    let role = newEmployee.emp_type;
+    if (role === '普通用户') {
+      role = '普通员工';
+    } else if (role === '高层') {
+      role = '公司高层';
+    }
+    
     // 构建返回数据
     const responseEmployee = {
       ...newEmployee,
       id: newEmployee.emp_id,
       name: newEmployee.emp_name,
+      role: role,
       department: newEmployee.departmentId ? 
         (departments.find(d => d.dep_id === parseInt(newEmployee.departmentId))?.dep_name || '未知部门') : 
         '未分配'
@@ -623,7 +671,11 @@ app.put('/employees/:id', (req, res) => {
     const status = req.body.status !== undefined ? 
       (req.body.status === 'active' ? '在职' : '离职') : 
       employees[index].status;
+    
+    // 处理角色，保持与数据库一致
     const emp_type = req.body.role !== undefined ? req.body.role : employees[index].emp_type;
+    console.log(`更新员工角色: ${emp_type}`);
+    
     const position = req.body.position !== undefined ? req.body.position : employees[index].position;
     const email = req.body.email !== undefined ? req.body.email : employees[index].email;
     
@@ -665,11 +717,20 @@ app.put('/employees/:id', (req, res) => {
     
     console.log(`PUT /employees/${id} - 更新后的员工数据:`, JSON.stringify(employees[index], null, 2));
     
+    // 确保角色名称正确映射回前端格式
+    let role = emp_type;
+    if (role === '普通用户') {
+      role = '普通员工';
+    } else if (role === '高层') {
+      role = '公司高层';
+    }
+    
     // 构建返回数据
     const responseEmployee = {
       ...employees[index],
       id: employees[index].emp_id,
       name: employees[index].emp_name,
+      role: role,
       department: employees[index].departmentId ? 
         (departments.find(d => d.dep_id === parseInt(employees[index].departmentId))?.dep_name || '未知部门') : 
         '未分配'

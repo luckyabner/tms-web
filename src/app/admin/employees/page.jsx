@@ -315,13 +315,14 @@ export default function AdminEmployeesPage() {
     switch(role) {
       case '系统管理员': return 'destructive';
       case '人事专员': return 'purple';
-      case '高层': return 'blue';
+      case '公司高层': return 'blue';
+      case '普通员工': return 'outline';
       default: return 'outline';
     }
   };
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
       {/* 页面标题 */}
       <div className="flex items-center justify-between">
         <div>
@@ -438,18 +439,19 @@ export default function AdminEmployeesPage() {
                 <Table className="border-collapse">
                   <TableHeader className="bg-gray-50">
                     <TableRow className="border-b border-gray-200 hover:bg-gray-50/50">
-                      <TableHead className="py-3 font-medium text-gray-700">员工</TableHead>
-                      <TableHead className="py-3 font-medium text-gray-700">部门/职位</TableHead>
-                      <TableHead className="py-3 font-medium text-gray-700">联系方式</TableHead>
-                      <TableHead className="py-3 font-medium text-gray-700">基本信息</TableHead>
-                      <TableHead className="py-3 font-medium text-gray-700">状态</TableHead>
-                      <TableHead className="text-right py-3 font-medium text-gray-700">操作</TableHead>
+                      <TableHead className="py-2.5 font-medium text-gray-700 pl-4">员工</TableHead>
+                      <TableHead className="py-2.5 font-medium text-gray-700">部门/职位</TableHead>
+                      <TableHead className="py-2.5 font-medium text-gray-700 text-center">系统角色</TableHead>
+                      <TableHead className="py-2.5 font-medium text-gray-700">联系方式</TableHead>
+                      <TableHead className="py-2.5 font-medium text-gray-700">基本信息</TableHead>
+                      <TableHead className="py-2.5 font-medium text-gray-700 text-center">状态</TableHead>
+                      <TableHead className="text-right py-2.5 font-medium text-gray-700 pr-4">操作</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {currentPageData.length === 0 ? (
                       <TableRow>
-                        <TableCell colSpan={6} className="text-center py-10 text-muted-foreground">
+                        <TableCell colSpan={7} className="text-center py-10 text-muted-foreground">
                           {filteredEmployees.length === 0 ? '暂无员工数据' : '没有匹配的搜索结果'}
                         </TableCell>
                       </TableRow>
@@ -459,20 +461,17 @@ export default function AdminEmployeesPage() {
                           key={employee.id} 
                           className={`border-b border-gray-100 transition-colors hover:bg-gray-50/70 ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50/30'}`}
                         >
-                          <TableCell className="py-3">
+                          <TableCell className="py-2.5 pl-4">
                             <div className="flex items-center space-x-3">
-                              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center text-white font-semibold shadow-sm">
+                              <div className="w-9 h-9 rounded-full bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center text-white font-semibold shadow-sm">
                                 {employee.name?.charAt(0) || '?'}
                               </div>
                               <div>
                                 <div className="font-medium text-gray-900">{employee.name}</div>
-                                <Badge variant={getRoleBadgeVariant(employee.role)} className="mt-1">
-                                  {employee.role}
-                                </Badge>
                               </div>
                             </div>
                           </TableCell>
-                          <TableCell className="py-3">
+                          <TableCell className="py-2.5">
                             <div className="space-y-1">
                               <div className="flex items-center space-x-1 text-gray-800">
                                 <Building className="h-4 w-4 text-purple-500" />
@@ -485,14 +484,19 @@ export default function AdminEmployeesPage() {
                               )}
                             </div>
                           </TableCell>
-                          <TableCell className="py-3">
+                          <TableCell className="py-2.5 text-center">
+                            <Badge variant={getRoleBadgeVariant(employee.role)} className="whitespace-nowrap px-2.5 py-1">
+                              {employee.role}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="py-2.5">
                             <div className="flex items-center space-x-1 text-gray-800">
                               <Phone className="h-4 w-4 text-purple-500" />
                               <span>{employee.phone}</span>
                             </div>
                           </TableCell>
-                          <TableCell className="py-3">
-                            <div className="space-y-1.5">
+                          <TableCell className="py-2.5">
+                            <div className="space-y-1">
                               <div className="flex items-center space-x-1 text-sm text-gray-600">
                                 <Calendar className="h-3.5 w-3.5 text-purple-500" />
                                 <span>入职: {employee.hireDate}</span>
@@ -510,12 +514,12 @@ export default function AdminEmployeesPage() {
                               )}
                             </div>
                           </TableCell>
-                          <TableCell className="py-3">
+                          <TableCell className="py-2.5 text-center">
                             <Badge variant={getStatusBadgeVariant(employee.status)}>
                               {employee.status}
                             </Badge>
                           </TableCell>
-                          <TableCell className="text-right py-3">
+                          <TableCell className="text-right py-2.5 pr-4">
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild>
                                 <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full hover:bg-gray-100">
