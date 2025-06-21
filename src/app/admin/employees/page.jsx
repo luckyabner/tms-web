@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -25,6 +25,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Search, User, UserPlus, Filter, MoreHorizontal, Shield, UserCog, Mail, Phone, Building } from 'lucide-react';
+import { Pagination, PaginationInfo } from '@/components/ui/pagination';
 
 // 模拟员工数据
 const mockEmployees = [
@@ -153,6 +154,10 @@ export default function AdminEmployeesPage() {
   const [selectedRole, setSelectedRole] = useState('all');
   const [selectedStatus, setSelectedStatus] = useState('all');
   const [activeTab, setActiveTab] = useState('employees');
+  
+  // 分页状态
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(5); // 每页显示5条数据
 
   // 过滤员工数据
   const filteredEmployees = mockEmployees.filter((employee) => {
@@ -172,6 +177,31 @@ export default function AdminEmployeesPage() {
     
     return matchesSearch && matchesRole && matchesStatus;
   });
+  
+  // 计算分页数据
+  const totalItems = filteredEmployees.length;
+  const totalPages = Math.ceil(totalItems / pageSize);
+  const startIndex = (currentPage - 1) * pageSize;
+  const endIndex = startIndex + pageSize;
+  const currentPageData = filteredEmployees.slice(startIndex, endIndex);
+  
+  // 处理页码变化
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+    // 回到页面顶部
+    window.scrollTo(0, 0);
+  };
+  
+  // 处理每页显示数量变化
+  const handlePageSizeChange = (value) => {
+    const newPageSize = parseInt(value);
+    setPageSize(newPageSize);
+    // 调整当前页码，确保不会超出新的总页数
+    const newTotalPages = Math.ceil(filteredEmployees.length / newPageSize);
+    if (currentPage > newTotalPages) {
+      setCurrentPage(Math.max(1, newTotalPages));
+    }
+  };
 
   return (
     <div className="container mx-auto p-6 space-y-6">
@@ -212,12 +242,21 @@ export default function AdminEmployeesPage() {
               <Input
                 placeholder="搜索员工姓名、职位、部门或邮箱..."
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                onChange={(e) => {
+                  setSearchTerm(e.target.value);
+                  setCurrentPage(1); // 搜索时重置到第一页
+                }}
                 className="pl-10"
               />
             </div>
             <div className="flex gap-2">
-              <Select value={selectedRole} onValueChange={setSelectedRole}>
+              <Select 
+                value={selectedRole} 
+                onValueChange={(value) => {
+                  setSelectedRole(value);
+                  setCurrentPage(1); // 筛选时重置到第一页
+                }}
+              >
                 <SelectTrigger className="w-[150px]">
                   <SelectValue placeholder="选择角色" />
                 </SelectTrigger>
@@ -229,7 +268,13 @@ export default function AdminEmployeesPage() {
                   <SelectItem value="普通员工">普通员工</SelectItem>
                 </SelectContent>
               </Select>
-              <Select value={selectedStatus} onValueChange={setSelectedStatus}>
+              <Select 
+                value={selectedStatus} 
+                onValueChange={(value) => {
+                  setSelectedStatus(value);
+                  setCurrentPage(1); // 筛选时重置到第一页
+                }}
+              >
                 <SelectTrigger className="w-[150px]">
                   <SelectValue placeholder="选择状态" />
                 </SelectTrigger>
@@ -237,6 +282,20 @@ export default function AdminEmployeesPage() {
                   <SelectItem value="all">所有状态</SelectItem>
                   <SelectItem value="active">在职</SelectItem>
                   <SelectItem value="inactive">离职</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select
+                value={pageSize.toString()}
+                onValueChange={handlePageSizeChange}
+              >
+                <SelectTrigger className="w-[100px]">
+                  <SelectValue placeholder="每页条数" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="5">5条/页</SelectItem>
+                  <SelectItem value="10">10条/页</SelectItem>
+                  <SelectItem value="20">20条/页</SelectItem>
+                  <SelectItem value="50">50条/页</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -257,84 +316,107 @@ export default function AdminEmployeesPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredEmployees.map((employee) => (
-                    <TableRow key={employee.id}>
-                      <TableCell>
-                        <div className="flex items-center space-x-3">
-                          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center text-white font-semibold">
-                            {employee.name.charAt(0)}
-                          </div>
-                          <div>
-                            <div className="font-medium">{employee.name}</div>
-                            <div className="text-sm text-muted-foreground">{employee.position}</div>
-                          </div>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center space-x-1">
-                          <Building className="h-4 w-4 text-muted-foreground" />
-                          <span>{employee.department}</span>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="space-y-1">
-                          <div className="flex items-center space-x-1 text-sm">
-                            <Mail className="h-3 w-3 text-muted-foreground" />
-                            <span className="truncate max-w-[150px]">{employee.email}</span>
-                          </div>
-                          <div className="flex items-center space-x-1 text-sm">
-                            <Phone className="h-3 w-3 text-muted-foreground" />
-                            <span>{employee.phone}</span>
-                          </div>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant={
-                          employee.role === '系统管理员' ? 'destructive' :
-                          employee.role === '人事专员' ? 'purple' :
-                          employee.role === '公司高层' ? 'blue' : 'outline'
-                        }>
-                          {employee.role}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant={employee.status === 'active' ? 'success' : 'secondary'}>
-                          {employee.status === 'active' ? '在职' : '离职'}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon">
-                              <MoreHorizontal className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuLabel>操作</DropdownMenuLabel>
-                            <DropdownMenuItem>
-                              <User className="mr-2 h-4 w-4" />
-                              查看详情
-                            </DropdownMenuItem>
-                            <DropdownMenuItem>
-                              <UserCog className="mr-2 h-4 w-4" />
-                              编辑信息
-                            </DropdownMenuItem>
-                            <DropdownMenuItem>
-                              <Shield className="mr-2 h-4 w-4" />
-                              权限设置
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem className="text-red-600">
-                              {employee.status === 'active' ? '禁用账户' : '启用账户'}
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
+                  {currentPageData.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={6} className="text-center py-10 text-muted-foreground">
+                        {filteredEmployees.length === 0 ? '暂无员工数据' : '没有匹配的搜索结果'}
                       </TableCell>
                     </TableRow>
-                  ))}
+                  ) : (
+                    currentPageData.map((employee) => (
+                      <TableRow key={employee.id}>
+                        <TableCell>
+                          <div className="flex items-center space-x-3">
+                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center text-white font-semibold">
+                              {employee.name.charAt(0)}
+                            </div>
+                            <div>
+                              <div className="font-medium">{employee.name}</div>
+                              <div className="text-sm text-muted-foreground">{employee.position}</div>
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center space-x-1">
+                            <Building className="h-4 w-4 text-muted-foreground" />
+                            <span>{employee.department}</span>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="space-y-1">
+                            <div className="flex items-center space-x-1 text-sm">
+                              <Mail className="h-3 w-3 text-muted-foreground" />
+                              <span className="truncate max-w-[150px]">{employee.email}</span>
+                            </div>
+                            <div className="flex items-center space-x-1 text-sm">
+                              <Phone className="h-3 w-3 text-muted-foreground" />
+                              <span>{employee.phone}</span>
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant={
+                            employee.role === '系统管理员' ? 'destructive' :
+                            employee.role === '人事专员' ? 'purple' :
+                            employee.role === '公司高层' ? 'blue' : 'outline'
+                          }>
+                            {employee.role}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant={employee.status === 'active' ? 'success' : 'secondary'}>
+                            {employee.status === 'active' ? '在职' : '离职'}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="icon">
+                                <MoreHorizontal className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuLabel>操作</DropdownMenuLabel>
+                              <DropdownMenuItem>
+                                <User className="mr-2 h-4 w-4" />
+                                查看详情
+                              </DropdownMenuItem>
+                              <DropdownMenuItem>
+                                <UserCog className="mr-2 h-4 w-4" />
+                                编辑信息
+                              </DropdownMenuItem>
+                              <DropdownMenuItem>
+                                <Shield className="mr-2 h-4 w-4" />
+                                权限设置
+                              </DropdownMenuItem>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem className="text-red-600">
+                                {employee.status === 'active' ? '禁用账户' : '启用账户'}
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
                 </TableBody>
               </Table>
             </CardContent>
+            {filteredEmployees.length > 0 && (
+              <CardFooter className="flex flex-col sm:flex-row items-center justify-between px-6 py-4 border-t">
+                <PaginationInfo 
+                  currentPage={currentPage} 
+                  pageSize={pageSize} 
+                  totalItems={totalItems}
+                  className="mb-4 sm:mb-0" 
+                />
+                <Pagination 
+                  currentPage={currentPage} 
+                  totalPages={totalPages} 
+                  onPageChange={handlePageChange} 
+                />
+              </CardFooter>
+            )}
           </Card>
         </TabsContent>
 

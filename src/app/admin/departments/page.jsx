@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -26,6 +26,14 @@ import { getAllDepartments, deleteDepartment } from '@/lib/services/departmentSe
 import { format } from 'date-fns';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import DepartmentForm from '@/components/admin/DepartmentForm';
+import { Pagination, PaginationInfo } from '@/components/ui/pagination';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export default function AdminDepartmentsPage() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -34,6 +42,10 @@ export default function AdminDepartmentsPage() {
   const [error, setError] = useState(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedDepartment, setSelectedDepartment] = useState(null);
+  
+  // 分页状态
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(5); // 每页显示5条数据
 
   // 模拟部门数据（作为API失败时的后备数据）
   const mockDepartments = [
@@ -183,6 +195,24 @@ export default function AdminDepartmentsPage() {
     fetchDepartments();
   };
 
+  // 处理页码变化
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+    // 回到页面顶部
+    window.scrollTo(0, 0);
+  };
+
+  // 处理每页显示数量变化
+  const handlePageSizeChange = (value) => {
+    const newPageSize = parseInt(value);
+    setPageSize(newPageSize);
+    // 调整当前页码，确保不会超出新的总页数
+    const newTotalPages = Math.ceil(filteredDepartments.length / newPageSize);
+    if (currentPage > newTotalPages) {
+      setCurrentPage(Math.max(1, newTotalPages));
+    }
+  };
+
   // 确保departments是数组
   const departmentsArray = Array.isArray(departments) ? departments : [];
 
@@ -190,10 +220,17 @@ export default function AdminDepartmentsPage() {
   const filteredDepartments = departmentsArray.filter((department) => {
     return (
       department.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      department.manager?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      department.managerName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       department.description?.toLowerCase().includes(searchTerm.toLowerCase())
     );
   });
+
+  // 计算分页数据
+  const totalItems = filteredDepartments.length;
+  const totalPages = Math.ceil(totalItems / pageSize);
+  const startIndex = (currentPage - 1) * pageSize;
+  const endIndex = startIndex + pageSize;
+  const currentPageData = filteredDepartments.slice(startIndex, endIndex);
 
   // 计算统计数据
   const totalEmployees = departmentsArray.reduce((sum, dept) => sum + (dept.employeeCount || 0), 0);
@@ -325,14 +362,38 @@ export default function AdminDepartmentsPage() {
             <CardTitle>部门列表</CardTitle>
             <CardDescription>管理和查看所有部门信息</CardDescription>
           </div>
-          <div className="relative w-64">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-            <Input
-              placeholder="搜索部门名称或主管..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
-            />
+          <div className="flex items-center gap-4">
+            <div className="flex items-center">
+              <label htmlFor="pageSize" className="text-sm text-muted-foreground mr-2">
+                每页显示:
+              </label>
+              <Select
+                value={pageSize.toString()}
+                onValueChange={handlePageSizeChange}
+              >
+                <SelectTrigger className="w-[80px] h-9">
+                  <SelectValue placeholder="5" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="5">5</SelectItem>
+                  <SelectItem value="10">10</SelectItem>
+                  <SelectItem value="20">20</SelectItem>
+                  <SelectItem value="50">50</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="relative w-64">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+              <Input
+                placeholder="搜索部门名称或主管..."
+                value={searchTerm}
+                onChange={(e) => {
+                  setSearchTerm(e.target.value);
+                  setCurrentPage(1); // 搜索时重置到第一页
+                }}
+                className="pl-10"
+              />
+            </div>
           </div>
         </CardHeader>
         <CardContent>
@@ -358,14 +419,14 @@ export default function AdminDepartmentsPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredDepartments.length === 0 ? (
+                {currentPageData.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={6} className="text-center py-10 text-muted-foreground">
-                      暂无部门数据
+                      {filteredDepartments.length === 0 ? '暂无部门数据' : '没有匹配的搜索结果'}
                     </TableCell>
                   </TableRow>
                 ) : (
-                  filteredDepartments.map((department) => (
+                  currentPageData.map((department) => (
                     <TableRow key={department.id} className="hover:bg-gray-50">
                       <TableCell>
                         <div className="flex items-center space-x-2">
@@ -441,6 +502,21 @@ export default function AdminDepartmentsPage() {
             </Table>
           )}
         </CardContent>
+        {!loading && !error && filteredDepartments.length > 0 && (
+          <CardFooter className="flex flex-col sm:flex-row items-center justify-between px-6 py-4 border-t">
+            <PaginationInfo 
+              currentPage={currentPage} 
+              pageSize={pageSize} 
+              totalItems={totalItems}
+              className="mb-4 sm:mb-0" 
+            />
+            <Pagination 
+              currentPage={currentPage} 
+              totalPages={totalPages} 
+              onPageChange={handlePageChange} 
+            />
+          </CardFooter>
+        )}
       </Card>
 
       {/* 部门表单侧边抽屉 */}
