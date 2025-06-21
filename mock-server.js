@@ -26,6 +26,26 @@ app.use((req, res, next) => {
   next();
 });
 
+// 全局错误处理中间件
+app.use((err, req, res, next) => {
+  console.error('全局错误捕获:', err);
+  res.status(500).json({
+    code: '500',
+    msg: '服务器内部错误: ' + (err.message || '未知错误'),
+    error: err.stack
+  });
+});
+
+// 捕获未处理的Promise rejection
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('未处理的Promise rejection:', reason);
+});
+
+// 捕获未处理的异常
+process.on('uncaughtException', (err) => {
+  console.error('未捕获的异常:', err);
+});
+
 // 模拟员工数据
 const employees = [
   { emp_id: 1, emp_name: '张三', phone: '13800138001', gender: '男', hire_date: '2020-01-01', status: '在职', emp_type: '系统管理员' },
@@ -135,45 +155,94 @@ const getEmployeeName = (id) => {
 
 // 处理部门数据，添加关联信息
 const processDepartmentData = (departments) => {
-  return departments.map(dept => {
-    // 获取部门主管名称
-    let managerName = null;
-    if (dept.manager_id) {
-      const manager = employees.find(e => e.emp_id === parseInt(dept.manager_id));
-      managerName = manager ? manager.emp_name : null;
-    }
+  console.log('处理部门数据，输入数据:', JSON.stringify(departments, null, 2));
+  
+  try {
+    const result = departments.map(dept => {
+      try {
+        // 获取部门主管名称
+        let managerName = null;
+        if (dept.manager_id !== null && dept.manager_id !== undefined) {
+          console.log(`查找主管，manager_id=${dept.manager_id}，类型=${typeof dept.manager_id}`);
+          const manager = employees.find(e => e.emp_id === parseInt(dept.manager_id));
+          if (manager) {
+            managerName = manager.emp_name;
+            console.log(`找到主管: ${managerName}`);
+          } else {
+            console.log(`未找到主管，manager_id=${dept.manager_id}`);
+          }
+        } else {
+          console.log(`部门 ${dept.dep_name} 没有指定主管`);
+        }
+        
+        // 获取上级部门名称
+        let parentName = null;
+        if (dept.parent_id !== null && dept.parent_id !== undefined) {
+          console.log(`查找上级部门，parent_id=${dept.parent_id}，类型=${typeof dept.parent_id}`);
+          const parent = departments.find(d => d.dep_id === parseInt(dept.parent_id));
+          if (parent) {
+            parentName = parent.dep_name;
+            console.log(`找到上级部门: ${parentName}`);
+          } else {
+            console.log(`未找到上级部门，parent_id=${dept.parent_id}`);
+          }
+        } else {
+          console.log(`部门 ${dept.dep_name} 没有上级部门`);
+        }
+        
+        console.log(`处理部门: ${dept.dep_name}, 主管ID: ${dept.manager_id}, 主管名: ${managerName}, 上级部门ID: ${dept.parent_id}, 上级部门名: ${parentName}`);
+        
+        // 返回处理后的数据
+        const result = {
+          dep_id: dept.dep_id,
+          id: dept.dep_id, // 兼容前端使用id字段
+          dep_name: dept.dep_name,
+          name: dept.dep_name, // 兼容前端使用name字段
+          parent_id: dept.parent_id,
+          parentId: dept.parent_id, // 兼容前端使用parentId字段
+          manager_id: dept.manager_id,
+          managerId: dept.manager_id, // 兼容前端使用managerId字段
+          managerName: managerName,
+          parentName: parentName,
+          employeeCount: dept.employeeCount || 0,
+          description: dept.description || '',
+          is_deleted: dept.is_deleted,
+          isDeleted: dept.is_deleted === 1, // 兼容前端使用isDeleted字段
+          created_at: dept.created_at,
+          createdAt: dept.created_at, // 兼容前端使用createdAt字段
+          updated_at: dept.updated_at,
+          updatedAt: dept.updated_at // 兼容前端使用updatedAt字段
+        };
+        
+        console.log(`处理结果:`, JSON.stringify(result, null, 2));
+        return result;
+      } catch (err) {
+        console.error(`处理部门数据出错:`, err, '部门数据:', dept);
+        // 返回基本数据，避免整个处理失败
+        return {
+          dep_id: dept.dep_id,
+          id: dept.dep_id,
+          dep_name: dept.dep_name,
+          name: dept.dep_name,
+          description: dept.description || '',
+          is_deleted: dept.is_deleted,
+          created_at: dept.created_at,
+          updated_at: dept.updated_at
+        };
+      }
+    });
     
-    // 获取上级部门名称
-    let parentName = null;
-    if (dept.parent_id) {
-      const parent = departments.find(d => d.dep_id === parseInt(dept.parent_id));
-      parentName = parent ? parent.dep_name : null;
-    }
-    
-    console.log(`处理部门: ${dept.dep_name}, 主管ID: ${dept.manager_id}, 主管名: ${managerName}, 上级部门ID: ${dept.parent_id}, 上级部门名: ${parentName}`);
-    
-    // 返回处理后的数据
-    return {
+    console.log('处理后的部门数据结果:', result.length, '条记录');
+    return result;
+  } catch (err) {
+    console.error('处理部门数据总体失败:', err);
+    return departments.map(dept => ({
       dep_id: dept.dep_id,
-      id: dept.dep_id, // 兼容前端使用id字段
+      id: dept.dep_id,
       dep_name: dept.dep_name,
-      name: dept.dep_name, // 兼容前端使用name字段
-      parent_id: dept.parent_id,
-      parentId: dept.parent_id, // 兼容前端使用parentId字段
-      manager_id: dept.manager_id,
-      managerId: dept.manager_id, // 兼容前端使用managerId字段
-      managerName: managerName,
-      parentName: parentName,
-      employeeCount: dept.employeeCount || 0,
-      description: dept.description || '',
-      is_deleted: dept.is_deleted,
-      isDeleted: dept.is_deleted === 1, // 兼容前端使用isDeleted字段
-      created_at: dept.created_at,
-      createdAt: dept.created_at, // 兼容前端使用createdAt字段
-      updated_at: dept.updated_at,
-      updatedAt: dept.updated_at // 兼容前端使用updatedAt字段
-    };
-  });
+      name: dept.dep_name
+    }));
+  }
 };
 
 // 获取所有部门
@@ -239,67 +308,136 @@ app.get('/employees', (req, res) => {
 app.post('/departments', (req, res) => {
   console.log('POST /departments - 请求体:', req.body);
   
-  const now = new Date().toISOString().split('T')[0];
-  
-  const newDepartment = {
-    dep_id: departments.length > 0 ? Math.max(...departments.map(d => d.dep_id)) + 1 : 1,
-    dep_name: req.body.dep_name,
-    parent_id: req.body.parent_id || null,
-    manager_id: req.body.manager_id || null,
-    employeeCount: req.body.employeeCount || 0,
-    description: req.body.description || '',
-    is_deleted: 0,
-    created_at: now,
-    updated_at: now
-  };
-  
-  departments.push(newDepartment);
-  console.log('POST /departments - 创建新部门:', newDepartment.dep_name);
-  
-  const processedDepartment = processDepartmentData([newDepartment])[0];
-  
-  res.status(201).json({
-    code: '200',
-    msg: '创建成功',
-    data: processedDepartment
-  });
+  try {
+    const now = new Date().toISOString().split('T')[0];
+    
+    // 检查必填字段
+    if (!req.body.dep_name && !req.body.name) {
+      console.error('POST /departments - 缺少部门名称字段');
+      return res.status(400).json({
+        code: '400',
+        msg: '部门名称不能为空',
+        data: null
+      });
+    }
+    
+    const newDepartment = {
+      dep_id: departments.length > 0 ? Math.max(...departments.map(d => d.dep_id)) + 1 : 1,
+      dep_name: req.body.dep_name || req.body.name,
+      parent_id: req.body.parent_id || req.body.parentId || null,
+      manager_id: req.body.manager_id || req.body.managerId || null,
+      employeeCount: req.body.employeeCount || 0,
+      description: req.body.description || '',
+      is_deleted: 0,
+      created_at: now,
+      updated_at: now
+    };
+    
+    departments.push(newDepartment);
+    console.log('POST /departments - 创建新部门:', newDepartment.dep_name);
+    
+    const processedDepartment = processDepartmentData([newDepartment])[0];
+    
+    res.status(201).json({
+      code: '200',
+      msg: '创建成功',
+      data: processedDepartment
+    });
+  } catch (err) {
+    console.error('POST /departments - 处理请求时出错:', err);
+    res.status(500).json({
+      code: '500',
+      msg: '服务器内部错误',
+      data: null
+    });
+  }
 });
 
 // 更新部门
 app.put('/departments/:id', (req, res) => {
   const id = parseInt(req.params.id);
-  console.log(`PUT /departments/${id} - 请求体:`, req.body);
+  console.log(`PUT /departments/${id} - 请求体:`, JSON.stringify(req.body, null, 2));
   
-  const index = departments.findIndex(d => d.dep_id === id);
-  
-  if (index === -1) {
-    console.log(`PUT /departments/${id} - 未找到部门`);
-    return res.status(404).json({
-      code: '404',
-      msg: '部门不存在',
+  try {
+    // 验证id参数
+    if (isNaN(id)) {
+      console.error(`PUT /departments/${id} - 无效的ID参数`);
+      return res.status(400).json({
+        code: '400',
+        msg: '无效的部门ID',
+        data: null
+      });
+    }
+    
+    const index = departments.findIndex(d => d.dep_id === id);
+    
+    if (index === -1) {
+      console.log(`PUT /departments/${id} - 未找到部门`);
+      return res.status(404).json({
+        code: '404',
+        msg: '部门不存在',
+        data: null
+      });
+    }
+    
+    // 打印原始部门数据
+    console.log(`PUT /departments/${id} - 原始部门数据:`, JSON.stringify(departments[index], null, 2));
+    
+    // 安全地获取请求中的字段
+    const dep_name = req.body.dep_name !== undefined ? req.body.dep_name : departments[index].dep_name;
+    
+    // 特别处理parent_id和manager_id，确保null值被正确处理
+    let parent_id = departments[index].parent_id;
+    if (req.body.parent_id !== undefined) {
+      parent_id = req.body.parent_id;
+      console.log(`PUT /departments/${id} - 更新parent_id:`, parent_id);
+    }
+    
+    let manager_id = departments[index].manager_id;
+    if (req.body.manager_id !== undefined) {
+      manager_id = req.body.manager_id;
+      console.log(`PUT /departments/${id} - 更新manager_id:`, manager_id);
+    }
+    
+    const description = req.body.description !== undefined ? req.body.description : departments[index].description;
+    
+    // 更新部门信息
+    departments[index] = { 
+      ...departments[index], 
+      dep_name,
+      parent_id,
+      manager_id,
+      description,
+      updated_at: new Date().toISOString().split('T')[0]
+    };
+    
+    console.log(`PUT /departments/${id} - 更新后的部门数据:`, JSON.stringify(departments[index], null, 2));
+    
+    try {
+      const processedDepartment = processDepartmentData([departments[index]])[0];
+      console.log(`PUT /departments/${id} - 处理后的部门数据:`, JSON.stringify(processedDepartment, null, 2));
+      
+      res.json({
+        code: '200',
+        msg: '更新成功',
+        data: processedDepartment
+      });
+    } catch (processErr) {
+      console.error(`PUT /departments/${id} - 处理部门数据时出错:`, processErr);
+      res.status(500).json({
+        code: '500',
+        msg: '处理部门数据时出错: ' + processErr.message,
+        data: null
+      });
+    }
+  } catch (err) {
+    console.error(`PUT /departments/${id} - 处理请求时出错:`, err);
+    res.status(500).json({
+      code: '500',
+      msg: '服务器内部错误: ' + err.message,
       data: null
     });
   }
-  
-  // 更新部门信息
-  departments[index] = { 
-    ...departments[index], 
-    dep_name: req.body.dep_name || departments[index].dep_name,
-    parent_id: req.body.parent_id !== undefined ? req.body.parent_id : departments[index].parent_id,
-    manager_id: req.body.manager_id !== undefined ? req.body.manager_id : departments[index].manager_id,
-    description: req.body.description || departments[index].description,
-    updated_at: new Date().toISOString().split('T')[0]
-  };
-  
-  console.log(`PUT /departments/${id} - 更新部门:`, departments[index].dep_name);
-  
-  const processedDepartment = processDepartmentData([departments[index]])[0];
-  
-  res.json({
-    code: '200',
-    msg: '更新成功',
-    data: processedDepartment
-  });
 });
 
 // 删除部门

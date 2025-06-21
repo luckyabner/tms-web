@@ -446,12 +446,13 @@ export default function AdminDepartmentsPage() {
       {/* 部门表单侧边抽屉 */}
       <Sheet open={isFormOpen} onOpenChange={setIsFormOpen}>
         <SheetContent className="w-full sm:max-w-xl overflow-y-auto">
-          <SheetHeader className="pb-5 border-b">
-            <SheetTitle className="text-xl font-semibold text-gray-800">
+          <SheetHeader>
+            <SheetTitle className="text-2xl font-bold text-purple-800 flex items-center gap-2 mb-2">
+              <Building2 className="h-6 w-6" />
               {selectedDepartment ? '编辑部门' : '添加新部门'}
             </SheetTitle>
           </SheetHeader>
-          <div className="py-6">
+          <div className="mt-0">
             <DepartmentForm 
               department={selectedDepartment}
               onSuccess={handleFormSuccess}

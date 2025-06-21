@@ -202,13 +202,18 @@ export const getDepartmentById = async (id) => {
  */
 export const createDepartment = async (departmentData) => {
   try {
+    console.log('创建部门，前端提交数据:', departmentData);
+    
     // 转换为API需要的格式
     const apiData = {
       dep_name: departmentData.name,
       parent_id: departmentData.parentId || null,
       manager_id: departmentData.managerId || null,
+      employeeCount: departmentData.employeeCount || 0,
       description: departmentData.description || ''
     };
+    
+    console.log('转换后的API数据:', apiData);
     
     const response = await api.post('/departments', apiData);
     
@@ -234,15 +239,32 @@ export const createDepartment = async (departmentData) => {
  */
 export const updateDepartment = async (id, departmentData) => {
   try {
-    // 转换为API需要的格式
+    console.log('更新部门，前端提交数据:', JSON.stringify(departmentData, null, 2));
+    
+    // 转换为API需要的格式，特别处理各种类型的值
     const apiData = {
-      dep_name: departmentData.name,
-      parent_id: departmentData.parentId || null,
-      manager_id: departmentData.managerId || null,
+      dep_name: departmentData.name || '',
+      parent_id: departmentData.parentId === '' ? null : departmentData.parentId,
+      manager_id: departmentData.managerId === '' ? null : departmentData.managerId,
       description: departmentData.description || ''
     };
     
+    // 确保parent_id和manager_id是数字或null
+    if (apiData.parent_id !== null && apiData.parent_id !== undefined) {
+      const parentId = parseInt(apiData.parent_id);
+      apiData.parent_id = isNaN(parentId) ? null : parentId;
+    }
+    
+    if (apiData.manager_id !== null && apiData.manager_id !== undefined) {
+      const managerId = parseInt(apiData.manager_id);
+      apiData.manager_id = isNaN(managerId) ? null : managerId;
+    }
+    
+    console.log('转换后的API数据:', JSON.stringify(apiData, null, 2));
+    
     const response = await api.put(`/departments/${id}`, apiData);
+    
+    console.log('API响应数据:', JSON.stringify(response.data, null, 2));
     
     // 处理响应
     if (response.data && response.data.code === '200') {

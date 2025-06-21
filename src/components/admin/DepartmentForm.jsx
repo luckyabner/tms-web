@@ -15,8 +15,8 @@ export default function DepartmentForm({ department = null, onSuccess, onCancel 
 
   const [formData, setFormData] = useState({
     name: department?.name || '',
-    managerId: department?.managerId || '',
-    parentId: department?.parentId || '',
+    managerId: department?.managerId || null,
+    parentId: department?.parentId || null,
     employeeCount: department?.employeeCount || 0,
     description: department?.description || '',
   });
@@ -51,10 +51,19 @@ export default function DepartmentForm({ department = null, onSuccess, onCancel 
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: name === 'employeeCount' ? parseInt(value) || 0 : value
-    }));
+    
+    // 特殊处理select字段的空字符串值，将其转换为null
+    if ((name === 'parentId' || name === 'managerId') && value === '') {
+      setFormData(prev => ({
+        ...prev,
+        [name]: null
+      }));
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        [name]: name === 'employeeCount' ? parseInt(value) || 0 : value
+      }));
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -63,9 +72,13 @@ export default function DepartmentForm({ department = null, onSuccess, onCancel 
     setError(null);
 
     try {
+      console.log('提交表单数据:', formData);
+      
       if (isEditing) {
+        console.log(`正在更新部门ID=${department.id}`);
         await updateDepartment(department.id, formData);
       } else {
+        console.log('正在创建新部门');
         await createDepartment(formData);
       }
       onSuccess();
@@ -79,15 +92,8 @@ export default function DepartmentForm({ department = null, onSuccess, onCancel 
 
   return (
     <Card className="w-full border-0 shadow-lg transition-all duration-300 hover:shadow-xl">
-      <CardHeader className="bg-gradient-to-r from-purple-50 to-indigo-50 rounded-t-xl pb-4">
-        <CardTitle className="flex items-center gap-2 text-xl font-bold text-purple-800">
-          <Building2 className="h-5 w-5" />
-          {isEditing ? '编辑部门信息' : '创建新部门'}
-        </CardTitle>
-      </CardHeader>
-      
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <CardContent className="space-y-6 pt-6">
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <CardContent className="space-y-4 pt-2 rounded-t-xl bg-gradient-to-r from-purple-50 to-indigo-50">
           {error && (
             <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg flex items-center animate-pulse">
               <AlertCircle className="h-4 w-4 mr-2 flex-shrink-0" />
@@ -96,13 +102,13 @@ export default function DepartmentForm({ department = null, onSuccess, onCancel 
           )}
           
           {loadingOptions && (
-            <div className="flex justify-center py-4">
+            <div className="flex justify-center py-2">
               <Loader2 className="h-5 w-5 animate-spin text-purple-600" />
               <span className="ml-2 text-sm text-gray-500">加载数据中...</span>
             </div>
           )}
           
-          <div className="space-y-2">
+          <div className="space-y-1">
             <Label htmlFor="name" className="flex items-center gap-2 font-medium text-gray-700">
               <span className="flex items-center">
                 <Building2 className="h-4 w-4 text-purple-600 mr-1" />
@@ -121,8 +127,8 @@ export default function DepartmentForm({ department = null, onSuccess, onCancel 
             />
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-2">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-1">
               <Label htmlFor="parentId" className="flex items-center gap-2 font-medium text-gray-700">
                 <FolderTree className="h-4 w-4 text-purple-600 mr-1" />
                 上级部门
@@ -131,7 +137,7 @@ export default function DepartmentForm({ department = null, onSuccess, onCancel 
                 <select
                   id="parentId"
                   name="parentId"
-                  value={formData.parentId}
+                  value={formData.parentId || ''}
                   onChange={handleChange}
                   className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 pr-10"
                 >
@@ -140,17 +146,14 @@ export default function DepartmentForm({ department = null, onSuccess, onCancel 
                     <option key={dept.id} value={dept.id}>{dept.name}</option>
                   ))}
                 </select>
-                <div className="absolute right-3 top-2.5 pointer-events-none text-gray-400">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>
-                </div>
               </div>
-              <p className="text-xs text-gray-500 mt-1 flex items-center">
-                <span className="inline-block w-3 h-3 rounded-full bg-purple-100 mr-1"></span>
+              <p className="text-xs text-gray-500 mt-0 flex items-center">
+                <span className="inline-block w-2 h-2 rounded-full bg-purple-100 mr-1"></span>
                 选择此部门的上级部门关系
               </p>
             </div>
             
-            <div className="space-y-2">
+            <div className="space-y-1">
               <Label htmlFor="managerId" className="flex items-center gap-2 font-medium text-gray-700">
                 <UserCircle className="h-4 w-4 text-purple-600 mr-1" />
                 部门主管
@@ -159,7 +162,7 @@ export default function DepartmentForm({ department = null, onSuccess, onCancel 
                 <select
                   id="managerId"
                   name="managerId"
-                  value={formData.managerId}
+                  value={formData.managerId || ''}
                   onChange={handleChange}
                   className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 pr-10"
                 >
@@ -168,18 +171,15 @@ export default function DepartmentForm({ department = null, onSuccess, onCancel 
                     <option key={emp.id} value={emp.id}>{emp.name}</option>
                   ))}
                 </select>
-                <div className="absolute right-3 top-2.5 pointer-events-none text-gray-400">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>
-                </div>
               </div>
-              <p className="text-xs text-gray-500 mt-1 flex items-center">
-                <span className="inline-block w-3 h-3 rounded-full bg-purple-100 mr-1"></span>
+              <p className="text-xs text-gray-500 mt-0 flex items-center">
+                <span className="inline-block w-2 h-2 rounded-full bg-purple-100 mr-1"></span>
                 选择此部门的负责人
               </p>
             </div>
           </div>
           
-          <div className="space-y-2">
+          <div className="space-y-1">
             <Label htmlFor="employeeCount" className="flex items-center gap-2 font-medium text-gray-700">
               <Users className="h-4 w-4 text-purple-600 mr-1" />
               员工数量
@@ -195,13 +195,13 @@ export default function DepartmentForm({ department = null, onSuccess, onCancel 
               className={`focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 ${isEditing ? 'bg-gray-50' : ''}`}
               disabled={isEditing} // 编辑时不允许修改员工数量
             />
-            <p className="text-xs text-gray-500 mt-1 flex items-center">
-              <span className="inline-block w-3 h-3 rounded-full bg-purple-100 mr-1"></span>
+            <p className="text-xs text-gray-500 mt-0 flex items-center">
+              <span className="inline-block w-2 h-2 rounded-full bg-purple-100 mr-1"></span>
               {isEditing ? '员工数量由系统自动统计，不可手动修改' : '创建部门时的初始员工数量'}
             </p>
           </div>
           
-          <div className="space-y-2">
+          <div className="space-y-1">
             <Label htmlFor="description" className="flex items-center gap-2 font-medium text-gray-700">
               <FileText className="h-4 w-4 text-purple-600 mr-1" />
               部门描述
@@ -212,17 +212,17 @@ export default function DepartmentForm({ department = null, onSuccess, onCancel 
               value={formData.description}
               onChange={handleChange}
               placeholder="请输入部门职责描述"
-              rows={4}
+              rows={3}
               className="resize-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200"
             />
-            <p className="text-xs text-gray-500 mt-1 flex items-center">
-              <span className="inline-block w-3 h-3 rounded-full bg-purple-100 mr-1"></span>
+            <p className="text-xs text-gray-500 mt-0 flex items-center">
+              <span className="inline-block w-2 h-2 rounded-full bg-purple-100 mr-1"></span>
               详细描述部门的职责范围和工作内容
             </p>
           </div>
         </CardContent>
         
-        <CardFooter className="flex justify-end space-x-3 border-t pt-6 bg-gray-50 rounded-b-xl">
+        <CardFooter className="flex justify-end space-x-3 border-t pt-4 bg-gray-50 rounded-b-xl">
           <Button 
             type="button" 
             variant="outline" 
