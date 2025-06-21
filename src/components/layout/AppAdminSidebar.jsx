@@ -6,7 +6,6 @@ import {
 	Building,
 	Settings,
 	ClipboardList,
-	ShieldAlert,
 	Search,
 } from 'lucide-react';
 
@@ -65,11 +64,6 @@ const systemItems = [
 		title: '系统设置',
 		url: '/admin/settings',
 		icon: Settings,
-	},
-	{
-		title: '权限管理',
-		url: '/admin/permissions',
-		icon: ShieldAlert,
 	},
 ];
 
