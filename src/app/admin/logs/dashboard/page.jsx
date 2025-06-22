@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -29,151 +29,153 @@ import {
   Cell,
   Legend
 } from 'recharts';
-import { ClipboardList, AlertTriangle, CheckCircle, Info, AlertCircle, Download, RefreshCw, Filter } from 'lucide-react';
+import { ClipboardList, AlertTriangle, CheckCircle, Info, AlertCircle, Download, RefreshCw, Filter, Loader2 } from 'lucide-react';
+import { getAllLogs, getLogStats, getLogActivity, getLogSources, exportLogs } from '@/lib/services/logService';
 
 export default function LogsDashboardPage() {
   const [timeRange, setTimeRange] = useState('today');
   const [logType, setLogType] = useState('all');
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [debugInfo, setDebugInfo] = useState(null);
 
-  // 模拟日志统计数据
-  const logStats = [
+  // 日志数据状态
+  const [logs, setLogs] = useState([]);
+  const [logStats, setLogStats] = useState([
     {
       title: '总日志数',
-      value: '24,892',
+      value: '0',
       icon: ClipboardList,
       color: 'bg-purple-100 text-purple-600',
     },
     {
       title: '错误日志',
-      value: '142',
+      value: '0',
       icon: AlertTriangle,
       color: 'bg-red-100 text-red-600',
     },
     {
-      title: '警告日志',
-      value: '583',
-      icon: AlertCircle,
-      color: 'bg-amber-100 text-amber-600',
-    },
-    {
       title: '信息日志',
-      value: '24,167',
+      value: '0',
       icon: Info,
       color: 'bg-blue-100 text-blue-600',
     },
-  ];
+  ]);
+  const [hourlyLogData, setHourlyLogData] = useState([]);
+  const [logSourceData, setLogSourceData] = useState([]);
 
-  // 模拟日志活动数据 - 按小时
-  const hourlyLogData = [
-    { time: '00:00', 信息: 120, 警告: 15, 错误: 5 },
-    { time: '01:00', 信息: 90, 警告: 10, 错误: 3 },
-    { time: '02:00', 信息: 75, 警告: 8, 错误: 2 },
-    { time: '03:00', 信息: 60, 警告: 5, 错误: 1 },
-    { time: '04:00', 信息: 65, 警告: 7, 错误: 2 },
-    { time: '05:00', 信息: 70, 警告: 9, 错误: 3 },
-    { time: '06:00', 信息: 100, 警告: 12, 错误: 4 },
-    { time: '07:00', 信息: 150, 警告: 18, 错误: 6 },
-    { time: '08:00', 信息: 280, 警告: 25, 错误: 8 },
-    { time: '09:00', 信息: 350, 警告: 30, 错误: 10 },
-    { time: '10:00', 信息: 380, 警告: 32, 错误: 12 },
-    { time: '11:00', 信息: 400, 警告: 35, 错误: 15 },
-    { time: '12:00', 信息: 390, 警告: 33, 错误: 14 },
-    { time: '13:00', 信息: 410, 警告: 36, 错误: 16 },
-    { time: '14:00', 信息: 430, 警告: 38, 错误: 18 },
-    { time: '15:00', 信息: 450, 警告: 40, 错误: 20 },
-    { time: '16:00', 信息: 420, 警告: 37, 错误: 17 },
-    { time: '17:00', 信息: 380, 警告: 32, 错误: 13 },
-    { time: '18:00', 信息: 300, 警告: 28, 错误: 10 },
-    { time: '19:00', 信息: 250, 警告: 22, 错误: 8 },
-    { time: '20:00', 信息: 200, 警告: 18, 错误: 6 },
-    { time: '21:00', 信息: 180, 警告: 15, 错误: 5 },
-    { time: '22:00', 信息: 150, 警告: 12, 错误: 4 },
-    { time: '23:00', 信息: 130, 警告: 10, 错误: 3 },
-  ];
+  // 加载所有日志数据
+  const fetchAllLogData = async () => {
+    try {
+      setLoading(true);
+      setDebugInfo(null);
+      
+      // 获取日志列表
+      try {
+        console.log('正在获取日志列表...');
+        const logsData = await getAllLogs();
+        console.log('获取到的日志列表:', logsData);
+        setLogs(logsData || []);
+        
+        if (!logsData || logsData.length === 0) {
+          console.log('没有获取到日志数据');
+          setDebugInfo(prev => ({ ...prev, logsInfo: '没有获取到日志数据' }));
+        }
+      } catch (err) {
+        console.error('获取日志列表失败:', err);
+        setDebugInfo(prev => ({ ...prev, logsError: err.message || '获取日志列表失败' }));
+      }
+      
+      // 获取日志统计
+      try {
+        console.log('正在获取日志统计...');
+        const statsData = await getLogStats();
+        console.log('获取到的日志统计:', statsData);
+        
+        if (statsData) {
+          setLogStats([
+            {
+              title: '总日志数',
+              value: statsData.total.toString(),
+              icon: ClipboardList,
+              color: 'bg-purple-100 text-purple-600',
+            },
+            {
+              title: '错误日志',
+              value: statsData.error.toString(),
+              icon: AlertTriangle,
+              color: 'bg-red-100 text-red-600',
+            },
+            {
+              title: '信息日志',
+              value: statsData.info.toString(),
+              icon: Info,
+              color: 'bg-blue-100 text-blue-600',
+            },
+          ]);
+        }
+      } catch (err) {
+        console.error('获取日志统计失败:', err);
+        setDebugInfo(prev => ({ ...prev, statsError: err.message || '获取日志统计失败' }));
+      }
+      
+      // 获取小时活动数据
+      try {
+        console.log('正在获取日志活动数据...');
+        const activityData = await getLogActivity();
+        console.log('获取到的日志活动数据:', activityData);
+        setHourlyLogData(activityData || []);
+      } catch (err) {
+        console.error('获取日志活动数据失败:', err);
+        setDebugInfo(prev => ({ ...prev, activityError: err.message || '获取日志活动数据失败' }));
+      }
+      
+      // 获取来源数据
+      try {
+        console.log('正在获取日志来源数据...');
+        const sourcesData = await getLogSources();
+        console.log('获取到的日志来源数据:', sourcesData);
+        setLogSourceData(sourcesData || []);
+      } catch (err) {
+        console.error('获取日志来源数据失败:', err);
+        setDebugInfo(prev => ({ ...prev, sourcesError: err.message || '获取日志来源数据失败' }));
+      }
+      
+      setError(null);
+    } catch (err) {
+      console.error('获取日志数据失败:', err);
+      setError('获取日志数据失败，请稍后重试');
+      setDebugInfo(prev => ({ ...prev, mainError: err.message || '获取日志数据失败' }));
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  // 模拟日志来源数据
-  const logSourceData = [
-    { name: '用户操作', value: 45 },
-    { name: '系统事件', value: 25 },
-    { name: 'API调用', value: 20 },
-    { name: '定时任务', value: 10 },
-  ];
+  useEffect(() => {
+    fetchAllLogData();
+  }, []);
 
-  // 模拟最近日志数据
-  const recentLogs = [
-    { 
-      id: 1, 
-      timestamp: '2023-09-15 15:45:23', 
-      level: 'info', 
-      message: '用户 admin 登录系统', 
-      source: '认证服务',
-      user: 'admin',
-      ip: '192.168.1.100'
-    },
-    { 
-      id: 2, 
-      timestamp: '2023-09-15 15:42:18', 
-      level: 'warning', 
-      message: '用户尝试访问未授权资源', 
-      source: '权限服务',
-      user: 'zhangsan',
-      ip: '192.168.1.101'
-    },
-    { 
-      id: 3, 
-      timestamp: '2023-09-15 15:40:05', 
-      level: 'error', 
-      message: '数据库连接超时', 
-      source: '数据服务',
-      user: 'system',
-      ip: '192.168.1.5'
-    },
-    { 
-      id: 4, 
-      timestamp: '2023-09-15 15:38:57', 
-      level: 'info', 
-      message: '新员工账户创建成功', 
-      source: '用户管理',
-      user: 'admin',
-      ip: '192.168.1.100'
-    },
-    { 
-      id: 5, 
-      timestamp: '2023-09-15 15:35:42', 
-      level: 'info', 
-      message: '系统备份完成', 
-      source: '备份服务',
-      user: 'system',
-      ip: '192.168.1.5'
-    },
-    { 
-      id: 6, 
-      timestamp: '2023-09-15 15:32:19', 
-      level: 'warning', 
-      message: '服务器负载过高', 
-      source: '监控服务',
-      user: 'system',
-      ip: '192.168.1.5'
-    },
-    { 
-      id: 7, 
-      timestamp: '2023-09-15 15:30:08', 
-      level: 'error', 
-      message: 'API请求失败: 500 Internal Server Error', 
-      source: 'API网关',
-      user: 'system',
-      ip: '192.168.1.5'
-    },
-    { 
-      id: 8, 
-      timestamp: '2023-09-15 15:28:45', 
-      level: 'info', 
-      message: '用户 zhangsan 更新了个人资料', 
-      source: '用户服务',
-      user: 'zhangsan',
-      ip: '192.168.1.101'
-    },
-  ];
+  // 处理刷新
+  const handleRefresh = () => {
+    fetchAllLogData();
+  };
+
+  // 处理导出
+  const handleExport = async () => {
+    try {
+      const blob = await exportLogs({ timeRange });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `系统日志_${new Date().toISOString().split('T')[0]}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    } catch (err) {
+      console.error('导出日志失败:', err);
+      alert('导出日志失败，请稍后重试');
+    }
+  };
 
   // 饼图颜色
   const COLORS = ['#8b5cf6', '#6366f1', '#3b82f6', '#ec4899'];
@@ -183,14 +185,15 @@ export default function LogsDashboardPage() {
     switch(level) {
       case 'error':
         return <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200">错误</Badge>;
-      case 'warning':
-        return <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200">警告</Badge>;
       case 'info':
         return <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">信息</Badge>;
       default:
         return <Badge variant="outline">未知</Badge>;
     }
   };
+
+  // 检查是否有数据
+  const hasData = logs && logs.length > 0;
 
   return (
     <div className="container mx-auto p-6 space-y-6">
@@ -203,11 +206,11 @@ export default function LogsDashboardPage() {
           <p className="text-muted-foreground">监控和分析系统日志信息</p>
         </div>
         <div className="flex items-center space-x-2">
-          <Button variant="outline">
-            <RefreshCw className="h-4 w-4 mr-2" />
+          <Button variant="outline" onClick={handleRefresh} disabled={loading}>
+            {loading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <RefreshCw className="h-4 w-4 mr-2" />}
             刷新
           </Button>
-          <Button variant="outline">
+          <Button variant="outline" onClick={handleExport} disabled={loading}>
             <Download className="h-4 w-4 mr-2" />
             导出日志
           </Button>
@@ -233,8 +236,49 @@ export default function LogsDashboardPage() {
         </Select>
       </div>
 
+      {/* 错误信息显示 */}
+      {error && (
+        <Card className="border-red-200 bg-red-50">
+          <CardContent className="pt-6">
+            <div className="flex items-center text-red-700">
+              <AlertTriangle className="h-5 w-5 mr-2" />
+              <span>{error}</span>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* 调试信息 */}
+      {debugInfo && (
+        <Card className="border-amber-200 bg-amber-50">
+          <CardHeader>
+            <CardTitle className="text-amber-700">调试信息</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <pre className="text-xs overflow-auto max-h-[200px]">
+              {JSON.stringify(debugInfo, null, 2)}
+            </pre>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* 无数据提示 */}
+      {!loading && !hasData && !error && (
+        <Card className="border-blue-200 bg-blue-50">
+          <CardContent className="pt-6">
+            <div className="flex flex-col items-center justify-center py-8">
+              <Info className="h-12 w-12 text-blue-500 mb-4" />
+              <h3 className="text-xl font-medium text-blue-700 mb-2">暂无日志数据</h3>
+              <p className="text-blue-600 text-center max-w-md">
+                系统中还没有日志记录。当用户进行操作或系统事件发生时，日志将会在这里显示。
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* 统计卡片 */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {logStats.map((stat) => (
           <Card key={stat.title} className="hover:shadow-md transition-shadow">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -244,7 +288,7 @@ export default function LogsDashboardPage() {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stat.value}</div>
+              <div className="text-2xl font-bold">{loading ? '加载中...' : stat.value}</div>
               <p className="text-xs text-muted-foreground mt-1">过去24小时</p>
             </CardContent>
           </Card>
@@ -253,45 +297,61 @@ export default function LogsDashboardPage() {
 
       {/* 图表区域 */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card className="hover:shadow-md transition-shadow">
+        {/* 日志活动图表 */}
+        <Card>
           <CardHeader>
-            <CardTitle>日志活动趋势</CardTitle>
-            <CardDescription>24小时日志活动分布</CardDescription>
+            <CardTitle>日志活动</CardTitle>
+            <CardDescription>按小时统计的日志数量</CardDescription>
           </CardHeader>
-          <CardContent className="h-80">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={hourlyLogData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="time" />
-                <YAxis />
-                <Tooltip />
-                <Legend />
-                <Line type="monotone" dataKey="信息" stroke="#3b82f6" strokeWidth={2} />
-                <Line type="monotone" dataKey="警告" stroke="#f59e0b" strokeWidth={2} />
-                <Line type="monotone" dataKey="错误" stroke="#ef4444" strokeWidth={2} />
-              </LineChart>
-            </ResponsiveContainer>
+          <CardContent className="h-[300px]">
+            {loading ? (
+              <div className="h-full flex items-center justify-center">
+                <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+              </div>
+            ) : hourlyLogData.length > 0 ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart
+                  data={hourlyLogData}
+                  margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="time" />
+                  <YAxis />
+                  <Tooltip />
+                  <Legend />
+                  <Line type="monotone" dataKey="信息" stroke="#3b82f6" strokeWidth={2} />
+                  <Line type="monotone" dataKey="错误" stroke="#ef4444" strokeWidth={2} />
+                </LineChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="h-full flex items-center justify-center text-muted-foreground">
+                暂无日志活动数据
+              </div>
+            )}
           </CardContent>
         </Card>
 
-        <Card className="hover:shadow-md transition-shadow">
+        {/* 日志来源图表 */}
+        <Card>
           <CardHeader>
-            <CardTitle>日志来源分布</CardTitle>
-            <CardDescription>系统日志来源分类</CardDescription>
+            <CardTitle>日志来源</CardTitle>
+            <CardDescription>按来源统计的日志分布</CardDescription>
           </CardHeader>
-          <CardContent className="h-80">
-            <div className="flex flex-col h-full">
+          <CardContent className="h-[300px]">
+            {loading ? (
+              <div className="h-full flex items-center justify-center">
+                <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+              </div>
+            ) : logSourceData.length > 0 ? (
               <ResponsiveContainer width="100%" height="100%">
-                <PieChart margin={{ top: 5, right: 35, left: 35, bottom: 5 }}>
+                <PieChart>
                   <Pie
                     data={logSourceData}
                     cx="50%"
-                    cy="45%"
-                    labelLine={true}
-                    outerRadius={60}
-                    label={({ name, percent }) => `${(percent * 100).toFixed(0)}%`}
-                    innerRadius={0}
-                    paddingAngle={2}
+                    cy="50%"
+                    labelLine={false}
+                    label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                    outerRadius={80}
                     fill="#8884d8"
                     dataKey="value"
                   >
@@ -299,72 +359,64 @@ export default function LogsDashboardPage() {
                       <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                     ))}
                   </Pie>
-                  <Tooltip formatter={(value, name) => [`${value}%`, name]} />
-                  <Legend 
-                    layout="horizontal" 
-                    verticalAlign="bottom" 
-                    align="center"
-                    wrapperStyle={{ paddingTop: '20px' }}
-                    formatter={(value) => <span style={{ fontSize: '0.75em', display: 'inline-block', maxWidth: '70px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{value}</span>}
-                    iconSize={8}
-                    iconType="circle"
-                  />
+                  <Tooltip />
+                  <Legend />
                 </PieChart>
               </ResponsiveContainer>
-            </div>
+            ) : (
+              <div className="h-full flex items-center justify-center text-muted-foreground">
+                暂无日志来源数据
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
 
-      {/* 最近日志 */}
-      <Card className="hover:shadow-md transition-shadow">
-        <CardHeader className="flex flex-row items-center justify-between">
-          <div>
-            <CardTitle>最近日志记录</CardTitle>
-            <CardDescription>系统最新日志事件</CardDescription>
-          </div>
-          <Select value={logType} onValueChange={setLogType} className="w-[120px]">
-            <SelectTrigger>
-              <SelectValue placeholder="日志类型" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">全部</SelectItem>
-              <SelectItem value="info">信息</SelectItem>
-              <SelectItem value="warning">警告</SelectItem>
-              <SelectItem value="error">错误</SelectItem>
-            </SelectContent>
-          </Select>
+      {/* 最近日志表格 */}
+      <Card>
+        <CardHeader>
+          <CardTitle>最近日志记录</CardTitle>
+          <CardDescription>系统最近的日志活动</CardDescription>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>时间</TableHead>
-                <TableHead>级别</TableHead>
-                <TableHead>消息</TableHead>
-                <TableHead>来源</TableHead>
-                <TableHead>用户</TableHead>
-                <TableHead>IP地址</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {recentLogs
-                .filter(log => logType === 'all' || log.level === logType)
-                .map((log) => (
-                <TableRow key={log.id} className="hover:bg-gray-50">
-                  <TableCell className="text-sm text-muted-foreground">{log.timestamp}</TableCell>
-                  <TableCell>{getLogLevelBadge(log.level)}</TableCell>
-                  <TableCell className="max-w-[300px] truncate">{log.message}</TableCell>
-                  <TableCell>{log.source}</TableCell>
-                  <TableCell>{log.user}</TableCell>
-                  <TableCell>{log.ip}</TableCell>
+          {loading ? (
+            <div className="h-[200px] flex items-center justify-center">
+              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>时间</TableHead>
+                  <TableHead>级别</TableHead>
+                  <TableHead className="w-[40%]">消息</TableHead>
+                  <TableHead>来源</TableHead>
+                  <TableHead>用户</TableHead>
+                  <TableHead>IP地址</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-          <div className="flex justify-center mt-4">
-            <Button variant="outline">加载更多日志</Button>
-          </div>
+              </TableHeader>
+              <TableBody>
+                {logs.length > 0 ? (
+                  logs.slice(0, 10).map((log) => (
+                    <TableRow key={log.id}>
+                      <TableCell className="font-mono text-xs">{log.timestamp}</TableCell>
+                      <TableCell>{getLogLevelBadge(log.level)}</TableCell>
+                      <TableCell className="max-w-[300px] truncate">{log.message}</TableCell>
+                      <TableCell>{log.source}</TableCell>
+                      <TableCell>{log.user}</TableCell>
+                      <TableCell className="font-mono text-xs">{log.ip}</TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={6} className="text-center py-4 text-muted-foreground">
+                      {error ? '加载日志数据失败' : '暂无日志数据'}
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          )}
         </CardContent>
       </Card>
     </div>
