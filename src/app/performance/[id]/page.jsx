@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { Button } from "@/components/ui/button";
 import {
@@ -17,156 +18,106 @@ import {
   AlertCircle,
   User,
   Calendar,
-  FileEdit
+  FileEdit,
+  Loader2
 } from "lucide-react";
-
-// 完整模拟数据，每个人有独立details
-const mockPerformanceData = [
-  {
-    id: 1,
-    employeeName: "张三",
-    employeeId: 1,
-    department: "技术部",
-    position: "前端开发工程师",
-    period: "2024年第一季度",
-    status: "进行中",
-    score: "-",
-    evaluator: "李四",
-    startDate: "2024-01-01",
-    endDate: "2024-03-31",
-    details: {
-      selfEvaluation: "在本季度中，我完成了前端项目的重构工作，提升了系统性能...",
-      evaluatorComments: "张三在项目重构中表现出色，能够主动发现并解决问题...",
-      goals: [
-        { title: "系统重构", description: "完成前端系统的重构工作，提升性能和用户体验", weight: 40, completion: "进行中", score: "-" },
-        { title: "代码质量", description: "提高代码质量，完善单元测试覆盖率", weight: 30, completion: "已完成", score: "95" },
-        { title: "技术分享", description: "进行至少2次技术分享，促进团队技术交流", weight: 30, completion: "进行中", score: "-" },
-      ],
-    },
-  },
-  {
-    id: 2,
-    employeeName: "王五",
-    employeeId: 3,
-    department: "设计部",
-    position: "UI/UX设计师",
-    period: "2023年第四季度",
-    status: "已完成",
-    score: "92",
-    evaluator: "赵六",
-    startDate: "2023-10-01",
-    endDate: "2023-12-31",
-    details: {
-      selfEvaluation: "本季度参与了多个UI项目，提升了用户体验...",
-      evaluatorComments: "王五设计思路新颖，能高效完成任务...",
-      goals: [
-        { title: "界面优化", description: "优化主产品界面，提升美观度", weight: 50, completion: "已完成", score: "90" },
-        { title: "用户调研", description: "完成2次用户调研并输出报告", weight: 30, completion: "已完成", score: "95" },
-        { title: "团队协作", description: "与开发团队高效协作，按时交付", weight: 20, completion: "已完成", score: "93" },
-      ],
-    },
-  },
-  {
-    id: 3,
-    employeeName: "李四",
-    employeeId: 2,
-    department: "产品部",
-    position: "产品经理",
-    period: "2024年第一季度",
-    status: "待评估",
-    score: "-",
-    evaluator: "张三",
-    startDate: "2024-01-01",
-    endDate: "2024-03-31",
-    details: {
-      selfEvaluation: "推动了新产品的立项和需求分析...",
-      evaluatorComments: "李四具备良好的产品规划能力...",
-      goals: [
-        { title: "需求分析", description: "完成新产品需求分析文档", weight: 40, completion: "已完成", score: "-" },
-        { title: "项目推进", description: "推动项目按计划进行", weight: 40, completion: "进行中", score: "-" },
-        { title: "团队管理", description: "带领团队完成季度目标", weight: 20, completion: "进行中", score: "-" },
-      ],
-    },
-  },
-  {
-    id: 4,
-    employeeName: "赵六",
-    employeeId: 4,
-    department: "技术部",
-    position: "后端开发工程师",
-    period: "2023年第四季度",
-    status: "已完成",
-    score: "88",
-    evaluator: "王五",
-    startDate: "2023-10-01",
-    endDate: "2023-12-31",
-    details: {
-      selfEvaluation: "完成了核心接口的开发和优化...",
-      evaluatorComments: "赵六技术扎实，能独立解决复杂问题...",
-      goals: [
-        { title: "接口开发", description: "开发高性能后端接口", weight: 60, completion: "已完成", score: "85" },
-        { title: "系统优化", description: "优化数据库和缓存", weight: 25, completion: "已完成", score: "92" },
-        { title: "文档完善", description: "完善技术文档", weight: 15, completion: "已完成", score: "90" },
-      ],
-    },
-  },
-  {
-    id: 5,
-    employeeName: "钱七",
-    employeeId: 5,
-    department: "数据部",
-    position: "数据分析师",
-    period: "2024年第一季度",
-    status: "进行中",
-    score: "-",
-    evaluator: "孙八",
-    startDate: "2024-01-01",
-    endDate: "2024-03-31",
-    details: {
-      selfEvaluation: "参与了多个数据分析项目，提升了数据洞察力...",
-      evaluatorComments: "钱七数据敏感度高，分析报告详实...",
-      goals: [
-        { title: "数据建模", description: "完成2个数据建模项目", weight: 50, completion: "进行中", score: "-" },
-        { title: "报告撰写", description: "输出高质量分析报告", weight: 30, completion: "进行中", score: "-" },
-        { title: "团队支持", description: "为其他部门提供数据支持", weight: 20, completion: "进行中", score: "-" },
-      ],
-    },
-  },
-  {
-    id: 6,
-    employeeName: "孙八",
-    employeeId: 6,
-    department: "人事部",
-    position: "人事专员",
-    period: "2023年第四季度",
-    status: "已完成",
-    score: "95",
-    evaluator: "钱七",
-    startDate: "2023-10-01",
-    endDate: "2023-12-31",
-    details: {
-      selfEvaluation: "本季度完成了招聘和培训任务...",
-      evaluatorComments: "孙八工作认真，招聘效率高...",
-      goals: [
-        { title: "招聘", description: "完成季度招聘计划", weight: 50, completion: "已完成", score: "98" },
-        { title: "培训", description: "组织2次员工培训", weight: 30, completion: "已完成", score: "92" },
-        { title: "员工关怀", description: "开展员工关怀活动", weight: 20, completion: "已完成", score: "90" },
-      ],
-    },
-  },
-];
+import { format } from 'date-fns';
+import { getAllEmployeePerformances } from '@/lib/services/performanceService';
 
 export default function PerformanceDetailPage() {
   const router = useRouter();
   const params = useParams();
   const performanceId = parseInt(params.id);
+  const [performance, setPerformance] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  // 精确查找该人的绩效数据
-  const performance = mockPerformanceData.find(
-    (item) => item.id === performanceId
-  );
-  if (!performance) {
-    return <div className="container mx-auto p-6">未找到该绩效记录</div>;
+  useEffect(() => {
+    const fetchPerformanceData = async () => {
+      try {
+        setLoading(true);
+        // 获取所有员工绩效评估
+        const employeePerformances = await getAllEmployeePerformances();
+        // 找到当前ID的绩效评估
+        const currentPerformance = employeePerformances.find(item => item.id === performanceId);
+        
+        if (!currentPerformance) {
+          setError('未找到该绩效记录');
+          return;
+        }
+        
+        // 构建详情数据结构
+        const performanceWithDetails = {
+          ...currentPerformance,
+          details: {
+            selfEvaluation: currentPerformance.selfEvaluation || "暂无自我评价",
+            evaluatorComments: currentPerformance.description || "暂无评估人评语",
+            goals: [
+              { 
+                title: "工作质量", 
+                description: "完成工作的质量和准确性", 
+                weight: 40, 
+                completion: currentPerformance.state || "进行中", 
+                score: currentPerformance.score || "-" 
+              },
+              { 
+                title: "工作效率", 
+                description: "完成工作的速度和资源利用", 
+                weight: 30, 
+                completion: currentPerformance.state || "进行中", 
+                score: currentPerformance.score || "-" 
+              },
+              { 
+                title: "团队协作", 
+                description: "与团队成员的协作能力", 
+                weight: 30, 
+                completion: currentPerformance.state || "进行中", 
+                score: currentPerformance.score || "-" 
+              },
+            ]
+          }
+        };
+        
+        setPerformance(performanceWithDetails);
+      } catch (err) {
+        console.error('获取绩效详情失败:', err);
+        setError('获取绩效详情失败，请稍后重试');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPerformanceData();
+  }, [performanceId]);
+
+  if (loading) {
+    return (
+      <div className="container mx-auto p-6 flex justify-center items-center min-h-[60vh]">
+        <div className="text-center">
+          <Loader2 className="h-12 w-12 animate-spin text-blue-600 mx-auto mb-4" />
+          <p className="text-muted-foreground">加载绩效详情中...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !performance) {
+    return (
+      <div className="container mx-auto p-6">
+        <Button
+          variant="ghost"
+          className="mb-4"
+          onClick={() => router.back()}
+        >
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          返回
+        </Button>
+        <div className="bg-red-50 p-6 rounded-lg text-center">
+          <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-2" />
+          <p className="text-red-600">{error || '未找到该绩效记录'}</p>
+        </div>
+      </div>
+    );
   }
 
   // 计算总分（所有目标加权得分之和，忽略未评分目标）
@@ -190,7 +141,7 @@ export default function PerformanceDetailPage() {
           variant: 'secondary',
           icon: <Clock className="h-4 w-4 text-blue-500 mr-1" />,
         };
-      case '待评估':
+      case '未完成':
         return {
           variant: 'warning',
           icon: <AlertCircle className="h-4 w-4 text-yellow-500 mr-1" />,
@@ -200,6 +151,16 @@ export default function PerformanceDetailPage() {
           variant: 'secondary',
           icon: null,
         };
+    }
+  };
+
+  // 格式化日期
+  const formatDate = (dateString) => {
+    try {
+      if (!dateString) return '-';
+      return format(new Date(dateString), 'yyyy-MM-dd');
+    } catch (error) {
+      return dateString || '-';
     }
   };
 
@@ -221,7 +182,7 @@ export default function PerformanceDetailPage() {
               查看和管理具体的绩效考核信息
             </p>
             <div className="mt-2 text-lg font-semibold text-blue-600">
-              总分：{performance.status === '已完成' ? totalScore.toFixed(1) : '-'}
+              总分：{performance.state === '已完成' ? totalScore.toFixed(1) : '-'}
             </div>
           </div>
           <Button>
@@ -261,15 +222,15 @@ export default function PerformanceDetailPage() {
           <CardContent className="space-y-2">
             <div className="flex justify-between">
               <span className="text-muted-foreground">考核周期</span>
-              <span>{performance.period}</span>
+              <span>{performance.performanceName}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-muted-foreground">开始日期</span>
-              <span>{performance.startDate}</span>
+              <span>{formatDate(performance.startDate)}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-muted-foreground">结束日期</span>
-              <span>{performance.endDate}</span>
+              <span>{formatDate(performance.endDate)}</span>
             </div>
           </CardContent>
         </Card>
@@ -277,18 +238,18 @@ export default function PerformanceDetailPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">评估状态</CardTitle>
-            {getStatusBadge(performance.status).icon}
+            {getStatusBadge(performance.state).icon}
           </CardHeader>
           <CardContent className="space-y-2">
             <div className="flex justify-between">
               <span className="text-muted-foreground">当前状态</span>
-              <Badge variant={getStatusBadge(performance.status).variant}>
-                {performance.status}
+              <Badge variant={getStatusBadge(performance.state).variant}>
+                {performance.state}
               </Badge>
             </div>
             <div className="flex justify-between">
               <span className="text-muted-foreground">考核人</span>
-              <span>{performance.evaluator}</span>
+              <span>{performance.approverName}</span>
             </div>
           </CardContent>
         </Card>

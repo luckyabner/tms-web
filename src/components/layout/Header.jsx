@@ -1,7 +1,7 @@
 "use client";
 
 import React from 'react';
-import { Bell, Search, User, Settings, LogOut, ChevronDown } from 'lucide-react';
+import { Bell, Search, User, LogOut, ChevronDown } from 'lucide-react';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -14,11 +14,27 @@ import {
 	DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 
 export default function Header() {
 	const pathname = usePathname();
+	const router = useRouter();
 	const isAdminPath = pathname?.startsWith('/admin');
+	
+	// 处理退出登录
+	const handleLogout = () => {
+		// 在实际应用中，这里会调用API清除会话、令牌等
+		// 可以添加确认对话框
+		if (window.confirm('确定要退出登录吗？')) {
+			// 清除本地存储的用户信息（如果有）
+			localStorage.removeItem('user');
+			localStorage.removeItem('token');
+			sessionStorage.removeItem('user');
+			
+			// 重定向到登录页面
+			router.push('/login');
+		}
+	};
 	
 	return (
 		<header className="flex items-center justify-between px-6 py-3 bg-white border-b shadow-sm">
@@ -86,14 +102,11 @@ export default function Header() {
 								个人资料
 							</Link>
 						</DropdownMenuItem>
-						<DropdownMenuItem asChild>
-							<Link href="/settings" className="flex items-center">
-								<Settings className="mr-2 h-4 w-4" />
-								设置
-							</Link>
-						</DropdownMenuItem>
 						<DropdownMenuSeparator />
-						<DropdownMenuItem className="text-red-600">
+						<DropdownMenuItem 
+							className="text-red-600 cursor-pointer"
+							onClick={handleLogout}
+						>
 							<LogOut className="mr-2 h-4 w-4" />
 							退出登录
 						</DropdownMenuItem>
