@@ -34,15 +34,15 @@ import {
 } from "@/components/ui/sheet";
 import { Search, User, UserPlus, Filter, MoreHorizontal, Shield, UserCog, Phone, Building, Loader2, GraduationCap, Calendar } from 'lucide-react';
 import { Pagination, PaginationInfo } from '@/components/ui/pagination';
-import { getAllEmployees, deleteEmployee, getEmployeeById } from '@/lib/services/employeeService';
+import { getAllEmployees, deleteEmployee, getEmployeeById, getRoleStats } from '@/lib/services/employeeService';
 import EmployeeForm from '@/components/admin/EmployeeForm';
 
-// 系统角色列表
-const roles = [
-  { id: 1, name: '系统管理员', description: '拥有系统最高权限', count: 1, color: 'red', icon: 'ShieldAlert' },
-  { id: 2, name: '人事专员', description: '管理员工档案、招聘和绩效', count: 2, color: 'amber', icon: 'Users' },
-  { id: 3, name: '公司高层', description: '查看所有数据，无修改权限', count: 4, color: 'blue', icon: 'Briefcase' },
-  { id: 4, name: '普通员工', description: '基本系统访问权限', count: 8, color: 'green', icon: 'User' }
+// 系统角色列表（作为后备数据）
+const defaultRoles = [
+  { id: 1, name: '系统管理员', description: '拥有系统最高权限', count: 0, color: 'red', icon: 'ShieldAlert' },
+  { id: 2, name: '人事专员', description: '管理员工档案、招聘和绩效', count: 0, color: 'amber', icon: 'Users' },
+  { id: 3, name: '公司高层', description: '查看所有数据，无修改权限', count: 0, color: 'blue', icon: 'Briefcase' },
+  { id: 4, name: '普通员工', description: '基本系统访问权限', count: 0, color: 'green', icon: 'User' }
 ];
 
 // 权限列表
@@ -176,6 +176,10 @@ export default function AdminEmployeesPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   
+  // 角色数据状态
+  const [roles, setRoles] = useState(defaultRoles);
+  const [rolesLoading, setRolesLoading] = useState(true);
+  
   // 表单状态
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [currentEmployee, setCurrentEmployee] = useState(null);
@@ -208,10 +212,45 @@ export default function AdminEmployeesPage() {
       setLoading(false);
     }
   };
+  
+  // 获取角色统计数据
+  const fetchRoleStats = async () => {
+    try {
+      setRolesLoading(true);
+      console.log('正在获取角色统计数据...');
+      const data = await getRoleStats();
+      console.log('获取到的角色统计数据:', data);
+      
+      // 确保data是数组
+      if (Array.isArray(data)) {
+        setRoles(data);
+        console.log(`成功设置${data.length}条角色数据`);
+      } else {
+        console.error('API返回的角色数据不是数组:', data);
+        setRoles(defaultRoles);
+      }
+    } catch (err) {
+      console.error('获取角色统计数据失败:', err);
+      // 使用默认数据作为后备
+      setRoles(defaultRoles);
+    } finally {
+      setRolesLoading(false);
+    }
+  };
 
   useEffect(() => {
     fetchEmployees();
+    fetchRoleStats();
   }, []);
+  
+  // 处理标签切换
+  const handleTabChange = (value) => {
+    setActiveTab(value);
+    // 如果切换到角色管理标签，重新获取角色统计数据
+    if (value === 'roles') {
+      fetchRoleStats();
+    }
+  };
 
   // 处理删除员工
   const handleDeleteEmployee = async (id) => {
@@ -347,7 +386,7 @@ export default function AdminEmployeesPage() {
       </div>
 
       {/* 选项卡 */}
-      <Tabs defaultValue="employees" value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+      <Tabs defaultValue="employees" value={activeTab} onValueChange={handleTabChange} className="space-y-4">
         <TabsList>
           <TabsTrigger value="employees">员工列表</TabsTrigger>
           <TabsTrigger value="roles">角色管理</TabsTrigger>
@@ -588,101 +627,117 @@ export default function AdminEmployeesPage() {
             </Button>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {roles.map((role) => {
-              // 根据角色选择图标
-              let RoleIcon;
-              switch(role.icon) {
-                case 'ShieldAlert': RoleIcon = Shield; break;
-                case 'Users': RoleIcon = UserCog; break;
-                case 'Briefcase': RoleIcon = Building; break;
-                case 'User': 
-                default: RoleIcon = User;
-              }
-              
-              return (
-                <Card key={role.id} className="overflow-hidden hover:shadow-lg transition-all duration-300">
-                  <CardHeader className="flex flex-row items-center justify-between pb-2">
-                    <div className="flex items-center">
-                      <div className={`w-10 h-10 rounded-lg flex items-center justify-center bg-${role.color}-100 text-${role.color}-600 mr-3`}>
-                        <RoleIcon className="h-5 w-5" />
-                      </div>
-                      <div>
-                        <CardTitle className="text-lg font-semibold">{role.name}</CardTitle>
-                        <p className="text-sm text-muted-foreground">{role.description}</p>
-                      </div>
-                    </div>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" className="rounded-full h-8 w-8">
-                        <MoreHorizontal className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                        <DropdownMenuItem>
-                          <UserCog className="h-4 w-4 mr-2" />
-                          编辑角色
-                        </DropdownMenuItem>
-                        <DropdownMenuItem>
-                          <Shield className="h-4 w-4 mr-2" />
-                          配置权限
-                        </DropdownMenuItem>
-                      <DropdownMenuSeparator />
-                        <DropdownMenuItem className="text-red-600">
-                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4 mr-2">
-                            <path d="M3 6h18"></path>
-                            <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
-                            <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
-                          </svg>
-                          删除角色
-                        </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </CardHeader>
-                  <CardContent className="pt-4 pb-6">
-                    <div className="flex items-center justify-between mb-4">
+          {rolesLoading ? (
+            <div className="flex justify-center items-center py-10">
+              <Loader2 className="h-8 w-8 animate-spin text-indigo-600" />
+              <span className="ml-2 text-muted-foreground">加载中...</span>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {roles.map((role) => {
+                // 根据角色选择图标
+                let RoleIcon;
+                switch(role.icon) {
+                  case 'ShieldAlert': RoleIcon = Shield; break;
+                  case 'Users': RoleIcon = UserCog; break;
+                  case 'Briefcase': RoleIcon = Building; break;
+                  case 'User': 
+                  default: RoleIcon = User;
+                }
+                
+                return (
+                  <Card key={role.id} className="overflow-hidden hover:shadow-lg transition-all duration-300">
+                    <CardHeader className="flex flex-row items-center justify-between pb-2">
                       <div className="flex items-center">
-                        <User className="h-4 w-4 text-muted-foreground mr-1" />
-                        <span className="text-sm font-medium">用户数量</span>
+                        <div className={`w-10 h-10 rounded-lg flex items-center justify-center bg-${role.color}-100 text-${role.color}-600 mr-3`}>
+                          <RoleIcon className="h-5 w-5" />
+                        </div>
+                        <div>
+                          <CardTitle className="text-lg font-semibold">{role.name}</CardTitle>
+                          <p className="text-sm text-muted-foreground">{role.description}</p>
+                        </div>
                       </div>
-                      <Badge variant="outline" className={`bg-${role.color}-50 text-${role.color}-700 border-${role.color}-200`}>
-                        {role.count} 人
-                      </Badge>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon" className="rounded-full h-8 w-8">
+                          <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                          <DropdownMenuItem>
+                            <UserCog className="h-4 w-4 mr-2" />
+                            编辑角色
+                          </DropdownMenuItem>
+                          <DropdownMenuItem>
+                            <Shield className="h-4 w-4 mr-2" />
+                            配置权限
+                          </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                          <DropdownMenuItem className="text-red-600">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4 mr-2">
+                              <path d="M3 6h18"></path>
+                              <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
+                              <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
+                            </svg>
+                            删除角色
+                          </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </CardHeader>
+                    <CardContent className="pt-4 pb-6">
+                      {/* 更突出显示角色人数 */}
+                      <div className="flex items-center justify-between mb-6">
+                        <div className="flex items-center">
+                          <User className="h-5 w-5 text-muted-foreground mr-2" />
+                          <span className="text-base font-medium">用户数量</span>
+                        </div>
+                        <div className="flex flex-col items-end">
+                          <Badge variant="outline" className={`text-lg py-1.5 px-3 bg-${role.color}-50 text-${role.color}-700 border-${role.color}-200`}>
+                            <span className="font-bold">{role.count}</span>
+                            <span className="ml-1 text-sm">人</span>
+                          </Badge>
+                          <span className="text-xs text-muted-foreground mt-1">
+                            {role.count > 0 && employees.length > 0
+                              ? `占比 ${Math.round((role.count / employees.length) * 100)}%` 
+                              : '暂无用户'}
+                          </span>
+                        </div>
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <div className="flex justify-between items-center">
+                          <span className="text-xs text-muted-foreground">权限级别</span>
+                          <span className={`text-xs font-medium text-${role.color}-600`}>
+                            {role.name === '系统管理员' ? '最高权限' : 
+                             role.name === '人事专员' ? '高级权限' : 
+                             role.name === '公司高层' ? '中级权限' : '基础权限'}
+                          </span>
                     </div>
                     
-                    <div className="space-y-2">
-                      <div className="flex justify-between items-center">
-                        <span className="text-xs text-muted-foreground">权限级别</span>
-                        <span className={`text-xs font-medium text-${role.color}-600`}>
-                          {role.name === '系统管理员' ? '最高权限' : 
-                           role.name === '人事专员' ? '高级权限' : 
-                           role.name === '公司高层' ? '中级权限' : '基础权限'}
-                        </span>
-                  </div>
-                  
-                      <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                        <div 
-                          className={`h-full bg-${role.color}-500 rounded-full`} 
-                          style={{ 
-                            width: role.name === '系统管理员' ? '100%' : 
-                                   role.name === '人事专员' ? '80%' : 
-                                   role.name === '公司高层' ? '60%' : '30%' 
-                          }}
-                        />
+                        <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                          <div 
+                            className={`h-full bg-${role.color}-500 rounded-full`} 
+                            style={{ 
+                              width: role.name === '系统管理员' ? '100%' : 
+                                     role.name === '人事专员' ? '80%' : 
+                                     role.name === '公司高层' ? '60%' : '30%' 
+                            }}
+                          />
+                      </div>
                     </div>
-                  </div>
-                  
-                    <div className="mt-6">
-                      <Button variant="outline" className="w-full border-gray-200 hover:bg-gray-50">
-                    <Shield className="mr-2 h-4 w-4" />
-                    管理权限
-                  </Button>
-                    </div>
-                </CardContent>
-              </Card>
-              );
-            })}
-          </div>
+                    
+                      <div className="mt-6">
+                        <Button variant="outline" className="w-full border-gray-200 hover:bg-gray-50">
+                      <Shield className="mr-2 h-4 w-4" />
+                      管理权限
+                    </Button>
+                      </div>
+                  </CardContent>
+                </Card>
+                );
+              })}
+            </div>
+          )}
         </TabsContent>
 
         {/* 权限查看选项卡 */}

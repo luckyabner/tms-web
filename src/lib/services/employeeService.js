@@ -62,6 +62,55 @@ export const getAllEmployees = async () => {
 };
 
 /**
+ * 获取角色统计数据
+ * @returns {Promise} 返回角色统计数据
+ */
+export const getRoleStats = async () => {
+  try {
+    // 获取所有员工数据
+    const employees = await getAllEmployees();
+    
+    // 定义角色基础信息
+    const roleBaseInfo = {
+      '系统管理员': { id: 1, name: '系统管理员', description: '拥有系统最高权限', color: 'red', icon: 'ShieldAlert' },
+      '人事专员': { id: 2, name: '人事专员', description: '管理员工档案、招聘和绩效', color: 'amber', icon: 'Users' },
+      '公司高层': { id: 3, name: '公司高层', description: '查看所有数据，无修改权限', color: 'blue', icon: 'Briefcase' },
+      '普通员工': { id: 4, name: '普通员工', description: '基本系统访问权限', color: 'green', icon: 'User' }
+    };
+    
+    // 统计每种角色的员工数量
+    const roleCounts = {};
+    employees.forEach(emp => {
+      const role = emp.role;
+      if (!roleCounts[role]) {
+        roleCounts[role] = 0;
+      }
+      roleCounts[role]++;
+    });
+    
+    // 构建最终的角色统计数据
+    const roleStats = Object.keys(roleBaseInfo).map(roleName => {
+      return {
+        ...roleBaseInfo[roleName],
+        count: roleCounts[roleName] || 0
+      };
+    });
+    
+    console.log('角色统计数据:', roleStats);
+    return roleStats;
+  } catch (error) {
+    console.error('获取角色统计数据失败:', error);
+    // 返回默认数据作为后备
+    return [
+      { id: 1, name: '系统管理员', description: '拥有系统最高权限', count: 0, color: 'red', icon: 'ShieldAlert' },
+      { id: 2, name: '人事专员', description: '管理员工档案、招聘和绩效', count: 0, color: 'amber', icon: 'Users' },
+      { id: 3, name: '公司高层', description: '查看所有数据，无修改权限', count: 0, color: 'blue', icon: 'Briefcase' },
+      { id: 4, name: '普通员工', description: '基本系统访问权限', count: 0, color: 'green', icon: 'User' }
+    ];
+  }
+};
+
+/**
  * 获取单个员工详情
  * @param {number} id 员工ID
  * @returns {Promise} 返回员工详情数据
