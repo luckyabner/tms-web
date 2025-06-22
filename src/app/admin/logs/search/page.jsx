@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -18,126 +18,57 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Search, Calendar, Filter, Download, RefreshCw, X, ChevronDown, ChevronUp, Copy } from 'lucide-react';
+import { getAllLogs } from '@/lib/services/logService';
 
 export default function LogsSearchPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [dateRange, setDateRange] = useState({ start: '', end: '' });
-  const [selectedLevels, setSelectedLevels] = useState(['info', 'warning', 'error']);
-  const [selectedSources, setSelectedSources] = useState([]);
-  const [selectedUsers, setSelectedUsers] = useState([]);
+  const [selectedLevels, setSelectedLevels] = useState(['info', 'warn', 'error']);
   const [isAdvancedFilterOpen, setIsAdvancedFilterOpen] = useState(false);
   const [resultsPerPage, setResultsPerPage] = useState('50');
   const [sortOrder, setSortOrder] = useState('desc');
-
-  // 模拟日志数据
-  const logData = [
-    { 
-      id: 1, 
-      timestamp: '2023-09-15 15:45:23', 
-      level: 'info', 
-      message: '用户 admin 登录系统', 
-      source: '认证服务',
-      user: 'admin',
-      ip: '192.168.1.100',
-      details: '登录IP来自办公网络，使用Chrome浏览器'
-    },
-    { 
-      id: 2, 
-      timestamp: '2023-09-15 15:42:18', 
-      level: 'warning', 
-      message: '用户尝试访问未授权资源', 
-      source: '权限服务',
-      user: 'zhangsan',
-      ip: '192.168.1.101',
-      details: '尝试访问/admin/settings页面，权限不足'
-    },
-    { 
-      id: 3, 
-      timestamp: '2023-09-15 15:40:05', 
-      level: 'error', 
-      message: '数据库连接超时', 
-      source: '数据服务',
-      user: 'system',
-      ip: '192.168.1.5',
-      details: '连接到主数据库失败，尝试重连3次后失败'
-    },
-    { 
-      id: 4, 
-      timestamp: '2023-09-15 15:38:57', 
-      level: 'info', 
-      message: '新员工账户创建成功', 
-      source: '用户管理',
-      user: 'admin',
-      ip: '192.168.1.100',
-      details: '创建了新用户"lisi"，角色设置为"普通员工"'
-    },
-    { 
-      id: 5, 
-      timestamp: '2023-09-15 15:35:42', 
-      level: 'info', 
-      message: '系统备份完成', 
-      source: '备份服务',
-      user: 'system',
-      ip: '192.168.1.5',
-      details: '数据库完全备份成功，备份大小为2.3GB'
-    },
-    { 
-      id: 6, 
-      timestamp: '2023-09-15 15:32:19', 
-      level: 'warning', 
-      message: '服务器负载过高', 
-      source: '监控服务',
-      user: 'system',
-      ip: '192.168.1.5',
-      details: 'CPU使用率达到85%，内存使用率达到78%'
-    },
-    { 
-      id: 7, 
-      timestamp: '2023-09-15 15:30:08', 
-      level: 'error', 
-      message: 'API请求失败: 500 Internal Server Error', 
-      source: 'API网关',
-      user: 'system',
-      ip: '192.168.1.5',
-      details: '调用外部支付服务API失败，超时时间设置为30秒'
-    },
-    { 
-      id: 8, 
-      timestamp: '2023-09-15 15:28:45', 
-      level: 'info', 
-      message: '用户 zhangsan 更新了个人资料', 
-      source: '用户服务',
-      user: 'zhangsan',
-      ip: '192.168.1.101',
-      details: '更新了电话号码和邮箱地址'
-    },
-    { 
-      id: 9, 
-      timestamp: '2023-09-15 15:25:33', 
-      level: 'info', 
-      message: '定时任务执行成功', 
-      source: '调度服务',
-      user: 'system',
-      ip: '192.168.1.5',
-      details: '数据清理任务执行完毕，清理了30天前的临时数据'
-    },
-    { 
-      id: 10, 
-      timestamp: '2023-09-15 15:20:17', 
-      level: 'warning', 
-      message: '多次登录失败', 
-      source: '认证服务',
-      user: 'wangwu',
-      ip: '192.168.1.102',
-      details: '用户连续3次登录失败，可能需要重置密码'
-    },
-  ];
-
-  // 可用的日志来源
-  const availableSources = ['认证服务', '权限服务', '数据服务', '用户管理', '备份服务', '监控服务', 'API网关', '调度服务'];
+  const [loading, setLoading] = useState(false);
   
-  // 可用的用户
-  const availableUsers = ['admin', 'zhangsan', 'lisi', 'wangwu', 'system'];
+  // 日志数据状态
+  const [logs, setLogs] = useState([]);
+  const [pagination, setPagination] = useState({
+    current: 1,
+    pageSize: 10,
+    total: 0
+  });
+
+  // 获取日志数据
+  const fetchLogs = async (page = 1) => {
+    setLoading(true);
+    try {
+      // 构建API请求参数
+      const params = {
+        pageNum: page,
+        pageSize: parseInt(resultsPerPage),
+        startDate: dateRange.start || null,
+        endDate: dateRange.end || null
+      };
+      
+      // 如果只选择了一种日志级别，则添加筛选条件
+      if (selectedLevels.length === 1) {
+        params.level = selectedLevels[0];
+      }
+      
+      const response = await getAllLogs(params);
+      setLogs(response.logs);
+      setPagination(response.pagination);
+    } catch (error) {
+      console.error('获取日志数据失败:', error);
+      setLogs([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // 初始加载和筛选条件变化时获取数据
+  useEffect(() => {
+    fetchLogs(1);
+  }, [resultsPerPage, selectedLevels, dateRange.start, dateRange.end]);
 
   // 处理日志级别选择
   const handleLevelChange = (level) => {
@@ -148,31 +79,11 @@ export default function LogsSearchPage() {
     }
   };
 
-  // 处理来源选择
-  const handleSourceChange = (source) => {
-    if (selectedSources.includes(source)) {
-      setSelectedSources(selectedSources.filter(s => s !== source));
-    } else {
-      setSelectedSources([...selectedSources, source]);
-    }
-  };
-
-  // 处理用户选择
-  const handleUserChange = (user) => {
-    if (selectedUsers.includes(user)) {
-      setSelectedUsers(selectedUsers.filter(u => u !== user));
-    } else {
-      setSelectedUsers([...selectedUsers, user]);
-    }
-  };
-
   // 清除所有筛选条件
   const clearFilters = () => {
     setSearchQuery('');
     setDateRange({ start: '', end: '' });
-    setSelectedLevels(['info', 'warning', 'error']);
-    setSelectedSources([]);
-    setSelectedUsers([]);
+    setSelectedLevels(['info', 'warn', 'error']);
   };
 
   // 获取日志级别对应的样式
@@ -180,6 +91,7 @@ export default function LogsSearchPage() {
     switch(level) {
       case 'error':
         return <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200">错误</Badge>;
+      case 'warn':
       case 'warning':
         return <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200">警告</Badge>;
       case 'info':
@@ -190,25 +102,12 @@ export default function LogsSearchPage() {
   };
 
   // 过滤日志数据
-  const filteredLogs = logData.filter(log => {
+  const filteredLogs = logs.filter(log => {
     // 根据搜索词过滤
     const matchesSearch = searchQuery === '' || 
-      log.message.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      log.details.toLowerCase().includes(searchQuery.toLowerCase());
+      log.message?.toLowerCase().includes(searchQuery.toLowerCase());
     
-    // 根据日志级别过滤
-    const matchesLevel = selectedLevels.includes(log.level);
-    
-    // 根据来源过滤
-    const matchesSource = selectedSources.length === 0 || selectedSources.includes(log.source);
-    
-    // 根据用户过滤
-    const matchesUser = selectedUsers.length === 0 || selectedUsers.includes(log.user);
-    
-    // 根据日期范围过滤 (简化版，实际应用中应该使用日期比较)
-    const matchesDateRange = true; // 简化处理，实际应用中需要比较日期
-    
-    return matchesSearch && matchesLevel && matchesSource && matchesUser && matchesDateRange;
+    return matchesSearch;
   });
 
   // 根据排序顺序排序
@@ -219,6 +118,16 @@ export default function LogsSearchPage() {
       return new Date(a.timestamp) - new Date(b.timestamp);
     }
   });
+
+  // 处理分页
+  const handlePageChange = (page) => {
+    fetchLogs(page);
+  };
+
+  // 处理刷新
+  const handleRefresh = () => {
+    fetchLogs(pagination.current);
+  };
 
   return (
     <div className="container mx-auto p-6 space-y-6">
@@ -231,8 +140,8 @@ export default function LogsSearchPage() {
           <p className="text-muted-foreground">搜索和筛选系统日志记录</p>
         </div>
         <div className="flex items-center space-x-2">
-          <Button variant="outline">
-            <RefreshCw className="h-4 w-4 mr-2" />
+          <Button variant="outline" onClick={handleRefresh} disabled={loading}>
+            <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
             刷新
           </Button>
           <Button variant="outline">
@@ -253,7 +162,7 @@ export default function LogsSearchPage() {
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
             <Input
-              placeholder="搜索日志消息或详情..."
+              placeholder="搜索日志消息..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-10"
@@ -274,10 +183,10 @@ export default function LogsSearchPage() {
                   信息
                 </Button>
                 <Button 
-                  variant={selectedLevels.includes('warning') ? "default" : "outline"} 
+                  variant={selectedLevels.includes('warn') ? "default" : "outline"} 
                   size="sm"
-                  onClick={() => handleLevelChange('warning')}
-                  className={selectedLevels.includes('warning') ? "bg-amber-600" : ""}
+                  onClick={() => handleLevelChange('warn')}
+                  className={selectedLevels.includes('warn') ? "bg-amber-600" : ""}
                 >
                   警告
                 </Button>
@@ -343,41 +252,7 @@ export default function LogsSearchPage() {
 
           {/* 高级筛选选项 */}
           {isAdvancedFilterOpen && (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-2">
-              {/* 日志来源选择 */}
-              <div>
-                <Label className="mb-2 block">日志来源</Label>
-                <div className="space-y-2 max-h-40 overflow-y-auto border rounded-md p-2">
-                  {availableSources.map(source => (
-                    <div key={source} className="flex items-center space-x-2">
-                      <Checkbox 
-                        id={`source-${source}`} 
-                        checked={selectedSources.includes(source)}
-                        onCheckedChange={() => handleSourceChange(source)}
-                      />
-                      <Label htmlFor={`source-${source}`} className="text-sm">{source}</Label>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* 用户选择 */}
-              <div>
-                <Label className="mb-2 block">用户</Label>
-                <div className="space-y-2 max-h-40 overflow-y-auto border rounded-md p-2">
-                  {availableUsers.map(user => (
-                    <div key={user} className="flex items-center space-x-2">
-                      <Checkbox 
-                        id={`user-${user}`} 
-                        checked={selectedUsers.includes(user)}
-                        onCheckedChange={() => handleUserChange(user)}
-                      />
-                      <Label htmlFor={`user-${user}`} className="text-sm">{user}</Label>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
               {/* 其他选项 */}
               <div className="space-y-4">
                 <div>
@@ -416,8 +291,16 @@ export default function LogsSearchPage() {
             <X className="h-4 w-4 mr-2" />
             清除筛选
           </Button>
-          <Button className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700">
-            <Search className="h-4 w-4 mr-2" />
+          <Button 
+            className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700"
+            onClick={() => fetchLogs(1)}
+            disabled={loading}
+          >
+            {loading ? (
+              <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+            ) : (
+              <Search className="h-4 w-4 mr-2" />
+            )}
             搜索日志
           </Button>
         </CardFooter>
@@ -428,7 +311,7 @@ export default function LogsSearchPage() {
         <CardHeader className="flex flex-row items-center justify-between">
           <div>
             <CardTitle>搜索结果</CardTitle>
-            <CardDescription>找到 {filteredLogs.length} 条匹配的日志记录</CardDescription>
+            <CardDescription>找到 {pagination.total} 条匹配的日志记录</CardDescription>
           </div>
         </CardHeader>
         <CardContent>
@@ -438,44 +321,85 @@ export default function LogsSearchPage() {
                 <TableHead>时间</TableHead>
                 <TableHead>级别</TableHead>
                 <TableHead>消息</TableHead>
-                <TableHead>来源</TableHead>
                 <TableHead>用户</TableHead>
                 <TableHead>IP地址</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {sortedLogs.map((log) => (
-                <TableRow key={log.id} className="group cursor-pointer hover:bg-gray-50">
-                  <TableCell className="text-sm text-muted-foreground">{log.timestamp}</TableCell>
-                  <TableCell>{getLogLevelBadge(log.level)}</TableCell>
-                  <TableCell className="max-w-[300px]">
-                    <div className="truncate">{log.message}</div>
-                    <div className="text-xs text-muted-foreground mt-1 hidden group-hover:block">{log.details}</div>
-                  </TableCell>
-                  <TableCell>{log.source}</TableCell>
-                  <TableCell>{log.user}</TableCell>
-                  <TableCell>
-                    <div className="flex items-center space-x-1">
-                      <span>{log.ip}</span>
-                      <Button variant="ghost" size="icon" className="h-6 w-6 opacity-0 group-hover:opacity-100">
-                        <Copy className="h-3 w-3" />
-                      </Button>
-                    </div>
+              {loading ? (
+                <TableRow>
+                  <TableCell colSpan={5} className="text-center py-8">
+                    <RefreshCw className="h-6 w-6 animate-spin mx-auto" />
+                    <p className="mt-2 text-muted-foreground">加载中...</p>
                   </TableCell>
                 </TableRow>
-              ))}
+              ) : sortedLogs.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={5} className="text-center py-8">
+                    <p className="text-muted-foreground">没有找到匹配的日志记录</p>
+                  </TableCell>
+                </TableRow>
+              ) : (
+                sortedLogs.map((log) => (
+                  <TableRow key={log.id} className="group cursor-pointer hover:bg-gray-50">
+                    <TableCell className="text-sm text-muted-foreground">
+                      {new Date(log.timestamp).toLocaleString()}
+                    </TableCell>
+                    <TableCell>{getLogLevelBadge(log.level)}</TableCell>
+                    <TableCell className="max-w-[300px]">
+                      <div className="truncate">{log.message}</div>
+                    </TableCell>
+                    <TableCell>{log.user}</TableCell>
+                    <TableCell>
+                      <div className="flex items-center space-x-1">
+                        <span>{log.ip}</span>
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="h-6 w-6 opacity-0 group-hover:opacity-100"
+                          onClick={() => navigator.clipboard.writeText(log.ip)}
+                        >
+                          <Copy className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
             </TableBody>
           </Table>
           
           {/* 分页 */}
           <div className="flex items-center justify-between mt-4">
             <div className="text-sm text-muted-foreground">
-              显示 {sortedLogs.length} 条结果中的 1-{Math.min(sortedLogs.length, parseInt(resultsPerPage))} 条
+              显示 {pagination.total > 0 ? (pagination.current - 1) * pagination.pageSize + 1 : 0} - 
+              {Math.min(pagination.current * pagination.pageSize, pagination.total)} 条，
+              共 {pagination.total} 条
             </div>
             <div className="flex items-center space-x-2">
-              <Button variant="outline" size="sm" disabled={true}>上一页</Button>
-              <Button variant="outline" size="sm" className="bg-purple-50">1</Button>
-              <Button variant="outline" size="sm" disabled={sortedLogs.length <= parseInt(resultsPerPage)}>下一页</Button>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                disabled={pagination.current <= 1 || loading}
+                onClick={() => handlePageChange(pagination.current - 1)}
+              >
+                上一页
+              </Button>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="bg-purple-50"
+              >
+                {pagination.current}
+              </Button>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                disabled={pagination.current * pagination.pageSize >= pagination.total || loading}
+                onClick={() => handlePageChange(pagination.current + 1)}
+              >
+                下一页
+              </Button>
             </div>
           </div>
         </CardContent>
