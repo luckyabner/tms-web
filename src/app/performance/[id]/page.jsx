@@ -38,6 +38,8 @@ export default function PerformanceDetailPage() {
         setLoading(true);
         // 获取所有员工绩效评估
         const employeePerformances = await getAllEmployeePerformances();
+        console.log('获取到的员工绩效数据:', employeePerformances);
+        
         // 找到当前ID的绩效评估
         const currentPerformance = employeePerformances.find(item => item.id === performanceId);
         
@@ -46,33 +48,52 @@ export default function PerformanceDetailPage() {
           return;
         }
         
+        // 处理API返回的数据格式，确保字段一致性
+        const processedPerformance = {
+          id: currentPerformance.id,
+          employeeId: currentPerformance.employeeId,
+          employeeName: currentPerformance.employeeName || '未知员工',
+          department: currentPerformance.department || '未知部门',
+          position: currentPerformance.position || '未知职位',
+          performanceId: currentPerformance.performanceId,
+          performanceName: currentPerformance.performanceName || '未知考核',
+          approverId: currentPerformance.approverId,
+          approverName: currentPerformance.approverName || '未知评估人',
+          score: currentPerformance.score || '-',
+          state: currentPerformance.state || '未完成',
+          description: currentPerformance.description || '',
+          startDate: currentPerformance.startDate || '',
+          endDate: currentPerformance.endDate || '',
+          createdAt: currentPerformance.createdAt || ''
+        };
+        
         // 构建详情数据结构
         const performanceWithDetails = {
-          ...currentPerformance,
+          ...processedPerformance,
           details: {
-            selfEvaluation: currentPerformance.selfEvaluation || "暂无自我评价",
-            evaluatorComments: currentPerformance.description || "暂无评估人评语",
+            selfEvaluation: "员工尚未提交自我评价",
+            evaluatorComments: processedPerformance.description || "暂无评估人评语",
             goals: [
               { 
                 title: "工作质量", 
                 description: "完成工作的质量和准确性", 
                 weight: 40, 
-                completion: currentPerformance.state || "进行中", 
-                score: currentPerformance.score || "-" 
+                completion: processedPerformance.state || "未完成", 
+                score: processedPerformance.score || "-" 
               },
               { 
                 title: "工作效率", 
                 description: "完成工作的速度和资源利用", 
                 weight: 30, 
-                completion: currentPerformance.state || "进行中", 
-                score: currentPerformance.score || "-" 
+                completion: processedPerformance.state || "未完成", 
+                score: processedPerformance.score || "-" 
               },
               { 
                 title: "团队协作", 
                 description: "与团队成员的协作能力", 
                 weight: 30, 
-                completion: currentPerformance.state || "进行中", 
-                score: currentPerformance.score || "-" 
+                completion: processedPerformance.state || "未完成", 
+                score: processedPerformance.score || "-" 
               },
             ]
           }

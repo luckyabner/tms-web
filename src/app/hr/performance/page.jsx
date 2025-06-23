@@ -37,7 +37,8 @@ import {
   Users,
   MoreHorizontal,
   Trash2,
-  Loader2
+  Loader2,
+  User
 } from "lucide-react";
 import {
   Select,
@@ -51,6 +52,8 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Pagination, PaginationInfo } from '@/components/ui/pagination';
@@ -87,16 +90,29 @@ export default function PerformancePage() {
   const fetchData = async () => {
     try {
       setLoading(true);
+      setError(null);
       
       // 获取绩效考核列表
-      const performanceData = await getAllPerformances();
-      setPerformances(performanceData);
+      let performanceData = [];
+      try {
+        performanceData = await getAllPerformances();
+        setPerformances(performanceData);
+        console.log('获取到的绩效考核数据:', performanceData);
+      } catch (perfError) {
+        console.error('获取绩效考核列表失败:', perfError);
+        setError(prev => prev || '获取绩效考核数据失败');
+      }
       
       // 获取员工绩效评估列表
-      const employeePerformanceData = await getAllEmployeePerformances();
-      setEmployeePerformances(employeePerformanceData);
+      try {
+        const employeePerformanceData = await getAllEmployeePerformances();
+        setEmployeePerformances(employeePerformanceData);
+        console.log('获取到的员工绩效评估数据:', employeePerformanceData);
+      } catch (empPerfError) {
+        console.error('获取员工绩效评估列表失败:', empPerfError);
+        setError(prev => prev || '获取员工绩效评估数据失败');
+      }
       
-      setError(null);
     } catch (err) {
       console.error('获取绩效数据失败:', err);
       setError('获取绩效数据失败，请稍后重试');
@@ -111,23 +127,31 @@ export default function PerformancePage() {
 
   // 过滤绩效数据
   const filteredPerformances = employeePerformances.filter((item) => {
+    const empName = item.employeeName || item.employeeName || '';
+    const dept = item.department || '';
+    const pos = item.position || '';
+    const perfName = item.performanceName || '';
+    const approverName = item.approverName || '';
+    
     const matchesSearch =
-      (item.employeeName && item.employeeName.toLowerCase().includes(searchTerm.toLowerCase())) ||
-      (item.department && item.department.toLowerCase().includes(searchTerm.toLowerCase())) ||
-      (item.position && item.position.toLowerCase().includes(searchTerm.toLowerCase())) ||
-      (item.performanceName && item.performanceName.toLowerCase().includes(searchTerm.toLowerCase())) ||
-      (item.approverName && item.approverName.toLowerCase().includes(searchTerm.toLowerCase()));
+      empName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      dept.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      pos.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      perfName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      approverName.toLowerCase().includes(searchTerm.toLowerCase());
+      
     const matchesStatus =
       selectedStatus === '全部' || item.state === selectedStatus;
+      
     return matchesSearch && matchesStatus;
   }).sort((a, b) => {
     switch (sortBy) {
       case 'score':
-        if (a.score === '-') return 1;
-        if (b.score === '-') return -1;
-        return parseFloat(b.score) - parseFloat(a.score);
+        const scoreA = a.score === '-' ? 0 : parseFloat(a.score);
+        const scoreB = b.score === '-' ? 0 : parseFloat(b.score);
+        return scoreB - scoreA;
       case 'endDate':
-        return new Date(b.endDate) - new Date(a.endDate);
+        return new Date(b.endDate || b.end_date || 0) - new Date(a.endDate || a.end_date || 0);
       case 'department':
         return (a.department || '').localeCompare(b.department || '');
       default:
@@ -147,22 +171,26 @@ export default function PerformancePage() {
     switch (status) {
       case '已完成':
         return {
-          variant: 'success',
+          variant: 'outline',
+          className: 'bg-green-50 text-green-700 border-green-200',
           icon: <CheckCircle2 className="h-4 w-4 text-green-500 mr-1" />,
         };
       case '进行中':
         return {
-          variant: 'secondary',
+          variant: 'outline',
+          className: 'bg-blue-50 text-blue-700 border-blue-200',
           icon: <Clock className="h-4 w-4 text-blue-500 mr-1" />,
         };
       case '未完成':
         return {
-          variant: 'warning',
-          icon: <AlertCircle className="h-4 w-4 text-yellow-500 mr-1" />,
+          variant: 'outline',
+          className: 'bg-amber-50 text-amber-700 border-amber-200',
+          icon: <AlertCircle className="h-4 w-4 text-amber-500 mr-1" />,
         };
       default:
         return {
-          variant: 'secondary',
+          variant: 'outline',
+          className: 'bg-gray-50 text-gray-700 border-gray-200',
           icon: null,
         };
     }
@@ -432,93 +460,122 @@ export default function PerformancePage() {
               <span className="ml-2 text-muted-foreground">加载中...</span>
             </div>
           ) : error ? (
-            <div className="flex justify-center items-center py-10">
+            <div className="flex flex-col justify-center items-center py-10">
               <p className="text-red-500">{error}</p>
+              <Button 
+                variant="outline" 
+                className="mt-4"
+                onClick={() => fetchData()}
+              >
+                <span className="mr-2">重试</span>
+                <Loader2 className="h-4 w-4" />
+              </Button>
+            </div>
+          ) : employeePerformances.length === 0 ? (
+            <div className="flex justify-center items-center py-10">
+              <p className="text-muted-foreground">暂无绩效评估数据</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
-                  <TableRow>
-                    <TableHead>员工</TableHead>
-                    <TableHead>部门</TableHead>
-                    <TableHead>考核周期</TableHead>
-                    <TableHead>评估人</TableHead>
-                    <TableHead>状态</TableHead>
-                    <TableHead>得分</TableHead>
-                    <TableHead className="text-right">操作</TableHead>
+                  <TableRow className="bg-gray-50/60">
+                    <TableHead className="font-semibold">员工</TableHead>
+                    <TableHead className="font-semibold">考核周期</TableHead>
+                    <TableHead className="font-semibold">评估人</TableHead>
+                    <TableHead className="font-semibold">状态</TableHead>
+                    <TableHead className="font-semibold">得分</TableHead>
+                    <TableHead className="text-right font-semibold">操作</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {currentPageData.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={7} className="text-center py-10 text-muted-foreground">
+                      <TableCell colSpan={6} className="text-center py-10 text-muted-foreground">
                         {filteredPerformances.length === 0 ? '暂无绩效评估数据' : '没有匹配的搜索结果'}
                       </TableCell>
                     </TableRow>
                   ) : (
-                    currentPageData.map((item) => (
-                      <TableRow key={item.id} className="hover:bg-gray-50">
-                        <TableCell>
-                          <div>
-                            <div className="font-medium">{item.employeeName}</div>
-                            <div className="text-sm text-muted-foreground">
-                              {item.position}
+                    currentPageData.map((item, index) => (
+                      <TableRow 
+                        key={item.id} 
+                        className={`border-b border-gray-100 transition-colors hover:bg-gray-50/70 ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50/30'}`}
+                      >
+                        <TableCell className="py-2.5">
+                          <div className="flex items-center gap-3">
+                            <div className={`w-9 h-9 rounded-full flex items-center justify-center text-white font-medium shadow-sm ${item.gender === '女' ? 'bg-gradient-to-br from-pink-500 to-rose-600' : 'bg-gradient-to-br from-blue-500 to-indigo-600'}`}>
+                              {item.employeeName ? item.employeeName.charAt(0) : '?'}
+                            </div>
+                            <div>
+                              <div className="font-medium text-gray-900">{item.employeeName || item.emp_name || '未知员工'}</div>
+                              <div className="text-xs text-gray-500">
+                                {item.position || '未知职位'}
+                              </div>
                             </div>
                           </div>
                         </TableCell>
-                        <TableCell>{item.department}</TableCell>
-                        <TableCell>
+                        <TableCell className="py-2.5">
                           <div>
-                            <div>{item.performanceName}</div>
-                            <div className="text-sm text-muted-foreground">
-                              {formatDate(item.startDate)} ~ {formatDate(item.endDate)}
+                            <div className="font-medium text-gray-800">{item.performanceName || item.per_name || '未知考核'}</div>
+                            <div className="text-xs text-gray-500 flex items-center mt-1">
+                              <Clock className="h-3 w-3 mr-1 text-blue-500" />
+                              {formatDate(item.startDate || item.start_date)} ~ {formatDate(item.endDate || item.end_date)}
                             </div>
                           </div>
                         </TableCell>
-                        <TableCell>{item.approverName}</TableCell>
-                        <TableCell>
-                          <div className="flex items-center">
-                            {getStatusBadge(item.state).icon}
-                            <span>{item.state}</span>
+                        <TableCell className="py-2.5">
+                          <div className="flex items-center space-x-1">
+                            <User className="h-4 w-4 text-purple-500" />
+                            <span>{item.approverName || '未知评估人'}</span>
                           </div>
                         </TableCell>
-                        <TableCell>
-                          {item.score === '-' ? (
+                        <TableCell className="py-2.5">
+                          <Badge 
+                            variant={getStatusBadge(item.state || '未完成').variant} 
+                            className={`flex items-center w-fit px-2 py-1 ${getStatusBadge(item.state || '未完成').className}`}
+                          >
+                            {getStatusBadge(item.state || '未完成').icon}
+                            <span>{item.state || '未完成'}</span>
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="py-2.5">
+                          {!item.score ? (
                             <span className="text-muted-foreground">-</span>
                           ) : (
-                            <div className="flex items-center gap-2">
-                              <span className="font-medium">{item.score}</span>
-                              <div className="h-1 w-12 bg-gray-200 rounded-full">
+                            <div className="flex flex-col">
+                              <span className="font-medium text-gray-900">{item.score}</span>
+                              <div className="h-1.5 w-16 bg-gray-200 rounded-full mt-1">
                                 <div
-                                  className="h-1 bg-blue-600 rounded-full"
-                                  style={{ width: `${parseInt(item.score)}%` }}
+                                  className={`h-1.5 rounded-full ${parseFloat(item.score) >= 90 ? 'bg-green-500' : parseFloat(item.score) >= 75 ? 'bg-blue-500' : parseFloat(item.score) >= 60 ? 'bg-yellow-500' : 'bg-red-500'}`}
+                                  style={{ width: `${Math.min(parseInt(item.score), 100)}%` }}
                                 />
                               </div>
                             </div>
                           )}
                         </TableCell>
-                        <TableCell className="text-right">
+                        <TableCell className="text-right py-2.5">
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="sm">
+                              <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full hover:bg-gray-100">
                                 <MoreHorizontal className="h-4 w-4" />
                               </Button>
                             </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem onClick={() => handleViewDetails(item.id)}>
-                                <Eye className="h-4 w-4 mr-2" />
+                            <DropdownMenuContent align="end" className="w-48">
+                              <DropdownMenuLabel>操作</DropdownMenuLabel>
+                              <DropdownMenuItem className="cursor-pointer" onClick={() => handleViewDetails(item.id)}>
+                                <Eye className="mr-2 h-4 w-4 text-purple-500" />
                                 查看详情
                               </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => handleEditEmployeePerformance(item)}>
-                                <FileEdit className="h-4 w-4 mr-2" />
+                              <DropdownMenuItem className="cursor-pointer" onClick={() => handleEditEmployeePerformance(item)}>
+                                <FileEdit className="mr-2 h-4 w-4 text-blue-500" />
                                 编辑评估
                               </DropdownMenuItem>
+                              <DropdownMenuSeparator />
                               <DropdownMenuItem 
+                                className="text-red-600 cursor-pointer"
                                 onClick={() => handleDeleteEmployeePerformance(item.id)}
-                                className="text-red-600 focus:text-red-600"
                               >
-                                <Trash2 className="h-4 w-4 mr-2" />
+                                <Trash2 className="mr-2 h-4 w-4" />
                                 删除评估
                               </DropdownMenuItem>
                             </DropdownMenuContent>

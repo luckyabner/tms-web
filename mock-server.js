@@ -140,6 +140,194 @@ departments = [
   { dep_id: 15, dep_name: '审计组', parent_id: 4, manager_id: 15, employeeCount: 5, description: '负责财务审计工作', is_deleted: 0, created_at: '2020-06-15', updated_at: '2020-06-15' },
 ];
 
+// 模拟绩效考核数据
+let performances = [
+  {
+    per_id: 1,
+    creator_id: 3,
+    per_name: '2023年第一季度绩效考核',
+    start_date: '2023-01-01',
+    end_date: '2023-03-31',
+    state: '已结束',
+    description: '2023年第一季度全公司绩效考核',
+    is_deleted: 0,
+    created_at: '2022-12-15',
+    updated_at: '2023-04-05'
+  },
+  {
+    per_id: 2,
+    creator_id: 3,
+    per_name: '2023年第二季度绩效考核',
+    start_date: '2023-04-01',
+    end_date: '2023-06-30',
+    state: '已结束',
+    description: '2023年第二季度全公司绩效考核',
+    is_deleted: 0,
+    created_at: '2023-03-15',
+    updated_at: '2023-07-05'
+  },
+  {
+    per_id: 3,
+    creator_id: 3,
+    per_name: '2023年第三季度绩效考核',
+    start_date: '2023-07-01',
+    end_date: '2023-09-30',
+    state: '已结束',
+    description: '2023年第三季度全公司绩效考核',
+    is_deleted: 0,
+    created_at: '2023-06-15',
+    updated_at: '2023-10-05'
+  },
+  {
+    per_id: 4,
+    creator_id: 3,
+    per_name: '2023年第四季度绩效考核',
+    start_date: '2023-10-01',
+    end_date: '2023-12-31',
+    state: '已结束',
+    description: '2023年第四季度全公司绩效考核',
+    is_deleted: 0,
+    created_at: '2023-09-15',
+    updated_at: '2024-01-05'
+  },
+  {
+    per_id: 5,
+    creator_id: 3,
+    per_name: '2024年第一季度绩效考核',
+    start_date: '2024-01-01',
+    end_date: '2024-03-31',
+    state: '已结束',
+    description: '2024年第一季度全公司绩效考核',
+    is_deleted: 0,
+    created_at: '2023-12-15',
+    updated_at: '2024-04-05'
+  }
+];
+
+// 模拟员工绩效评估数据
+let employeePerformances = [
+  {
+    id: 1,
+    approver_id: 3,
+    emp_id: 1,
+    per_id: 1,
+    score: 85.5,
+    state: '已完成',
+    description: '工作表现良好，技术能力强，团队协作有待提高',
+    is_deleted: 0,
+    created_at: '2023-04-01',
+    updated_at: '2023-04-01'
+  },
+  {
+    id: 2,
+    approver_id: 3,
+    emp_id: 2,
+    per_id: 1,
+    score: 92.0,
+    state: '已完成',
+    description: '工作表现优秀，管理能力突出，团队建设成效显著',
+    is_deleted: 0,
+    created_at: '2023-04-01',
+    updated_at: '2023-04-01'
+  },
+  {
+    id: 3,
+    approver_id: 3,
+    emp_id: 3,
+    per_id: 1,
+    score: 88.0,
+    state: '已完成',
+    description: '工作认真负责，招聘工作完成良好，培训计划执行到位',
+    is_deleted: 0,
+    created_at: '2023-04-01',
+    updated_at: '2023-04-01'
+  },
+  {
+    id: 4,
+    approver_id: 3,
+    emp_id: 4,
+    per_id: 1,
+    score: 95.0,
+    state: '已完成',
+    description: '工作表现突出，财务管理严谨，成本控制效果显著',
+    is_deleted: 0,
+    created_at: '2023-04-01',
+    updated_at: '2023-04-01'
+  },
+  {
+    id: 5,
+    approver_id: 1,
+    emp_id: 5,
+    per_id: 1,
+    score: 87.5,
+    state: '已完成',
+    description: '产品规划合理，需求分析到位，产品迭代速度有待提高',
+    is_deleted: 0,
+    created_at: '2023-04-01',
+    updated_at: '2023-04-01'
+  },
+  {
+    id: 6,
+    approver_id: 6,
+    emp_id: 1,
+    per_id: 2,
+    score: 86.0,
+    state: '已完成',
+    description: '第二季度工作表现稳定，系统维护及时',
+    is_deleted: 0,
+    created_at: '2023-07-01',
+    updated_at: '2023-07-01'
+  },
+  {
+    id: 7,
+    approver_id: 3,
+    emp_id: 6,
+    per_id: 1,
+    score: 82.5,
+    state: '已完成',
+    description: '前端开发工作完成良好，代码质量有待提高',
+    is_deleted: 0,
+    created_at: '2023-04-01',
+    updated_at: '2023-04-01'
+  },
+  {
+    id: 8,
+    approver_id: 3,
+    emp_id: 7,
+    per_id: 1,
+    score: 84.0,
+    state: '已完成',
+    description: '人力资源工作基本到位，流程优化有待加强',
+    is_deleted: 0,
+    created_at: '2023-04-01',
+    updated_at: '2023-04-01'
+  },
+  {
+    id: 9,
+    approver_id: 3,
+    emp_id: 8,
+    per_id: 1,
+    score: 79.5,
+    state: '已完成',
+    description: '基础工作扎实，创新意识不足',
+    is_deleted: 0,
+    created_at: '2023-04-01',
+    updated_at: '2023-04-01'
+  },
+  {
+    id: 10,
+    approver_id: 3,
+    emp_id: 10,
+    per_id: 1,
+    score: 90.0,
+    state: '已完成',
+    description: '市场拓展成效显著，客户满意度高',
+    is_deleted: 0,
+    created_at: '2023-04-01',
+    updated_at: '2023-04-01'
+  }
+];
+
 // 获取部门名称
 const getDepartmentName = (id) => {
   if (!id) return null;
@@ -152,6 +340,13 @@ const getEmployeeName = (id) => {
   if (!id) return null;
   const emp = employees.find(e => e.emp_id === parseInt(id));
   return emp ? emp.emp_name : null;
+};
+
+// 获取绩效考核名称
+const getPerformanceName = (id) => {
+  if (!id) return null;
+  const perf = performances.find(p => p.per_id === parseInt(id));
+  return perf ? p.per_name : null;
 };
 
 // 处理部门数据，添加关联信息
@@ -242,6 +437,183 @@ const processDepartmentData = (departments) => {
       id: dept.dep_id,
       dep_name: dept.dep_name,
       name: dept.dep_name
+    }));
+  }
+};
+
+// 处理绩效考核数据，添加关联信息
+const processPerformanceData = (performances) => {
+  try {
+    return performances.map(perf => {
+      try {
+        // 获取创建者名称
+        const creatorName = getEmployeeName(perf.creator_id);
+        
+        return {
+          per_id: perf.per_id,
+          id: perf.per_id, // 兼容前端使用id字段
+          per_name: perf.per_name,
+          name: perf.per_name, // 兼容前端使用name字段
+          creator_id: perf.creator_id,
+          creatorId: perf.creator_id, // 兼容前端使用creatorId字段
+          creatorName: creatorName,
+          start_date: perf.start_date,
+          startDate: perf.start_date, // 兼容前端使用startDate字段
+          end_date: perf.end_date,
+          endDate: perf.end_date, // 兼容前端使用endDate字段
+          state: perf.state,
+          description: perf.description || '',
+          is_deleted: perf.is_deleted,
+          isDeleted: perf.is_deleted === 1, // 兼容前端使用isDeleted字段
+          created_at: perf.created_at,
+          createdAt: perf.created_at, // 兼容前端使用createdAt字段
+          updated_at: perf.updated_at,
+          updatedAt: perf.updated_at // 兼容前端使用updatedAt字段
+        };
+      } catch (err) {
+        console.error(`处理绩效考核数据出错:`, err, '绩效考核数据:', perf);
+        // 返回基本数据，避免整个处理失败
+        return {
+          per_id: perf.per_id,
+          id: perf.per_id,
+          per_name: perf.per_name,
+          name: perf.per_name,
+          description: perf.description || '',
+          is_deleted: perf.is_deleted,
+          created_at: perf.created_at,
+          updated_at: perf.updated_at
+        };
+      }
+    });
+  } catch (err) {
+    console.error('处理绩效考核数据总体失败:', err);
+    return performances.map(perf => ({
+      per_id: perf.per_id,
+      id: perf.per_id,
+      per_name: perf.per_name,
+      name: perf.per_name
+    }));
+  }
+};
+
+// 处理员工绩效评估数据，添加关联信息
+const processEmployeePerformanceData = (empPerformances) => {
+  try {
+    return empPerformances.map(empPerf => {
+      try {
+        // 获取员工信息
+        const employee = employees.find(e => e.emp_id === empPerf.emp_id);
+        // 获取绩效考核信息
+        const performance = performances.find(p => p.per_id === empPerf.per_id);
+        // 获取审批人信息
+        const approver = employees.find(e => e.emp_id === empPerf.approver_id);
+        
+        // 获取员工部门信息
+        const empDepartment = departments.find(d => {
+          // 这里简化处理，实际应该查询employee_department表
+          return d.manager_id === empPerf.emp_id;
+        });
+
+        // 为不同员工分配合理的部门
+        let departmentName = '未知部门';
+        let position = employee ? employee.position || '未知职位' : '未知职位';
+        
+        // 根据员工ID分配部门
+        switch(empPerf.emp_id) {
+          case 1:
+            departmentName = '技术部';
+            position = 'IT管理员';
+            break;
+          case 2:
+            departmentName = '市场部';
+            position = '部门经理';
+            break;
+          case 3:
+            departmentName = '人力资源部';
+            position = '人力资源专员';
+            break;
+          case 4:
+            departmentName = '财务部';
+            position = '部门经理';
+            break;
+          case 5:
+            departmentName = '产品部';
+            position = '部门经理';
+            break;
+          case 6:
+            departmentName = '前端开发组';
+            position = '前端开发工程师';
+            break;
+          case 7:
+            departmentName = '人力资源部';
+            position = '人力资源专员';
+            break;
+          case 8:
+            departmentName = '人力资源部';
+            position = '人力资源专员';
+            break;
+          case 9:
+            departmentName = '测试组';
+            position = '测试工程师';
+            break;
+          case 10:
+            departmentName = '产品部';
+            position = '产品经理';
+            break;
+          default:
+            // 如果有部门关联信息，使用它
+            departmentName = empDepartment ? empDepartment.dep_name : '未知部门';
+        }
+        
+        return {
+          id: empPerf.id,
+          approver_id: empPerf.approver_id,
+          approverId: empPerf.approver_id, // 兼容前端使用approverId字段
+          approverName: approver ? approver.emp_name : '张三',
+          emp_id: empPerf.emp_id,
+          employeeId: empPerf.emp_id, // 兼容前端使用employeeId字段
+          employeeName: employee ? employee.emp_name : '张三',
+          department: departmentName,
+          position: position,
+          per_id: empPerf.per_id,
+          performanceId: empPerf.per_id, // 兼容前端使用performanceId字段
+          performanceName: performance ? performance.per_name : '2023年第一季度绩效考核',
+          score: empPerf.score,
+          state: empPerf.state,
+          description: empPerf.description || '',
+          startDate: performance ? performance.start_date : '2023-01-01',
+          endDate: performance ? performance.end_date : '2023-03-31',
+          is_deleted: empPerf.is_deleted,
+          isDeleted: empPerf.is_deleted === 1, // 兼容前端使用isDeleted字段
+          created_at: empPerf.created_at,
+          createdAt: empPerf.created_at, // 兼容前端使用createdAt字段
+          updated_at: empPerf.updated_at,
+          updatedAt: empPerf.updated_at // 兼容前端使用updatedAt字段
+        };
+      } catch (err) {
+        console.error(`处理员工绩效评估数据出错:`, err, '员工绩效评估数据:', empPerf);
+        // 返回基本数据，避免整个处理失败
+        return {
+          id: empPerf.id,
+          emp_id: empPerf.emp_id,
+          per_id: empPerf.per_id,
+          score: empPerf.score,
+          state: empPerf.state,
+          description: empPerf.description || '',
+          is_deleted: empPerf.is_deleted,
+          created_at: empPerf.created_at,
+          updated_at: empPerf.updated_at
+        };
+      }
+    });
+  } catch (err) {
+    console.error('处理员工绩效评估数据总体失败:', err);
+    return empPerformances.map(empPerf => ({
+      id: empPerf.id,
+      emp_id: empPerf.emp_id,
+      per_id: empPerf.per_id,
+      score: empPerf.score,
+      state: empPerf.state
     }));
   }
 };
@@ -790,6 +1162,500 @@ app.delete('/employees/:id', (req, res) => {
   });
 });
 
+// 获取所有绩效考核
+app.get('/performances', (req, res) => {
+  try {
+    console.log('GET /performances - 获取所有绩效考核');
+    
+    // 过滤掉已删除的绩效考核
+    const activePerformances = performances.filter(p => p.is_deleted === 0);
+    
+    // 处理绩效考核数据，添加关联信息
+    const processedPerformances = processPerformanceData(activePerformances);
+    
+    console.log(`GET /performances - 返回 ${processedPerformances.length} 条绩效考核记录`);
+    
+    res.json(processedPerformances);
+  } catch (err) {
+    console.error('GET /performances - 处理请求时出错:', err);
+    res.status(500).json({
+      code: '500',
+      msg: '服务器内部错误',
+      data: null
+    });
+  }
+});
+
+// 获取单个绩效考核
+app.get('/performances/:id', (req, res) => {
+  const id = parseInt(req.params.id);
+  
+  try {
+    console.log(`GET /performances/${id} - 获取单个绩效考核`);
+    
+    const performance = performances.find(p => p.per_id === id && p.is_deleted === 0);
+    
+    if (!performance) {
+      console.log(`GET /performances/${id} - 未找到绩效考核`);
+      return res.status(404).json({
+        code: '404',
+        msg: '绩效考核不存在',
+        data: null
+      });
+    }
+    
+    // 处理绩效考核数据，添加关联信息
+    const [processedPerformance] = processPerformanceData([performance]);
+    
+    console.log(`GET /performances/${id} - 返回绩效考核:`, processedPerformance.name);
+    
+    res.json(processedPerformance);
+  } catch (err) {
+    console.error(`GET /performances/${id} - 处理请求时出错:`, err);
+    res.status(500).json({
+      code: '500',
+      msg: '服务器内部错误',
+      data: null
+    });
+  }
+});
+
+// 创建绩效考核
+app.post('/performances', (req, res) => {
+  try {
+    console.log('POST /performances - 请求体:', req.body);
+    
+    // 检查必填字段
+    if (!req.body.per_name && !req.body.name) {
+      console.error('POST /performances - 缺少绩效考核名称字段');
+      return res.status(400).json({
+        code: '400',
+        msg: '绩效考核名称不能为空',
+        data: null
+      });
+    }
+    
+    if (!req.body.creator_id && !req.body.creatorId) {
+      console.error('POST /performances - 缺少创建者ID字段');
+      return res.status(400).json({
+        code: '400',
+        msg: '创建者ID不能为空',
+        data: null
+      });
+    }
+    
+    if (!req.body.start_date && !req.body.startDate) {
+      console.error('POST /performances - 缺少开始日期字段');
+      return res.status(400).json({
+        code: '400',
+        msg: '开始日期不能为空',
+        data: null
+      });
+    }
+    
+    if (!req.body.end_date && !req.body.endDate) {
+      console.error('POST /performances - 缺少结束日期字段');
+      return res.status(400).json({
+        code: '400',
+        msg: '结束日期不能为空',
+        data: null
+      });
+    }
+    
+    const newPerformance = {
+      per_id: performances.length > 0 ? Math.max(...performances.map(p => p.per_id)) + 1 : 1,
+      creator_id: req.body.creator_id || req.body.creatorId,
+      per_name: req.body.per_name || req.body.name,
+      start_date: req.body.start_date || req.body.startDate,
+      end_date: req.body.end_date || req.body.endDate,
+      state: req.body.state || '未开始',
+      description: req.body.description || '',
+      is_deleted: 0,
+      created_at: new Date().toISOString().split('T')[0],
+      updated_at: new Date().toISOString().split('T')[0]
+    };
+    
+    // 自动设置状态
+    const currentDate = new Date().toISOString().split('T')[0];
+    if (newPerformance.start_date > currentDate) {
+      newPerformance.state = '未开始';
+    } else if (newPerformance.end_date < currentDate) {
+      newPerformance.state = '已结束';
+    } else {
+      newPerformance.state = '进行中';
+    }
+    
+    performances.push(newPerformance);
+    
+    console.log('POST /performances - 创建新绩效考核:', newPerformance.per_name);
+    
+    // 处理绩效考核数据，添加关联信息
+    const [processedPerformance] = processPerformanceData([newPerformance]);
+    
+    res.status(201).json({
+      code: '200',
+      msg: '创建成功',
+      data: processedPerformance
+    });
+  } catch (err) {
+    console.error('POST /performances - 处理请求时出错:', err);
+    res.status(500).json({
+      code: '500',
+      msg: '服务器内部错误',
+      data: null
+    });
+  }
+});
+
+// 更新绩效考核
+app.put('/performances/:id', (req, res) => {
+  const id = parseInt(req.params.id);
+  
+  try {
+    console.log(`PUT /performances/${id} - 请求体:`, req.body);
+    
+    // 验证id参数
+    if (isNaN(id)) {
+      console.error(`PUT /performances/${id} - 无效的ID参数`);
+      return res.status(400).json({
+        code: '400',
+        msg: '无效的绩效考核ID',
+        data: null
+      });
+    }
+    
+    const index = performances.findIndex(p => p.per_id === id);
+    
+    if (index === -1) {
+      console.log(`PUT /performances/${id} - 未找到绩效考核`);
+      return res.status(404).json({
+        code: '404',
+        msg: '绩效考核不存在',
+        data: null
+      });
+    }
+    
+    // 安全地获取请求中的字段
+    const per_name = req.body.per_name || req.body.name || performances[index].per_name;
+    const start_date = req.body.start_date || req.body.startDate || performances[index].start_date;
+    const end_date = req.body.end_date || req.body.endDate || performances[index].end_date;
+    const state = req.body.state || performances[index].state;
+    const description = req.body.description !== undefined ? req.body.description : performances[index].description;
+    
+    // 更新绩效考核信息
+    performances[index] = {
+      ...performances[index],
+      per_name,
+      start_date,
+      end_date,
+      state,
+      description,
+      updated_at: new Date().toISOString().split('T')[0]
+    };
+    
+    console.log(`PUT /performances/${id} - 更新绩效考核:`, performances[index].per_name);
+    
+    // 处理绩效考核数据，添加关联信息
+    const [processedPerformance] = processPerformanceData([performances[index]]);
+    
+    res.json({
+      code: '200',
+      msg: '更新成功',
+      data: processedPerformance
+    });
+  } catch (err) {
+    console.error(`PUT /performances/${id} - 处理请求时出错:`, err);
+    res.status(500).json({
+      code: '500',
+      msg: '服务器内部错误',
+      data: null
+    });
+  }
+});
+
+// 删除绩效考核
+app.delete('/performances/:id', (req, res) => {
+  const id = parseInt(req.params.id);
+  
+  try {
+    console.log(`DELETE /performances/${id} - 删除绩效考核`);
+    
+    const index = performances.findIndex(p => p.per_id === id);
+    
+    if (index === -1) {
+      console.log(`DELETE /performances/${id} - 未找到绩效考核`);
+      return res.status(404).json({
+        code: '404',
+        msg: '绩效考核不存在',
+        data: null
+      });
+    }
+    
+    const deletedPerformance = performances[index];
+    
+    // 逻辑删除，而不是物理删除
+    performances[index] = {
+      ...performances[index],
+      is_deleted: 1,
+      updated_at: new Date().toISOString().split('T')[0]
+    };
+    
+    console.log(`DELETE /performances/${id} - 删除绩效考核:`, deletedPerformance.per_name);
+    
+    res.json({
+      code: '200',
+      msg: '删除成功',
+      data: {
+        per_id: deletedPerformance.per_id,
+        per_name: deletedPerformance.per_name
+      }
+    });
+  } catch (err) {
+    console.error(`DELETE /performances/${id} - 处理请求时出错:`, err);
+    res.status(500).json({
+      code: '500',
+      msg: '服务器内部错误',
+      data: null
+    });
+  }
+});
+
+// 获取所有员工绩效评估
+app.get('/employee-performances', (req, res) => {
+  try {
+    console.log('GET /employee-performances - 获取所有员工绩效评估');
+    
+    // 过滤掉已删除的员工绩效评估
+    const activeEmployeePerformances = employeePerformances.filter(ep => ep.is_deleted === 0);
+    
+    // 处理员工绩效评估数据，添加关联信息
+    const processedEmployeePerformances = processEmployeePerformanceData(activeEmployeePerformances);
+    
+    console.log(`GET /employee-performances - 返回 ${processedEmployeePerformances.length} 条员工绩效评估记录`);
+    
+    res.json(processedEmployeePerformances);
+  } catch (err) {
+    console.error('GET /employee-performances - 处理请求时出错:', err);
+    res.status(500).json({
+      code: '500',
+      msg: '服务器内部错误',
+      data: null
+    });
+  }
+});
+
+// 获取单个员工绩效评估
+app.get('/employee-performances/:id', (req, res) => {
+  const id = parseInt(req.params.id);
+  
+  try {
+    console.log(`GET /employee-performances/${id} - 获取单个员工绩效评估`);
+    
+    const employeePerformance = employeePerformances.find(ep => ep.id === id && ep.is_deleted === 0);
+    
+    if (!employeePerformance) {
+      console.log(`GET /employee-performances/${id} - 未找到员工绩效评估`);
+      return res.status(404).json({
+        code: '404',
+        msg: '员工绩效评估不存在',
+        data: null
+      });
+    }
+    
+    // 处理员工绩效评估数据，添加关联信息
+    const [processedEmployeePerformance] = processEmployeePerformanceData([employeePerformance]);
+    
+    console.log(`GET /employee-performances/${id} - 返回员工绩效评估`);
+    
+    res.json(processedEmployeePerformance);
+  } catch (err) {
+    console.error(`GET /employee-performances/${id} - 处理请求时出错:`, err);
+    res.status(500).json({
+      code: '500',
+      msg: '服务器内部错误',
+      data: null
+    });
+  }
+});
+
+// 创建员工绩效评估
+app.post('/employee-performances', (req, res) => {
+  try {
+    console.log('POST /employee-performances - 请求体:', req.body);
+    
+    // 检查必填字段
+    if (!req.body.approver_id && !req.body.approverId) {
+      console.error('POST /employee-performances - 缺少审批人ID字段');
+      return res.status(400).json({
+        code: '400',
+        msg: '审批人ID不能为空',
+        data: null
+      });
+    }
+    
+    if (!req.body.emp_id && !req.body.employeeId) {
+      console.error('POST /employee-performances - 缺少员工ID字段');
+      return res.status(400).json({
+        code: '400',
+        msg: '员工ID不能为空',
+        data: null
+      });
+    }
+    
+    if (!req.body.per_id && !req.body.performanceId) {
+      console.error('POST /employee-performances - 缺少绩效考核ID字段');
+      return res.status(400).json({
+        code: '400',
+        msg: '绩效考核ID不能为空',
+        data: null
+      });
+    }
+    
+    const newEmployeePerformance = {
+      id: employeePerformances.length > 0 ? Math.max(...employeePerformances.map(ep => ep.id)) + 1 : 1,
+      approver_id: req.body.approver_id || req.body.approverId,
+      emp_id: req.body.emp_id || req.body.employeeId,
+      per_id: req.body.per_id || req.body.performanceId,
+      score: req.body.score || 0,
+      state: req.body.state || '未完成',
+      description: req.body.description || '',
+      is_deleted: 0,
+      created_at: new Date().toISOString().split('T')[0],
+      updated_at: new Date().toISOString().split('T')[0]
+    };
+    
+    employeePerformances.push(newEmployeePerformance);
+    
+    console.log('POST /employee-performances - 创建新员工绩效评估');
+    
+    // 处理员工绩效评估数据，添加关联信息
+    const [processedEmployeePerformance] = processEmployeePerformanceData([newEmployeePerformance]);
+    
+    res.status(201).json({
+      code: '200',
+      msg: '创建成功',
+      data: processedEmployeePerformance
+    });
+  } catch (err) {
+    console.error('POST /employee-performances - 处理请求时出错:', err);
+    res.status(500).json({
+      code: '500',
+      msg: '服务器内部错误',
+      data: null
+    });
+  }
+});
+
+// 更新员工绩效评估
+app.put('/employee-performances/:id', (req, res) => {
+  const id = parseInt(req.params.id);
+  
+  try {
+    console.log(`PUT /employee-performances/${id} - 请求体:`, req.body);
+    
+    // 验证id参数
+    if (isNaN(id)) {
+      console.error(`PUT /employee-performances/${id} - 无效的ID参数`);
+      return res.status(400).json({
+        code: '400',
+        msg: '无效的员工绩效评估ID',
+        data: null
+      });
+    }
+    
+    const index = employeePerformances.findIndex(ep => ep.id === id);
+    
+    if (index === -1) {
+      console.log(`PUT /employee-performances/${id} - 未找到员工绩效评估`);
+      return res.status(404).json({
+        code: '404',
+        msg: '员工绩效评估不存在',
+        data: null
+      });
+    }
+    
+    // 安全地获取请求中的字段
+    const score = req.body.score !== undefined ? req.body.score : employeePerformances[index].score;
+    const state = req.body.state || employeePerformances[index].state;
+    const description = req.body.description !== undefined ? req.body.description : employeePerformances[index].description;
+    
+    // 更新员工绩效评估信息
+    employeePerformances[index] = {
+      ...employeePerformances[index],
+      score,
+      state,
+      description,
+      updated_at: new Date().toISOString().split('T')[0]
+    };
+    
+    console.log(`PUT /employee-performances/${id} - 更新员工绩效评估`);
+    
+    // 处理员工绩效评估数据，添加关联信息
+    const [processedEmployeePerformance] = processEmployeePerformanceData([employeePerformances[index]]);
+    
+    res.json({
+      code: '200',
+      msg: '更新成功',
+      data: processedEmployeePerformance
+    });
+  } catch (err) {
+    console.error(`PUT /employee-performances/${id} - 处理请求时出错:`, err);
+    res.status(500).json({
+      code: '500',
+      msg: '服务器内部错误',
+      data: null
+    });
+  }
+});
+
+// 删除员工绩效评估
+app.delete('/employee-performances/:id', (req, res) => {
+  const id = parseInt(req.params.id);
+  
+  try {
+    console.log(`DELETE /employee-performances/${id} - 删除员工绩效评估`);
+    
+    const index = employeePerformances.findIndex(ep => ep.id === id);
+    
+    if (index === -1) {
+      console.log(`DELETE /employee-performances/${id} - 未找到员工绩效评估`);
+      return res.status(404).json({
+        code: '404',
+        msg: '员工绩效评估不存在',
+        data: null
+      });
+    }
+    
+    const deletedEmployeePerformance = employeePerformances[index];
+    
+    // 逻辑删除，而不是物理删除
+    employeePerformances[index] = {
+      ...employeePerformances[index],
+      is_deleted: 1,
+      updated_at: new Date().toISOString().split('T')[0]
+    };
+    
+    console.log(`DELETE /employee-performances/${id} - 删除员工绩效评估`);
+    
+    res.json({
+      code: '200',
+      msg: '删除成功',
+      data: {
+        id: deletedEmployeePerformance.id,
+        emp_id: deletedEmployeePerformance.emp_id,
+        per_id: deletedEmployeePerformance.per_id
+      }
+    });
+  } catch (err) {
+    console.error(`DELETE /employee-performances/${id} - 处理请求时出错:`, err);
+    res.status(500).json({
+      code: '500',
+      msg: '服务器内部错误',
+      data: null
+    });
+  }
+});
+
 // 健康检查端点
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
@@ -809,5 +1675,15 @@ app.listen(PORT, () => {
   console.log('  POST   /employees          - 创建新员工');
   console.log('  PUT    /employees/:id      - 更新员工');
   console.log('  DELETE /employees/:id      - 删除员工');
+  console.log('  GET    /performances       - 获取所有绩效考核');
+  console.log('  GET    /performances/:id   - 获取单个绩效考核');
+  console.log('  POST   /performances       - 创建新绩效考核');
+  console.log('  PUT    /performances/:id   - 更新绩效考核');
+  console.log('  DELETE /performances/:id   - 删除绩效考核');
+  console.log('  GET    /employee-performances      - 获取所有员工绩效评估');
+  console.log('  GET    /employee-performances/:id  - 获取单个员工绩效评估');
+  console.log('  POST   /employee-performances      - 创建新员工绩效评估');
+  console.log('  PUT    /employee-performances/:id  - 更新员工绩效评估');
+  console.log('  DELETE /employee-performances/:id  - 删除员工绩效评估');
   console.log('  GET    /health             - 健康检查\n');
 }); 
