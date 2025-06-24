@@ -29,7 +29,7 @@ export const getAllLogs = async (params = { pageNum: 1, pageSize: 10, level: nul
       queryParams.append('endDate', params.endDate);
     }
     
-    const url = `/system/logs?${queryParams.toString()}`;
+    const url = `/syslogs?${queryParams.toString()}`;
     console.log('请求URL:', url);
     
     const response = await api.get(url);
@@ -465,51 +465,47 @@ export const getLogSources = async (params = {}) => {
 };
 
 /**
- * 删除单个日志
- * @param {number|string} id 日志ID
- * @returns {Promise<boolean>} 是否删除成功
+ * 删除单个日志记录
+ * @param {number} id 日志ID
+ * @returns {Promise} 返回删除结果
  */
 export const deleteLog = async (id) => {
   try {
-    const response = await api.delete(`/system/logs/${id}`);
-    console.log('删除日志响应:', response.data);
+    const response = await api.delete(`/syslogs/${id}`);
     
-    // 删除后清除缓存，确保下次获取最新数据
-    cachedLogData = null;
-    cachedTimestamp = null;
-    
+    // 处理响应
     if (response.data && response.data.code === '200') {
-      return true;
+      return { success: true };
+    } else if (response.data && response.data.message) {
+      return { success: true, message: response.data.message };
     }
     
-    return response.status === 200;
+    return { success: true };
   } catch (error) {
-    console.error('删除日志失败:', error);
-    return false;
+    console.error(`删除日志ID=${id}失败:`, error);
+    throw error;
   }
 };
 
 /**
- * 清空所有日志
- * @returns {Promise<boolean>} 是否清空成功
+ * 清空所有日志记录
+ * @returns {Promise} 返回清空结果
  */
 export const clearAllLogs = async () => {
   try {
-    const response = await api.delete('/system/logs/clear');
-    console.log('清空日志响应:', response.data);
+    const response = await api.delete('/syslogs');
     
-    // 清空后清除缓存，确保下次获取最新数据
-    cachedLogData = null;
-    cachedTimestamp = null;
-    
+    // 处理响应
     if (response.data && response.data.code === '200') {
-      return true;
+      return { success: true };
+    } else if (response.data && response.data.message) {
+      return { success: true, message: response.data.message };
     }
     
-    return response.status === 200;
+    return { success: true };
   } catch (error) {
-    console.error('清空日志失败:', error);
-    return false;
+    console.error('清空所有日志失败:', error);
+    throw error;
   }
 };
 
