@@ -6,6 +6,7 @@ import api from '../api';
  */
 export const getAllEmployees = async () => {
   try {
+    // 获取员工基本信息
     const response = await api.get('/employees');
     console.log('API返回原始员工数据:', response.data);
     
@@ -23,15 +24,68 @@ export const getAllEmployees = async () => {
       employees = [];
     }
     
+    // 获取员工-部门关系数据
+    let employeeDepartments = [];
+    try {
+      const edResponse = await api.get('/employee-departments');
+      if (Array.isArray(edResponse.data)) {
+        employeeDepartments = edResponse.data;
+      } else if (edResponse.data && edResponse.data.data && Array.isArray(edResponse.data.data)) {
+        employeeDepartments = edResponse.data.data;
+      }
+      console.log('获取到员工-部门关系数据:', employeeDepartments.length, '条记录');
+    } catch (error) {
+      console.error('获取员工-部门关系数据失败:', error);
+    }
+    
+    // 获取部门数据
+    let departments = [];
+    try {
+      const deptResponse = await api.get('/departments');
+      if (Array.isArray(deptResponse.data)) {
+        departments = deptResponse.data;
+      } else if (deptResponse.data && deptResponse.data.data && Array.isArray(deptResponse.data.data)) {
+        departments = deptResponse.data.data;
+      }
+      console.log('获取到部门数据:', departments.length, '条记录');
+    } catch (error) {
+      console.error('获取部门数据失败:', error);
+    }
+    
     // 处理字段映射，确保前端需要的字段都存在
     const processedEmployees = employees.map(emp => {
+      // 查找该员工的部门关系记录
+      const empDeptRelation = employeeDepartments.find(ed => 
+        (ed.empId === emp.id || ed.emp_id === emp.id) && 
+        (ed.isCurrent === 1 || ed.is_current === 1)
+      );
+      
+      // 如果找到部门关系，查找部门名称
+      let departmentName = '';
+      let departmentId = null;
+      let position = '';
+      
+      if (empDeptRelation) {
+        departmentId = empDeptRelation.depId || empDeptRelation.dep_id;
+        position = empDeptRelation.position || '';
+        
+        // 查找部门名称
+        const department = departments.find(dept => 
+          dept.id === departmentId || dept.dep_id === departmentId
+        );
+        
+        if (department) {
+          departmentName = department.name || department.dep_name || '';
+        }
+      }
+      
       // 创建基本员工对象
       const processedEmp = {
         id: emp.id || emp.emp_id,
         name: emp.name || emp.emp_name || '',
-        position: emp.position || emp.emp_position || '',
-        department: emp.department || emp.dep_name || '',
-        departmentId: emp.departmentId || emp.dep_id || null,
+        position: position || emp.position || emp.emp_position || '',
+        department: departmentName || emp.department || emp.dep_name || '',
+        departmentId: departmentId || emp.departmentId || emp.dep_id || null,
         phone: emp.phone || '',
         role: emp.role || emp.empType || emp.emp_type || '普通员工',
         status: emp.status || '在职',

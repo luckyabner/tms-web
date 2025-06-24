@@ -55,6 +55,10 @@ export const employeeColumns = [
 		header: '员工类型',
 	},
 	{
+		accessorKey: 'department',
+		header: '部门',
+	},
+	{
 		accessorKey: 'hireDate',
 		header: ({ column }) => (
 			<TableColumnHeader

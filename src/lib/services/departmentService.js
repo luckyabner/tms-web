@@ -82,18 +82,40 @@ export const getAllDepartments = async () => {
       console.log('第一个部门数据结构:', JSON.stringify(departments[0], null, 2));
     }
     
+    // 获取员工-部门关系数据，用于计算部门员工数量
+    let employeeDepartments = [];
+    try {
+      const edResponse = await api.get('/employee-departments');
+      if (Array.isArray(edResponse.data)) {
+        employeeDepartments = edResponse.data;
+      } else if (edResponse.data && edResponse.data.data && Array.isArray(edResponse.data.data)) {
+        employeeDepartments = edResponse.data.data;
+      }
+      console.log('获取到员工-部门关系数据:', employeeDepartments.length, '条记录');
+    } catch (error) {
+      console.error('获取员工-部门关系数据失败:', error);
+    }
+    
     // 获取所有员工数据，用于查找主管姓名
     const employees = await fetchEmployeesData();
     
     // 处理字段映射，确保前端需要的字段都存在
     const processedDepartments = departments.map(dept => {
+      // 计算部门员工数量
+      const deptId = dept.id || dept.dep_id;
+      const deptEmployees = employeeDepartments.filter(ed => 
+        (ed.depId === deptId || ed.dep_id === deptId) && 
+        (ed.isCurrent === 1 || ed.is_current === 1)
+      );
+      const employeeCount = deptEmployees.length;
+      
       // 创建基本部门对象
       const processedDept = {
         id: dept.id || dept.dep_id,
         name: dept.name || dept.dep_name || '',
         managerId: dept.managerId || dept.manager_id,
         parentId: dept.parentId || dept.parent_id,
-        employeeCount: dept.employeeCount || 0,
+        employeeCount: employeeCount || dept.employeeCount || 0,
         description: dept.description || '',
         isDeleted: dept.isDeleted === 1 || dept.is_deleted === 1,
         createdAt: dept.createdAt || dept.created_at || ''
