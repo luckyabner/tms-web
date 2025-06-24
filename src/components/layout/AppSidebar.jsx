@@ -4,6 +4,7 @@ import {
 	LayoutDashboard,
 	Users,
 	Award,
+	Briefcase,
 } from 'lucide-react';
 
 import {
@@ -37,6 +38,11 @@ const mainItems = [
 		title: '绩效管理',
 		url: '/hr/performance',
 		icon: Award,
+	},
+	{
+		title: '项目管理',
+		url: '/hr/projects',
+		icon: Briefcase,
 	},
 ];
 

@@ -11,7 +11,7 @@ import { getAllEmployees } from '@/lib/services/employeeService';
 import { getAllPerformances } from '@/lib/services/performanceService';
 import { AlertCircle, Loader2, User, FileText, Save, Award, BarChart3 } from 'lucide-react';
 
-export default function EmployeePerformanceForm({ employeePerformance = null, onSuccess, onCancel }) {
+export default function EmployeePerformanceForm({ employeePerformance = null, performanceId = null, onSuccess, onCancel }) {
   const isEditing = !!employeePerformance;
   const userId = 1; // 默认用户ID，实际应用中应从用户会话中获取
 
@@ -20,11 +20,14 @@ export default function EmployeePerformanceForm({ employeePerformance = null, on
     if (employeePerformance) {
       console.log('表单接收到的员工绩效评估数据:', employeePerformance);
     }
-  }, [employeePerformance]);
+    if (performanceId) {
+      console.log('接收到的绩效考核ID:', performanceId);
+    }
+  }, [employeePerformance, performanceId]);
 
   const [formData, setFormData] = useState({
     employeeId: employeePerformance?.employeeId || '',
-    performanceId: employeePerformance?.performanceId || '',
+    performanceId: employeePerformance?.performanceId || performanceId || '',
     approverId: employeePerformance?.approverId || userId,
     score: employeePerformance?.score !== '-' ? employeePerformance?.score : '',
     state: employeePerformance?.state || '未完成',
@@ -147,7 +150,7 @@ export default function EmployeePerformanceForm({ employeePerformance = null, on
   return (
     <Card className="w-full border-0 shadow-lg transition-all duration-300 hover:shadow-xl">
       <form onSubmit={handleSubmit} className="space-y-4">
-        <CardContent className="space-y-4 pt-2 rounded-t-xl bg-gradient-to-r from-blue-50 to-purple-50">
+        <CardContent className="space-y-4 pt-2 rounded-t-xl bg-gradient-to-r from-blue-50 to-blue-100">
           {error && (
             <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg flex items-center animate-pulse">
               <AlertCircle className="h-4 w-4 mr-2 flex-shrink-0" />

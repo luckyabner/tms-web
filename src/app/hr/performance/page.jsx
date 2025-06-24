@@ -38,7 +38,8 @@ import {
   MoreHorizontal,
   Trash2,
   Loader2,
-  User
+  User,
+  Calendar
 } from "lucide-react";
 import {
   Select,
@@ -62,8 +63,6 @@ import { getAllEmployeePerformances, getAllPerformances, deleteEmployeePerforman
 import PerformanceForm from '@/components/hr/PerformanceForm';
 import EmployeePerformanceForm from '@/components/hr/EmployeePerformanceForm';
 
-const statusOptions = ['全部', '未完成', '已完成'];
-
 export default function PerformancePage() {
   const router = useRouter();
   const [searchTerm, setSearchTerm] = useState('');
@@ -74,13 +73,10 @@ export default function PerformancePage() {
   
   // 绩效数据
   const [performances, setPerformances] = useState([]);
-  const [employeePerformances, setEmployeePerformances] = useState([]);
   
   // 表单状态
   const [isPerformanceFormOpen, setIsPerformanceFormOpen] = useState(false);
-  const [isEmployeePerformanceFormOpen, setIsEmployeePerformanceFormOpen] = useState(false);
   const [selectedPerformance, setSelectedPerformance] = useState(null);
-  const [selectedEmployeePerformance, setSelectedEmployeePerformance] = useState(null);
   
   // 分页状态
   const [currentPage, setCurrentPage] = useState(1);
@@ -102,17 +98,6 @@ export default function PerformancePage() {
         console.error('获取绩效考核列表失败:', perfError);
         setError(prev => prev || '获取绩效考核数据失败');
       }
-      
-      // 获取员工绩效评估列表
-      try {
-        const employeePerformanceData = await getAllEmployeePerformances();
-        setEmployeePerformances(employeePerformanceData);
-        console.log('获取到的员工绩效评估数据:', employeePerformanceData);
-      } catch (empPerfError) {
-        console.error('获取员工绩效评估列表失败:', empPerfError);
-        setError(prev => prev || '获取员工绩效评估数据失败');
-      }
-      
     } catch (err) {
       console.error('获取绩效数据失败:', err);
       setError('获取绩效数据失败，请稍后重试');
@@ -126,19 +111,13 @@ export default function PerformancePage() {
   }, []);
 
   // 过滤绩效数据
-  const filteredPerformances = employeePerformances.filter((item) => {
-    const empName = item.employeeName || item.employeeName || '';
-    const dept = item.department || '';
-    const pos = item.position || '';
-    const perfName = item.performanceName || '';
-    const approverName = item.approverName || '';
+  const filteredPerformances = performances.filter((item) => {
+    const perfName = item.name || '';
+    const state = item.state || '';
     
     const matchesSearch =
-      empName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      dept.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      pos.toLowerCase().includes(searchTerm.toLowerCase()) ||
       perfName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      approverName.toLowerCase().includes(searchTerm.toLowerCase());
+      state.toLowerCase().includes(searchTerm.toLowerCase());
       
     const matchesStatus =
       selectedStatus === '全部' || item.state === selectedStatus;
@@ -146,14 +125,10 @@ export default function PerformancePage() {
     return matchesSearch && matchesStatus;
   }).sort((a, b) => {
     switch (sortBy) {
-      case 'score':
-        const scoreA = a.score === '-' ? 0 : parseFloat(a.score);
-        const scoreB = b.score === '-' ? 0 : parseFloat(b.score);
-        return scoreB - scoreA;
       case 'endDate':
         return new Date(b.endDate || b.end_date || 0) - new Date(a.endDate || a.end_date || 0);
-      case 'department':
-        return (a.department || '').localeCompare(b.department || '');
+      case 'name':
+        return (a.name || '').localeCompare(b.name || '');
       default:
         return 0;
     }
@@ -169,7 +144,7 @@ export default function PerformancePage() {
   // 获取状态对应的图标和颜色
   const getStatusBadge = (status) => {
     switch (status) {
-      case '已完成':
+      case '已结束':
         return {
           variant: 'outline',
           className: 'bg-green-50 text-green-700 border-green-200',
@@ -181,7 +156,7 @@ export default function PerformancePage() {
           className: 'bg-blue-50 text-blue-700 border-blue-200',
           icon: <Clock className="h-4 w-4 text-blue-500 mr-1" />,
         };
-      case '未完成':
+      case '未开始':
         return {
           variant: 'outline',
           className: 'bg-amber-50 text-amber-700 border-amber-200',
@@ -216,7 +191,13 @@ export default function PerformancePage() {
 
   // 跳转到绩效详情页面
   const handleViewDetails = (id) => {
-    router.push(`/performance/${id}`);
+    if (id && id !== 'undefined') {
+      console.log('跳转到绩效详情页，ID:', id);
+      router.push(`/performance/${id}`);
+    } else {
+      console.error('无效的绩效考核ID:', id);
+      alert('无法查看详情：无效的绩效考核ID');
+    }
   };
 
   // 处理添加绩效考核
@@ -225,30 +206,30 @@ export default function PerformancePage() {
     setIsPerformanceFormOpen(true);
   };
 
-  // 处理添加员工绩效评估
-  const handleAddEmployeePerformance = () => {
-    setSelectedEmployeePerformance(null);
-    setIsEmployeePerformanceFormOpen(true);
+  // 处理编辑绩效考核
+  const handleEditPerformance = (performance) => {
+    setSelectedPerformance(performance);
+    setIsPerformanceFormOpen(true);
   };
 
-  // 处理编辑员工绩效评估
-  const handleEditEmployeePerformance = (employeePerformance) => {
-    setSelectedEmployeePerformance(employeePerformance);
-    setIsEmployeePerformanceFormOpen(true);
-  };
-
-  // 处理删除员工绩效评估
-  const handleDeleteEmployeePerformance = async (id) => {
-    if (window.confirm('确定要删除该绩效评估吗？此操作无法撤销。')) {
+  // 处理删除绩效考核
+  const handleDeletePerformance = async (id) => {
+    if (window.confirm('确定要删除该绩效考核吗？此操作无法撤销。')) {
       try {
-        await deleteEmployeePerformance(id);
+        await deletePerformance(id);
         // 删除成功后更新列表
         fetchData();
       } catch (err) {
-        console.error('删除绩效评估失败:', err);
-        alert('删除绩效评估失败，请稍后重试');
+        console.error('删除绩效考核失败:', err);
+        alert('删除绩效考核失败，请稍后重试');
       }
     }
+  };
+
+  // 处理表单成功提交
+  const handleFormSuccess = () => {
+    setIsPerformanceFormOpen(false);
+    fetchData();
   };
 
   // 格式化日期
@@ -261,390 +242,236 @@ export default function PerformancePage() {
     }
   };
 
-  // 计算统计数据
-  const pendingCount = employeePerformances.filter(item => item.state === '未完成').length;
-  const completedCount = employeePerformances.filter(item => item.state === '已完成').length;
-  const avgScore = employeePerformances.length > 0 
-    ? (employeePerformances
-        .filter(item => item.score !== '-')
-        .reduce((sum, item) => sum + parseFloat(item.score || 0), 0) / 
-        employeePerformances.filter(item => item.score !== '-').length).toFixed(1)
-    : '-';
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-6 space-y-6">
-      {/* 页面标题和操作按钮 */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+    <div className="container mx-auto p-6 space-y-6">
+      {/* 页面标题 */}
+      <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-            绩效管理
-          </h1>
-          <p className="text-muted-foreground mt-1">
-            管理和追踪员工的绩效考核流程
-          </p>
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-blue-800 text-transparent bg-clip-text">绩效考核管理</h1>
+          <p className="text-muted-foreground">管理公司绩效考核计划和员工评估</p>
         </div>
-        <div className="flex gap-3 w-full md:w-auto">
-          <Button 
-            className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
-            onClick={handleAddEmployeePerformance}
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            新建评估
-          </Button>
-          <Button 
-            variant="outline"
-            className="border-blue-600 text-blue-600 hover:bg-blue-50"
-            onClick={handleAddPerformance}
-          >
-            <Award className="h-4 w-4 mr-2" />
-            新建考核
-          </Button>
-        </div>
+        <Button onClick={handleAddPerformance} className="bg-gradient-to-r from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 text-white">
+          <Plus className="mr-2 h-4 w-4" /> 添加绩效考核
+        </Button>
       </div>
 
-      {/* 统计卡片 */}
-      <div className="grid gap-6 md:grid-cols-3">
-        <Card className="hover:shadow-lg transition-shadow duration-200">
+      {/* 绩效考核统计卡片 */}
+      <div className="grid gap-4 md:grid-cols-3">
+        <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">待处理评估</CardTitle>
-            <div className="p-2 bg-yellow-100 rounded-full">
-              <AlertCircle className="h-4 w-4 text-yellow-600" />
-            </div>
+            <CardTitle className="text-sm font-medium">总考核计划</CardTitle>
+            <Award className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">
-              {loading ? <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /> : pendingCount}
-            </div>
-            <div className="flex items-center mt-2">
-              <div className="h-1 w-12 bg-gray-200 rounded-full">
-                <div 
-                  className="h-1 bg-yellow-500 rounded-full" 
-                  style={{ width: employeePerformances.length > 0 ? `${(pendingCount / employeePerformances.length) * 100}%` : '0%' }} 
-                />
-              </div>
-              <span className="text-xs text-muted-foreground ml-2">
-                {employeePerformances.length > 0 
-                  ? `${Math.round((pendingCount / employeePerformances.length) * 100)}%` 
-                  : '0%'}
-              </span>
-            </div>
+            <div className="text-2xl font-bold">{performances.length}</div>
+            <p className="text-xs text-muted-foreground">
+              所有绩效考核计划数量
+            </p>
           </CardContent>
         </Card>
-        <Card className="hover:shadow-lg transition-shadow duration-200">
+        <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">已完成评估</CardTitle>
-            <div className="p-2 bg-green-100 rounded-full">
-              <CheckCircle2 className="h-4 w-4 text-green-600" />
-            </div>
+            <CardTitle className="text-sm font-medium">进行中考核</CardTitle>
+            <Clock className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">
-              {loading ? <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /> : completedCount}
+            <div className="text-2xl font-bold">
+              {performances.filter(p => p.state === '进行中').length}
             </div>
-            <div className="flex items-center mt-2">
-              <div className="h-1 w-12 bg-gray-200 rounded-full">
-                <div 
-                  className="h-1 bg-green-500 rounded-full" 
-                  style={{ width: employeePerformances.length > 0 ? `${(completedCount / employeePerformances.length) * 100}%` : '0%' }} 
-                />
-              </div>
-              <span className="text-xs text-muted-foreground ml-2">
-                {employeePerformances.length > 0 
-                  ? `${Math.round((completedCount / employeePerformances.length) * 100)}%` 
-                  : '0%'}
-              </span>
-            </div>
+            <p className="text-xs text-muted-foreground">
+              当前正在进行的考核计划
+            </p>
           </CardContent>
         </Card>
-        <Card className="hover:shadow-lg transition-shadow duration-200">
+        <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">平均分数</CardTitle>
-            <div className="p-2 bg-blue-100 rounded-full">
-              <BarChart3 className="h-4 w-4 text-blue-600" />
-            </div>
+            <CardTitle className="text-sm font-medium">即将开始</CardTitle>
+            <Calendar className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">
-              {loading ? <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /> : avgScore}
+            <div className="text-2xl font-bold">
+              {performances.filter(p => p.state === '未开始').length}
             </div>
-            <div className="flex items-center mt-2">
-              <div className="h-1 w-12 bg-gray-200 rounded-full">
-                <div 
-                  className="h-1 bg-blue-500 rounded-full" 
-                  style={{ width: avgScore !== '-' ? `${(parseFloat(avgScore) / 100) * 100}%` : '0%' }} 
-                />
-              </div>
-              <span className="text-xs text-muted-foreground ml-2">总体评分</span>
-            </div>
+            <p className="text-xs text-muted-foreground">
+              计划中但尚未开始的考核
+            </p>
           </CardContent>
         </Card>
       </div>
 
-      {/* 搜索和筛选区域 */}
-      <Card className="hover:shadow-md transition-shadow">
-        <CardHeader className="flex flex-row items-center justify-between">
-          <div>
-            <CardTitle>绩效评估列表</CardTitle>
-            <CardDescription>管理和查看所有员工绩效评估</CardDescription>
-          </div>
-          <div className="flex items-center gap-4">
-            <div className="flex items-center">
-              <label htmlFor="pageSize" className="text-sm text-muted-foreground mr-2">
-                每页显示:
-              </label>
-              <Select
-                value={pageSize.toString()}
-                onValueChange={handlePageSizeChange}
-              >
-                <SelectTrigger className="w-[80px] h-9">
-                  <SelectValue placeholder="5" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="5">5</SelectItem>
-                  <SelectItem value="10">10</SelectItem>
-                  <SelectItem value="20">20</SelectItem>
-                  <SelectItem value="50">50</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
+      {/* 搜索和筛选 */}
+      <div className="flex flex-col sm:flex-row gap-4">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+          <Input
+            placeholder="搜索绩效考核..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10"
+          />
+        </div>
+        <Select value={selectedStatus} onValueChange={setSelectedStatus}>
+          <SelectTrigger className="w-[180px]">
+            <SelectValue placeholder="状态筛选" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="全部">全部状态</SelectItem>
+            <SelectItem value="未开始">未开始</SelectItem>
+            <SelectItem value="进行中">进行中</SelectItem>
+            <SelectItem value="已结束">已结束</SelectItem>
+          </SelectContent>
+        </Select>
+        <Select value={sortBy} onValueChange={setSortBy}>
+          <SelectTrigger className="w-[180px]">
+            <SelectValue placeholder="排序方式" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="default">默认排序</SelectItem>
+            <SelectItem value="endDate">结束日期</SelectItem>
+            <SelectItem value="name">考核名称</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* 绩效考核列表 */}
+      <Card>
+        <CardHeader>
+          <CardTitle>绩效考核列表</CardTitle>
+          <CardDescription>
+            查看和管理所有绩效考核计划
+          </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex flex-col md:flex-row gap-4">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-              <Input
-                placeholder="搜索员工姓名、部门或职位..."
-                value={searchTerm}
-                onChange={(e) => {
-                  setSearchTerm(e.target.value);
-                  setCurrentPage(1); // 搜索时重置到第一页
-                }}
-                className="pl-10"
-              />
-            </div>
-            <div className="flex gap-2">
-              <Select value={selectedStatus} onValueChange={(value) => {
-                setSelectedStatus(value);
-                setCurrentPage(1); // 筛选时重置到第一页
-              }}>
-                <SelectTrigger className="w-[120px]">
-                  <SelectValue placeholder="选择状态" />
-                </SelectTrigger>
-                <SelectContent>
-                  {statusOptions.map((status) => (
-                    <SelectItem key={status} value={status}>
-                      {status}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Select value={sortBy} onValueChange={setSortBy}>
-                <SelectTrigger className="w-[120px]">
-                  <SelectValue placeholder="排序方式" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="default">默认排序</SelectItem>
-                  <SelectItem value="score">按分数排序</SelectItem>
-                  <SelectItem value="endDate">按结束日期</SelectItem>
-                  <SelectItem value="department">按部门排序</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          {/* 绩效列表 */}
+        <CardContent>
           {loading ? (
-            <div className="flex justify-center items-center py-10">
-              <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
-              <span className="ml-2 text-muted-foreground">加载中...</span>
+            <div className="flex justify-center items-center h-60">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              <span className="ml-2">加载中...</span>
             </div>
           ) : error ? (
-            <div className="flex flex-col justify-center items-center py-10">
-              <p className="text-red-500">{error}</p>
-              <Button 
-                variant="outline" 
-                className="mt-4"
-                onClick={() => fetchData()}
-              >
-                <span className="mr-2">重试</span>
-                <Loader2 className="h-4 w-4" />
-              </Button>
+            <div className="flex justify-center items-center h-60 text-red-500">
+              <AlertCircle className="h-8 w-8 mr-2" />
+              <span>{error}</span>
             </div>
-          ) : employeePerformances.length === 0 ? (
-            <div className="flex justify-center items-center py-10">
-              <p className="text-muted-foreground">暂无绩效评估数据</p>
+          ) : currentPageData.length === 0 ? (
+            <div className="flex flex-col justify-center items-center h-60 text-muted-foreground">
+              <Award className="h-16 w-16 mb-4 opacity-20" />
+              <p className="text-lg font-medium">暂无绩效考核数据</p>
+              <p className="text-sm">点击"添加绩效考核"按钮创建第一个考核计划</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
-                  <TableRow className="bg-gray-50/60">
-                    <TableHead className="font-semibold">员工</TableHead>
-                    <TableHead className="font-semibold">考核周期</TableHead>
-                    <TableHead className="font-semibold">评估人</TableHead>
-                    <TableHead className="font-semibold">状态</TableHead>
-                    <TableHead className="font-semibold">得分</TableHead>
-                    <TableHead className="text-right font-semibold">操作</TableHead>
+                  <TableRow>
+                    <TableHead>考核名称</TableHead>
+                    <TableHead>开始日期</TableHead>
+                    <TableHead>结束日期</TableHead>
+                    <TableHead>状态</TableHead>
+                    <TableHead>创建时间</TableHead>
+                    <TableHead className="text-right">操作</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {currentPageData.length === 0 ? (
-                    <TableRow>
-                      <TableCell colSpan={6} className="text-center py-10 text-muted-foreground">
-                        {filteredPerformances.length === 0 ? '暂无绩效评估数据' : '没有匹配的搜索结果'}
+                  {currentPageData.map((performance) => (
+                    <TableRow key={performance.id} className="cursor-pointer hover:bg-muted/50" onClick={() => handleViewDetails(performance.id)}>
+                      <TableCell className="font-medium">{performance.name}</TableCell>
+                      <TableCell>{formatDate(performance.startDate)}</TableCell>
+                      <TableCell>{formatDate(performance.endDate)}</TableCell>
+                      <TableCell>
+                        <Badge variant={getStatusBadge(performance.state).variant} className={getStatusBadge(performance.state).className}>
+                          {getStatusBadge(performance.state).icon}
+                          {performance.state}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>{formatDate(performance.createdAt)}</TableCell>
+                      <TableCell className="text-right">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                            <Button variant="ghost" className="h-8 w-8 p-0">
+                              <span className="sr-only">操作菜单</span>
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuLabel>操作</DropdownMenuLabel>
+                            <DropdownMenuItem onClick={(e) => {
+                              e.stopPropagation();
+                              handleViewDetails(performance.id);
+                            }}>
+                              <Eye className="mr-2 h-4 w-4" />
+                              查看详情
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={(e) => {
+                              e.stopPropagation();
+                              handleEditPerformance(performance);
+                            }}>
+                              <FileEdit className="mr-2 h-4 w-4" />
+                              编辑考核
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem className="text-red-600" onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeletePerformance(performance.id);
+                            }}>
+                              <Trash2 className="mr-2 h-4 w-4" />
+                              删除考核
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </TableCell>
                     </TableRow>
-                  ) : (
-                    currentPageData.map((item, index) => (
-                      <TableRow 
-                        key={item.id} 
-                        className={`border-b border-gray-100 transition-colors hover:bg-gray-50/70 ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50/30'}`}
-                      >
-                        <TableCell className="py-2.5">
-                          <div className="flex items-center gap-3">
-                            <div className={`w-9 h-9 rounded-full flex items-center justify-center text-white font-medium shadow-sm ${item.gender === '女' ? 'bg-gradient-to-br from-pink-500 to-rose-600' : 'bg-gradient-to-br from-blue-500 to-indigo-600'}`}>
-                              {item.employeeName ? item.employeeName.charAt(0) : '?'}
-                            </div>
-                            <div>
-                              <div className="font-medium text-gray-900">{item.employeeName || item.emp_name || '未知员工'}</div>
-                              <div className="text-xs text-gray-500">
-                                {item.position || '未知职位'}
-                              </div>
-                            </div>
-                          </div>
-                        </TableCell>
-                        <TableCell className="py-2.5">
-                          <div>
-                            <div className="font-medium text-gray-800">{item.performanceName || item.per_name || '未知考核'}</div>
-                            <div className="text-xs text-gray-500 flex items-center mt-1">
-                              <Clock className="h-3 w-3 mr-1 text-blue-500" />
-                              {formatDate(item.startDate || item.start_date)} ~ {formatDate(item.endDate || item.end_date)}
-                            </div>
-                          </div>
-                        </TableCell>
-                        <TableCell className="py-2.5">
-                          <div className="flex items-center space-x-1">
-                            <User className="h-4 w-4 text-purple-500" />
-                            <span>{item.approverName || '未知评估人'}</span>
-                          </div>
-                        </TableCell>
-                        <TableCell className="py-2.5">
-                          <Badge 
-                            variant={getStatusBadge(item.state || '未完成').variant} 
-                            className={`flex items-center w-fit px-2 py-1 ${getStatusBadge(item.state || '未完成').className}`}
-                          >
-                            {getStatusBadge(item.state || '未完成').icon}
-                            <span>{item.state || '未完成'}</span>
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="py-2.5">
-                          {!item.score ? (
-                            <span className="text-muted-foreground">-</span>
-                          ) : (
-                            <div className="flex flex-col">
-                              <span className="font-medium text-gray-900">{item.score}</span>
-                              <div className="h-1.5 w-16 bg-gray-200 rounded-full mt-1">
-                                <div
-                                  className={`h-1.5 rounded-full ${parseFloat(item.score) >= 90 ? 'bg-green-500' : parseFloat(item.score) >= 75 ? 'bg-blue-500' : parseFloat(item.score) >= 60 ? 'bg-yellow-500' : 'bg-red-500'}`}
-                                  style={{ width: `${Math.min(parseInt(item.score), 100)}%` }}
-                                />
-                              </div>
-                            </div>
-                          )}
-                        </TableCell>
-                        <TableCell className="text-right py-2.5">
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full hover:bg-gray-100">
-                                <MoreHorizontal className="h-4 w-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end" className="w-48">
-                              <DropdownMenuLabel>操作</DropdownMenuLabel>
-                              <DropdownMenuItem className="cursor-pointer" onClick={() => handleViewDetails(item.id)}>
-                                <Eye className="mr-2 h-4 w-4 text-purple-500" />
-                                查看详情
-                              </DropdownMenuItem>
-                              <DropdownMenuItem className="cursor-pointer" onClick={() => handleEditEmployeePerformance(item)}>
-                                <FileEdit className="mr-2 h-4 w-4 text-blue-500" />
-                                编辑评估
-                              </DropdownMenuItem>
-                              <DropdownMenuSeparator />
-                              <DropdownMenuItem 
-                                className="text-red-600 cursor-pointer"
-                                onClick={() => handleDeleteEmployeePerformance(item.id)}
-                              >
-                                <Trash2 className="mr-2 h-4 w-4" />
-                                删除评估
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </TableCell>
-                      </TableRow>
-                    ))
-                  )}
+                  ))}
                 </TableBody>
               </Table>
             </div>
           )}
         </CardContent>
-        {!loading && !error && filteredPerformances.length > 0 && (
-          <CardFooter className="flex flex-col sm:flex-row items-center justify-between px-6 py-4 border-t">
-            <PaginationInfo 
-              currentPage={currentPage} 
-              pageSize={pageSize} 
-              totalItems={totalItems}
-              className="mb-4 sm:mb-0" 
-            />
-            <Pagination 
-              currentPage={currentPage} 
-              totalPages={totalPages} 
-              onPageChange={handlePageChange} 
-            />
-          </CardFooter>
-        )}
-      </Card>
-
-      {/* 绩效考核表单侧边抽屉 */}
-      <Sheet open={isPerformanceFormOpen} onOpenChange={setIsPerformanceFormOpen}>
-        <SheetContent className="w-full sm:max-w-xl overflow-y-auto">
-          <SheetHeader>
-            <SheetTitle className="text-2xl font-bold text-blue-800 flex items-center gap-2 mb-2">
-              <Award className="h-6 w-6" />
-              {selectedPerformance ? '编辑绩效考核' : '添加新绩效考核'}
-            </SheetTitle>
-          </SheetHeader>
-          <div className="mt-0">
-            <PerformanceForm 
-              performance={selectedPerformance}
-              onSuccess={() => {
-                setIsPerformanceFormOpen(false);
-                fetchData();
-              }}
-              onCancel={() => setIsPerformanceFormOpen(false)}
+        <CardFooter className="flex items-center justify-between">
+          <div className="text-sm text-muted-foreground">
+            共 {totalItems} 条记录
+          </div>
+          <div className="flex items-center space-x-6">
+            <div className="flex items-center space-x-2">
+              <p className="text-sm font-medium">每页显示</p>
+              <Select
+                value={pageSize.toString()}
+                onValueChange={handlePageSizeChange}
+              >
+                <SelectTrigger className="h-8 w-[70px]">
+                  <SelectValue placeholder={pageSize} />
+                </SelectTrigger>
+                <SelectContent side="top">
+                  {[5, 10, 20, 50].map((size) => (
+                    <SelectItem key={size} value={size.toString()}>
+                      {size}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={handlePageChange}
             />
           </div>
-        </SheetContent>
-      </Sheet>
+        </CardFooter>
+      </Card>
 
-      {/* 员工绩效评估表单侧边抽屉 */}
-      <Sheet open={isEmployeePerformanceFormOpen} onOpenChange={setIsEmployeePerformanceFormOpen}>
-        <SheetContent className="w-full sm:max-w-xl overflow-y-auto">
+      {/* 绩效考核表单 */}
+      <Sheet open={isPerformanceFormOpen} onOpenChange={setIsPerformanceFormOpen}>
+        <SheetContent className="sm:max-w-md">
           <SheetHeader>
-            <SheetTitle className="text-2xl font-bold text-blue-800 flex items-center gap-2 mb-2">
-              <BarChart3 className="h-6 w-6" />
-              {selectedEmployeePerformance ? '编辑员工绩效评估' : '添加新员工绩效评估'}
+            <SheetTitle className="text-2xl font-bold text-blue-800 flex items-center gap-2 mb-2 bg-gradient-to-r from-blue-50 to-blue-100 p-2 rounded-md">
+              <Award className="h-6 w-6 text-blue-600" />
+              {selectedPerformance ? '编辑绩效考核' : '添加绩效考核'}
             </SheetTitle>
           </SheetHeader>
-          <div className="mt-0">
-            <EmployeePerformanceForm 
-              employeePerformance={selectedEmployeePerformance}
-              onSuccess={() => {
-                setIsEmployeePerformanceFormOpen(false);
-                fetchData();
-              }}
-              onCancel={() => setIsEmployeePerformanceFormOpen(false)}
+          <div className="py-4">
+            <PerformanceForm 
+              performance={selectedPerformance} 
+              onSuccess={handleFormSuccess}
+              onCancel={() => setIsPerformanceFormOpen(false)}
             />
           </div>
         </SheetContent>
