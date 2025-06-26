@@ -242,7 +242,7 @@ export const createEmployee = async (employeeData) => {
       isDeleted: false,
       school: employeeData.school || null,
       status: employeeData.status || '在职',
-      birthDate: new Date().toISOString().split('T')[0], // 默认生日
+      birthDate: employeeData.birthDate || new Date().toISOString().split('T')[0], // 使用传入的出生日期
       description: null
     };
     
