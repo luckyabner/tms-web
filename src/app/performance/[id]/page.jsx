@@ -105,10 +105,8 @@ export default function PerformanceDetailPage() {
       const numericId = parseInt(id);
       const filteredData = employeePerformanceData.filter(item => {
         // 检查所有可能的ID字段
-        return (
-          (item.performanceId && item.performanceId === numericId) || 
-          (item.perId && item.perId === numericId)
-        );
+        const itemPerfId = item.performanceId || item.perId || null;
+        return itemPerfId === numericId;
       });
       
       console.log(`找到${filteredData.length}条绩效考核ID=${id}的员工评估:`, filteredData);
@@ -406,7 +404,7 @@ export default function PerformanceDetailPage() {
                 </TableHeader>
                 <TableBody>
                   {currentPageData.map((item) => (
-                    <TableRow key={item.id} className="hover:bg-blue-50 transition-colors">
+                    <TableRow key={item.id || `emp-perf-${item.employeeId}-${item.performanceId}`} className="hover:bg-blue-50 transition-colors">
                       <TableCell className="font-medium">{item.employeeName}</TableCell>
                       <TableCell>{item.department || '-'}</TableCell>
                       <TableCell>{item.position || '-'}</TableCell>

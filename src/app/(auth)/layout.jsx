@@ -105,7 +105,7 @@ export default function AuthLayout({ children }) {
           </div>
         </div>
         <div className="lg:p-8 flex items-center justify-center min-h-screen">
-          <div className="mx-auto flex w-full flex-col justify-center space-y-5 sm:w-[300px] scale-90">
+          <div className="mx-auto flex w-full flex-col justify-center space-y-5 sm:w-[400px] scale-90">
             {children}
             <p className="text-center text-sm text-gray-500">
               © {new Date().getFullYear()} 人才管理系统 - 版权所有

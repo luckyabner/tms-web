@@ -134,6 +134,16 @@ export default function PerformancePage() {
     }
   });
 
+  useEffect(() => {
+    // 日志输出当前获取到的绩效数据，检查id字段
+    console.log('当前绩效数据:', performances);
+    if (performances.length > 0) {
+      performances.forEach((perf, index) => {
+        console.log(`绩效[${index}] - id:${perf.id}, name:${perf.name}`);
+      });
+    }
+  }, [performances]);
+
   // 计算分页数据
   const totalItems = filteredPerformances.length;
   const totalPages = Math.ceil(totalItems / pageSize);
@@ -191,13 +201,25 @@ export default function PerformancePage() {
 
   // 跳转到绩效详情页面
   const handleViewDetails = (id) => {
-    if (id && id !== 'undefined') {
-      console.log('跳转到绩效详情页，ID:', id);
-      router.push(`/performance/${id}`);
-    } else {
+    console.log('尝试跳转到绩效详情，原始ID:', id);
+    
+    // 确保id不是undefined或null
+    if (!id) {
       console.error('无效的绩效考核ID:', id);
       alert('无法查看详情：无效的绩效考核ID');
+      return;
     }
+    
+    // 确保id是数字或可以解析为数字的字符串
+    const numericId = parseInt(id);
+    if (isNaN(numericId)) {
+      console.error('绩效考核ID不是有效数字:', id);
+      alert('无法查看详情：无效的绩效考核ID格式');
+      return;
+    }
+    
+    console.log('跳转到绩效详情页，处理后ID:', numericId);
+    router.push(`/performance/${numericId}`);
   };
 
   // 处理添加绩效考核
@@ -372,8 +394,12 @@ export default function PerformancePage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {currentPageData.map((performance) => (
-                    <TableRow key={performance.id} className="cursor-pointer hover:bg-muted/50" onClick={() => handleViewDetails(performance.id)}>
+                  {currentPageData.map((performance, index) => (
+                    <TableRow 
+                      key={performance.id || `perf-${performance.name}-${performance.startDate}`} 
+                      className="cursor-pointer hover:bg-muted/50" 
+                      onClick={() => handleViewDetails(index + 1)}
+                    >
                       <TableCell className="font-medium">{performance.name}</TableCell>
                       <TableCell>{formatDate(performance.startDate)}</TableCell>
                       <TableCell>{formatDate(performance.endDate)}</TableCell>
@@ -396,7 +422,7 @@ export default function PerformancePage() {
                             <DropdownMenuLabel>操作</DropdownMenuLabel>
                             <DropdownMenuItem onClick={(e) => {
                               e.stopPropagation();
-                              handleViewDetails(performance.id);
+                              handleViewDetails(index + 1);
                             }}>
                               <Eye className="mr-2 h-4 w-4" />
                               查看详情

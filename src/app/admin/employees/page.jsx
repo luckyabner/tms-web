@@ -896,19 +896,14 @@ export default function AdminEmployeesPage() {
       
       {/* 员工表单抽屉 */}
       <Sheet open={isFormOpen} onOpenChange={setIsFormOpen}>
-        <SheetContent className="sm:max-w-xl w-full overflow-y-auto p-0">
-          {formLoading ? (
-            <div className="flex items-center justify-center h-full">
-              <Loader2 className="h-8 w-8 animate-spin text-purple-600" />
-              <span className="ml-2 text-muted-foreground">加载中...</span>
-            </div>
-          ) : (
+        <SheetContent className="sm:max-w-xl overflow-y-auto">
+          <div className="mt-4">
             <EmployeeForm 
-              employee={currentEmployee} 
-              onSuccess={handleFormSuccess} 
-              onCancel={() => setIsFormOpen(false)} 
+              employee={currentEmployee}
+              onSuccess={handleFormSuccess}
+              onCancel={() => setIsFormOpen(false)}
             />
-          )}
+          </div>
         </SheetContent>
       </Sheet>
     </div>
