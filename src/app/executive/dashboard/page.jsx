@@ -30,7 +30,6 @@ export default function ExecutiveDashboardPage() {
 
   const [departments, setDepartments] = useState([]);
   const [pendingTransfers, setPendingTransfers] = useState([]);
-  const [recentEmployeeChanges, setRecentEmployeeChanges] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -74,50 +73,6 @@ export default function ExecutiveDashboardPage() {
         pendingTransferData = [
           { id: 1, employeeName: '张三', fromDepartment: '研发部', toDepartment: '产品部', status: '待审批', date: '2025-06-25' },
           { id: 2, employeeName: '李四', fromDepartment: '市场部', toDepartment: '销售部', status: '待审批', date: '2025-06-24' },
-        ];
-      }
-      
-      // 获取最近的员工部门变动记录
-      let recentChanges = [];
-      try {
-        // 获取所有员工-部门记录，按更新时间排序取最近的几条
-        const empDeptResponse = await api.get('/employee-departments');
-        if (empDeptResponse.data && empDeptResponse.data.data) {
-          // 按更新时间排序
-          const sortedRecords = [...empDeptResponse.data.data]
-            .sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt))
-            .slice(0, 5); // 取最近5条
-            
-          recentChanges = sortedRecords.map(record => {
-            const employee = employees.find(emp => emp.id === record.empId);
-            const department = departments.find(dept => dept.id === record.depId);
-            
-            // 确定变动类型
-            let action = '调动';
-            if (record.state === '已通过' && record.isCurrent === 1) {
-              action = '调动';
-            } else if (new Date(record.createdAt).getTime() === new Date(employee?.hireDate || 0).getTime()) {
-              action = '新入职';
-            }
-            
-            return {
-              id: record.id,
-              name: employee ? employee.name : `员工ID: ${record.empId}`,
-              action: action,
-              department: department ? department.name : '未知部门',
-              position: record.position || '未知职位',
-              date: new Date(record.updatedAt).toLocaleDateString('zh-CN')
-            };
-          });
-        }
-      } catch (error) {
-        console.error('获取员工变动数据失败:', error);
-        // 使用模拟数据作为备份
-        recentChanges = [
-          { id: 1, name: '赵六', action: '新入职', department: '研发部', date: '2025-06-25' },
-          { id: 2, name: '钱七', action: '离职', department: '销售部', date: '2025-06-24' },
-          { id: 3, name: '孙八', action: '调动', fromDepartment: '市场部', toDepartment: '产品部', date: '2025-06-23' },
-          { id: 4, name: '周九', action: '晋升', position: '高级工程师', department: '研发部', date: '2025-06-22' },
         ];
       }
       
@@ -175,9 +130,6 @@ export default function ExecutiveDashboardPage() {
       
       // 更新人事调动数据
       setPendingTransfers(pendingTransferData);
-      
-      // 更新最近员工变动
-      setRecentEmployeeChanges(recentChanges);
     } catch (error) {
       console.error('获取仪表盘数据失败:', error);
     } finally {
@@ -273,72 +225,8 @@ export default function ExecutiveDashboardPage() {
           </CardContent>
         </Card>
 
-        {/* 最近员工变动 */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Users className="h-5 w-5 text-green-600" />
-              最近员工变动
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {loading ? (
-              <div className="flex justify-center py-8">
-                <div className="w-8 h-8 rounded-full border-4 border-green-200 border-t-green-600 animate-spin"></div>
-              </div>
-            ) : recentEmployeeChanges.length > 0 ? (
-              <div className="space-y-4">
-                {recentEmployeeChanges.map((change) => (
-                  <div
-                    key={change.id}
-                    className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg"
-                  >
-                    <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white text-sm ${
-                      change.action === '新入职' ? 'bg-green-500' :
-                      change.action === '离职' ? 'bg-red-500' :
-                      change.action === '调动' ? 'bg-blue-500' :
-                      'bg-purple-500'
-                    }`}>
-                      {change.name.slice(0, 1)}
-                    </div>
-                    <div className="flex-1">
-                      <div className="flex flex-wrap items-center gap-1">
-                        <span className="font-medium">{change.name}</span>
-                        <span className={`text-xs px-2 py-0.5 rounded-full ${
-                          change.action === '新入职' ? 'bg-green-100 text-green-700' :
-                          change.action === '离职' ? 'bg-red-100 text-red-700' :
-                          change.action === '调动' ? 'bg-blue-100 text-blue-700' :
-                          'bg-purple-100 text-purple-700'
-                        }`}>{change.action}</span>
-                        {change.action === '调动' ? (
-                          <span className="text-sm text-gray-600">
-                            {change.fromDepartment} → {change.toDepartment}
-                          </span>
-                        ) : change.action === '晋升' ? (
-                          <span className="text-sm text-gray-600">
-                            晋升为{change.position}
-                          </span>
-                        ) : (
-                          <span className="text-sm text-gray-600">
-                            {change.department}
-                          </span>
-                        )}
-                      </div>
-                      <div className="text-xs text-gray-500 mt-1">变动日期：{change.date}</div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-6 text-gray-500">暂无最近员工变动</div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* 部门统计 */}
-        <Card className="lg:col-span-2">
+        <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Building className="h-5 w-5 text-green-600" />
@@ -377,7 +265,9 @@ export default function ExecutiveDashboardPage() {
             )}
           </CardContent>
         </Card>
+      </div>
 
+      <div className="grid grid-cols-1 lg:grid-cols-1 gap-6">
         {/* 快捷操作 */}
         <Card>
           <CardHeader>

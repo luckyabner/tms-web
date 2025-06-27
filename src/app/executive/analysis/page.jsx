@@ -10,7 +10,8 @@ import {
   Download,
   Filter,
   RefreshCw,
-  ChevronDown
+  ChevronDown,
+  TrendingUp
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -34,47 +35,240 @@ import {
 } from 'recharts';
 import { getAllDepartments } from '@/lib/services/departmentService';
 import { getAllEmployees } from '@/lib/services/employeeService';
+import api from '@/lib/api';
 
 export default function DepartmentAnalysisPage() {
   const [departments, setDepartments] = useState([]);
   const [employees, setEmployees] = useState([]);
+  const [employeeDepartments, setEmployeeDepartments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('overview');
 
   useEffect(() => {
-    async function fetchData() {
-      setLoading(true);
-      try {
-        const deptData = await getAllDepartments();
-        const empData = await getAllEmployees();
-        
-        // 为部门添加一些模拟的分析数据
-        const processedDepartments = deptData.map(dept => {
-          const departmentEmployees = empData.filter(emp => 
-            emp.departmentId === dept.id || emp.department === dept.name
-          );
-          
-          return {
-            ...dept,
-            employeeCount: departmentEmployees.length,
-            efficiency: Math.floor(Math.random() * 40) + 60,
-            budget: Math.floor(Math.random() * 500) + 500,
-            growth: Math.floor(Math.random() * 40) - 20,
-            performance: Math.floor(Math.random() * 30) + 70,
-          };
-        });
-        
-        setDepartments(processedDepartments);
-        setEmployees(empData);
-      } catch (error) {
-        console.error('获取分析数据失败:', error);
-      } finally {
-        setLoading(false);
-      }
-    }
-
     fetchData();
   }, []);
+
+  const fetchData = async () => {
+    setLoading(true);
+    try {
+      // 获取部门数据
+      const departmentsData = await getAllDepartments();
+      setDepartments(departmentsData);
+      
+      // 获取员工数据
+      const employeesData = await getAllEmployees();
+      setEmployees(employeesData);
+      
+      // 获取员工-部门关系数据
+      try {
+        const response = await api.get('/employee-departments');
+        if (response.data && response.data.data) {
+          const currentEmployeeDepts = response.data.data.filter(ed => ed.isCurrent === 1);
+          setEmployeeDepartments(currentEmployeeDepts);
+        }
+      } catch (error) {
+        console.error('获取员工-部门关系数据失败:', error);
+      }
+    } catch (error) {
+      console.error('获取数据失败:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // 计算部门员工数量
+  const getDepartmentEmployeeCounts = () => {
+    const counts = {};
+    
+    // 初始化所有部门的计数为0
+    departments.forEach(dept => {
+      counts[dept.id] = {
+        id: dept.id,
+        name: dept.name,
+        count: 0,
+        color: getRandomColor()
+      };
+    });
+    
+    // 统计每个部门的员工数量
+    employeeDepartments.forEach(empDept => {
+      if (counts[empDept.depId]) {
+        counts[empDept.depId].count++;
+      }
+    });
+    
+    return Object.values(counts);
+  };
+
+  // 生成随机颜色
+  const getRandomColor = () => {
+    const colors = [
+      'rgb(34, 197, 94)', // green-500
+      'rgb(16, 185, 129)', // emerald-500
+      'rgb(20, 184, 166)', // teal-500
+      'rgb(6, 182, 212)', // cyan-500
+      'rgb(14, 165, 233)', // sky-500
+      'rgb(59, 130, 246)', // blue-500
+      'rgb(99, 102, 241)', // indigo-500
+    ];
+    return colors[Math.floor(Math.random() * colors.length)];
+  };
+
+  // 计算员工性别分布
+  const getGenderDistribution = () => {
+    const genderCounts = { '男': 0, '女': 0 };
+    
+    employees.forEach(emp => {
+      if (emp.gender === '男' || emp.gender === '女') {
+        genderCounts[emp.gender]++;
+      }
+    });
+    
+    return [
+      { name: '男', value: genderCounts['男'], color: 'rgb(34, 197, 94)' },
+      { name: '女', value: genderCounts['女'], color: 'rgb(14, 165, 233)' }
+    ];
+  };
+
+  // 计算员工学历分布
+  const getEducationDistribution = () => {
+    const educationCounts = { '博士': 0, '硕士': 0, '本科': 0, '大专': 0, '高中': 0 };
+    
+    employees.forEach(emp => {
+      if (educationCounts.hasOwnProperty(emp.education)) {
+        educationCounts[emp.education]++;
+      }
+    });
+    
+    const colors = {
+      '博士': 'rgb(34, 197, 94)', // green-500
+      '硕士': 'rgb(16, 185, 129)', // emerald-500
+      '本科': 'rgb(20, 184, 166)', // teal-500
+      '大专': 'rgb(6, 182, 212)', // cyan-500
+      '高中': 'rgb(59, 130, 246)' // blue-500
+    };
+    
+    return Object.keys(educationCounts).map(key => ({
+      name: key,
+      value: educationCounts[key],
+      color: colors[key]
+    }));
+  };
+
+  // 渲染饼图
+  const renderPieChart = (data, size = 200) => {
+    const total = data.reduce((sum, item) => sum + item.value, 0);
+    if (total === 0) return null;
+    
+    let currentAngle = 0;
+    const center = size / 2;
+    const radius = size / 2;
+    
+    return (
+      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+        {data.map((item, index) => {
+          const percentage = item.value / total;
+          const angle = percentage * 360;
+          
+          // 计算扇形路径
+          const startX = center + radius * Math.cos((currentAngle * Math.PI) / 180);
+          const startY = center + radius * Math.sin((currentAngle * Math.PI) / 180);
+          const endX = center + radius * Math.cos(((currentAngle + angle) * Math.PI) / 180);
+          const endY = center + radius * Math.sin(((currentAngle + angle) * Math.PI) / 180);
+          
+          const largeArcFlag = angle > 180 ? 1 : 0;
+          const pathData = [
+            `M ${center},${center}`,
+            `L ${startX},${startY}`,
+            `A ${radius},${radius} 0 ${largeArcFlag},1 ${endX},${endY}`,
+            'Z'
+          ].join(' ');
+          
+          // 计算标签位置
+          const labelAngle = currentAngle + angle / 2;
+          const labelRadius = radius * 0.7;
+          const labelX = center + labelRadius * Math.cos((labelAngle * Math.PI) / 180);
+          const labelY = center + labelRadius * Math.sin((labelAngle * Math.PI) / 180);
+          
+          const slice = (
+            <g key={index}>
+              <path d={pathData} fill={item.color} stroke="white" strokeWidth="1" />
+              {percentage > 0.05 && (
+                <text
+                  x={labelX}
+                  y={labelY}
+                  textAnchor="middle"
+                  dominantBaseline="middle"
+                  fill="white"
+                  fontSize="12"
+                  fontWeight="bold"
+                >
+                  {Math.round(percentage * 100)}%
+                </text>
+              )}
+            </g>
+          );
+          
+          currentAngle += angle;
+          return slice;
+        })}
+      </svg>
+    );
+  };
+
+  // 渲染水平条形图
+  const renderBarChart = (data, maxWidth = 500, height = 300) => {
+    const maxValue = Math.max(...data.map(item => item.count));
+    const barHeight = 30;
+    const spacing = 15;
+    const totalHeight = data.length * (barHeight + spacing);
+    
+    return (
+      <svg width={maxWidth} height={totalHeight} viewBox={`0 0 ${maxWidth} ${totalHeight}`}>
+        {data.map((item, index) => {
+          const barWidth = (item.count / maxValue) * (maxWidth - 150);
+          const y = index * (barHeight + spacing);
+          
+          return (
+            <g key={index}>
+              <rect
+                x={100}
+                y={y}
+                width={barWidth}
+                height={barHeight}
+                fill={item.color}
+                rx={4}
+                ry={4}
+              />
+              <text
+                x={95}
+                y={y + barHeight / 2}
+                dominantBaseline="middle"
+                textAnchor="end"
+                fontSize="12"
+              >
+                {item.name}
+              </text>
+              <text
+                x={barWidth + 110}
+                y={y + barHeight / 2}
+                dominantBaseline="middle"
+                fontSize="12"
+                fontWeight="bold"
+              >
+                {item.count} 人
+              </text>
+            </g>
+          );
+        })}
+      </svg>
+    );
+  };
+
+  // 获取部门员工数据
+  const departmentEmployeeCounts = getDepartmentEmployeeCounts();
+  const genderDistribution = getGenderDistribution();
+  const educationDistribution = getEducationDistribution();
 
   // 生成部门员工分布数据
   const departmentDistributionData = departments.map(dept => ({

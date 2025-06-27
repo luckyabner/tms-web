@@ -7,417 +7,291 @@ import {
   User, 
   ChevronLeft,
   BarChart4,
-  Network,
   TrendingUp,
   UserCog
 } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { BasicTable } from '@/components/shared/tables/BasicTable';
-import { getAllDepartments, getDepartmentById } from '@/lib/services/departmentService';
-import { getAllEmployees } from '@/lib/services/employeeService';
-
-// 部门员工表头
-const departmentEmployeeColumns = [
-  {
-    accessorKey: 'id',
-    header: 'ID',
-  },
-  {
-    accessorKey: 'name',
-    header: '姓名',
-    cell: ({ row }) => {
-      const employee = row.original;
-      return (
-        <div className="flex items-center">
-          <div className="w-8 h-8 rounded-full bg-green-100 text-green-600 flex items-center justify-center mr-2 font-medium">
-            {employee.name.charAt(0)}
-          </div>
-          <div>
-            <div className="font-medium">{employee.name}</div>
-            <div className="text-xs text-gray-500">{employee.position || '未设置职位'}</div>
-          </div>
-        </div>
-      );
-    },
-  },
-  {
-    accessorKey: 'position',
-    header: '职位',
-  },
-  {
-    accessorKey: 'phone',
-    header: '联系电话',
-  },
-  {
-    accessorKey: 'status',
-    header: '状态',
-    cell: ({ row }) => {
-      const status = row.original.status;
-      return (
-        <Badge className={
-          status === '在职' ? 'bg-green-100 text-green-800 hover:bg-green-100' :
-          status === '离职' ? 'bg-red-100 text-red-800 hover:bg-red-100' :
-          'bg-yellow-100 text-yellow-800 hover:bg-yellow-100'
-        }>
-          {status}
-        </Badge>
-      );
-    },
-  },
-  {
-    accessorKey: 'hireDate',
-    header: '入职日期',
-  },
-  {
-    id: 'actions',
-    header: '操作',
-    cell: ({ row }) => (
-      <div className="flex space-x-2">
-        <Button variant="ghost" size="icon" className="h-8 w-8 text-green-600" asChild>
-          <a href={`/executive/employees/${row.original.id}`}>
-            <User className="h-4 w-4" />
-          </a>
-        </Button>
-        <Button variant="ghost" size="icon" className="h-8 w-8 text-green-600" asChild>
-          <a href={`/executive/transfers/new?employeeId=${row.original.id}`}>
-            <UserCog className="h-4 w-4" />
-          </a>
-        </Button>
-      </div>
-    ),
-  },
-];
+import api from '@/lib/api';
 
 export default function DepartmentDetailPage({ params }) {
+  const departmentId = params.id;
   const [department, setDepartment] = useState(null);
-  const [departmentEmployees, setDepartmentEmployees] = useState([]);
-  const [parentDepartment, setParentDepartment] = useState(null);
-  const [childDepartments, setChildDepartments] = useState([]);
+  const [employees, setEmployees] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [activeTab, setActiveTab] = useState('overview');
 
   useEffect(() => {
-    async function fetchDepartmentData() {
-      setLoading(true);
-      try {
-        // 获取部门数据
-        const departments = await getAllDepartments();
-        const targetDepartment = departments.find(d => d.id === parseInt(params.id));
-        
-        if (!targetDepartment) {
-          throw new Error('未找到部门信息');
-        }
-        
-        // 获取员工数据
-        const employees = await getAllEmployees();
-        
-        // 筛选部门员工
-        const deptEmployees = employees.filter(emp => 
-          emp.departmentId === targetDepartment.id || emp.department === targetDepartment.name
-        );
-        
-        // 查找父部门
-        const parent = departments.find(d => d.id === targetDepartment.parentId);
-        
-        // 查找子部门
-        const children = departments.filter(d => d.parentId === targetDepartment.id);
-        
-        // 查找部门经理
-        const manager = employees.find(emp => emp.id === targetDepartment.managerId);
-        
-        setDepartment({
-          ...targetDepartment,
-          managerName: manager ? manager.name : '未分配',
-          employeeCount: deptEmployees.length,
-          // 模拟部门数据
-          efficiency: Math.floor(Math.random() * 40) + 60,
-          budget: Math.floor(Math.random() * 500) + 500,
-          projects: Math.floor(Math.random() * 10) + 1,
-        });
-        
-        setDepartmentEmployees(deptEmployees);
-        setParentDepartment(parent || null);
-        setChildDepartments(children);
-        
-      } catch (err) {
-        console.error('获取部门数据失败:', err);
-        setError(err.message || '获取部门数据失败，请稍后重试');
-      } finally {
-        setLoading(false);
-      }
-    }
-
     fetchDepartmentData();
-  }, [params.id]);
+  }, [departmentId]);
 
-  if (loading) {
-    return (
-      <div className="container mx-auto p-6 flex justify-center items-center min-h-[60vh]">
-        <div className="flex flex-col items-center space-y-4">
-          <div className="w-12 h-12 rounded-full border-4 border-green-200 border-t-green-600 animate-spin"></div>
-          <p className="text-green-600 font-medium">加载部门数据中...</p>
-        </div>
-      </div>
-    );
-  }
+  const fetchDepartmentData = async () => {
+    setLoading(true);
+    try {
+      // 获取部门详情
+      const departmentResponse = await api.get(`/departments/${departmentId}`);
+      if (departmentResponse.data && departmentResponse.data.data) {
+        setDepartment(departmentResponse.data.data);
+      }
+      
+      // 获取部门员工
+      const employeesResponse = await api.get(`/employee-departments/departments/${departmentId}`);
+      if (employeesResponse.data && employeesResponse.data.data) {
+        // 获取员工详情
+        const employeeDetails = [];
+        for (const empDept of employeesResponse.data.data) {
+          try {
+            const empResponse = await api.get(`/employees/${empDept.empId}`);
+            if (empResponse.data && empResponse.data.data) {
+              employeeDetails.push({
+                ...empResponse.data.data,
+                position: empDept.position || '未设置职位',
+                isSuperior: empDept.superiorId === null
+              });
+            }
+          } catch (error) {
+            console.error(`获取员工 ${empDept.empId} 详情失败:`, error);
+          }
+        }
+        setEmployees(employeeDetails);
+      }
+    } catch (error) {
+      console.error('获取部门数据失败:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  if (error) {
-    return (
-      <div className="container mx-auto p-6">
-        <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
-          <p className="text-red-600">{error}</p>
-          <Button variant="outline" className="mt-4" onClick={() => window.history.back()}>
-            <ChevronLeft className="h-4 w-4 mr-2" />
-            返回
-          </Button>
-        </div>
-      </div>
-    );
-  }
+  // 获取部门经理
+  const getDepartmentManager = () => {
+    if (!department || !department.managerId) return null;
+    return employees.find(emp => emp.id === department.managerId);
+  };
+
+  // 获取上级部门
+  const getParentDepartment = async () => {
+    if (!department || !department.parentId) return null;
+    try {
+      const response = await api.get(`/departments/${department.parentId}`);
+      if (response.data && response.data.data) {
+        return response.data.data;
+      }
+    } catch (error) {
+      console.error('获取上级部门失败:', error);
+    }
+    return null;
+  };
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
-      {/* 返回按钮 */}
-      <div>
-        <Button variant="outline" onClick={() => window.history.back()} className="mb-4">
-          <ChevronLeft className="h-4 w-4 mr-2" />
-          返回部门列表
+    <div className="container mx-auto p-6 space-y-6 bg-gray-50 min-h-screen">
+      {/* 返回按钮和标题 */}
+      <div className="flex items-center gap-2">
+        <Button variant="ghost" size="icon" asChild>
+          <a href="/executive/departments">
+            <ChevronLeft className="h-5 w-5" />
+          </a>
         </Button>
+        <h1 className="text-2xl font-bold">
+          {loading ? '加载中...' : department ? department.name : '部门详情'}
+        </h1>
       </div>
 
-      {/* 部门基本信息卡片 */}
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        <Card className="lg:col-span-1">
-          <CardHeader className="bg-green-50 border-b border-green-100">
-            <CardTitle className="flex items-center text-green-800">
-              <Building className="h-5 w-5 mr-2 text-green-600" />
-              部门信息
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-6">
-            <div className="flex flex-col items-center mb-6">
-              <div className="w-16 h-16 rounded-full bg-green-100 text-green-600 flex items-center justify-center text-3xl font-bold mb-3">
-                {department.name.charAt(0)}
+      {loading ? (
+        // 加载中状态
+        <div className="flex justify-center py-12">
+          <div className="w-12 h-12 rounded-full border-4 border-green-200 border-t-green-600 animate-spin"></div>
+        </div>
+      ) : department ? (
+        <>
+          {/* 部门基本信息卡片 */}
+          <Card>
+            <CardHeader className="bg-gradient-to-r from-green-600 to-teal-600 text-white">
+              <CardTitle className="flex items-center gap-2">
+                <Building className="h-6 w-6" />
+                {department.name}
+              </CardTitle>
+              <CardDescription className="text-green-100">
+                部门ID: {department.id}
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="p-6 space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <h3 className="text-sm font-medium text-gray-500">部门主管</h3>
+                  <p className="text-lg font-medium">
+                    {department.managerId ? 
+                      getDepartmentManager()?.name || `ID: ${department.managerId}` : 
+                      '未指定'
+                    }
+                  </p>
+                </div>
+                <div>
+                  <h3 className="text-sm font-medium text-gray-500">上级部门</h3>
+                  <p className="text-lg font-medium">
+                    {department.parentId ? `ID: ${department.parentId}` : '无'}
+                  </p>
+                </div>
+                <div>
+                  <h3 className="text-sm font-medium text-gray-500">员工数量</h3>
+                  <p className="text-lg font-medium">{employees.length} 人</p>
+                </div>
+                <div>
+                  <h3 className="text-sm font-medium text-gray-500">创建时间</h3>
+                  <p className="text-lg font-medium">
+                    {department.createdAt ? new Date(department.createdAt).toLocaleDateString('zh-CN') : '未知'}
+                  </p>
+                </div>
               </div>
-              <h2 className="text-xl font-bold text-center">{department.name}</h2>
               
-              {parentDepartment && (
-                <p className="text-sm text-gray-500 mt-1">
-                  上级部门: {parentDepartment.name}
-                </p>
+              {department.description && (
+                <div className="mt-4">
+                  <h3 className="text-sm font-medium text-gray-500">部门描述</h3>
+                  <p className="mt-1 text-gray-700">{department.description}</p>
+                </div>
               )}
-              
-              <Badge className="mt-2 bg-green-100 text-green-800">
-                {childDepartments.length > 0 ? `${childDepartments.length}个下属部门` : '无下属部门'}
-              </Badge>
-            </div>
+            </CardContent>
+          </Card>
 
-            <div className="space-y-4">
-              <div className="flex items-start">
-                <User className="h-5 w-5 text-green-600 mr-3 mt-0.5" />
-                <div>
-                  <p className="text-sm text-gray-500">部门负责人</p>
-                  <p>{department.managerName}</p>
-                </div>
-              </div>
-
-              <div className="flex items-start">
-                <Users className="h-5 w-5 text-green-600 mr-3 mt-0.5" />
-                <div>
-                  <p className="text-sm text-gray-500">员工数量</p>
-                  <p>{department.employeeCount} 人</p>
-                </div>
-              </div>
-
-              <div className="flex items-start">
-                <TrendingUp className="h-5 w-5 text-green-600 mr-3 mt-0.5" />
-                <div>
-                  <p className="text-sm text-gray-500">部门效能</p>
-                  <div className="flex items-center">
-                    <div className="w-24 bg-gray-200 rounded-full h-2 mr-2">
-                      <div 
-                        className={`h-2 rounded-full ${
-                          department.efficiency >= 80 ? 'bg-green-500' :
-                          department.efficiency >= 70 ? 'bg-blue-500' :
-                          'bg-amber-500'
-                        }`}
-                        style={{ width: `${department.efficiency}%` }}
-                      ></div>
-                    </div>
-                    <span className={`text-sm ${
-                      department.efficiency >= 80 ? 'text-green-600' :
-                      department.efficiency >= 70 ? 'text-blue-600' :
-                      'text-amber-600'
-                    }`}>
-                      {department.efficiency}%
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="lg:col-span-3">
-          <CardHeader className="bg-green-50 border-b border-green-100 px-6 py-4">
-            <Tabs defaultValue="employees">
-              <TabsList className="grid grid-cols-3">
-                <TabsTrigger value="employees" className="data-[state=active]:bg-green-100 data-[state=active]:text-green-800">
-                  <Users className="h-4 w-4 mr-2" />
-                  部门员工
-                </TabsTrigger>
-                <TabsTrigger value="structure" className="data-[state=active]:bg-green-100 data-[state=active]:text-green-800">
-                  <Network className="h-4 w-4 mr-2" />
-                  组织架构
-                </TabsTrigger>
-                <TabsTrigger value="performance" className="data-[state=active]:bg-green-100 data-[state=active]:text-green-800">
-                  <BarChart4 className="h-4 w-4 mr-2" />
-                  部门绩效
-                </TabsTrigger>
-              </TabsList>
-            </Tabs>
-          </CardHeader>
-          <CardContent className="p-0">
-            <Tabs defaultValue="employees">
-              <TabsContent value="employees" className="p-0">
-                <BasicTable
-                  columns={departmentEmployeeColumns}
-                  data={departmentEmployees}
-                  loading={loading}
-                />
-              </TabsContent>
-
-              <TabsContent value="structure" className="p-6">
-                <div className="flex flex-col items-center space-y-6">
-                  {parentDepartment && (
-                    <div className="w-full flex flex-col items-center">
-                      <div className="text-sm text-gray-500 mb-2">上级部门</div>
-                      <Card className="w-48 bg-blue-50 border-blue-200">
-                        <CardContent className="p-3 text-center">
-                          <p className="font-medium">{parentDepartment.name}</p>
-                        </CardContent>
-                      </Card>
-                      <div className="h-6 w-px bg-gray-300"></div>
-                    </div>
-                  )}
-                  
-                  <Card className="w-64 bg-green-50 border-green-200">
-                    <CardContent className="p-4 text-center">
-                      <p className="font-medium text-lg">{department.name}</p>
-                      <p className="text-sm text-gray-500 mt-1">{department.employeeCount}人</p>
-                    </CardContent>
-                  </Card>
-                  
-                  {childDepartments.length > 0 && (
-                    <div className="w-full">
-                      <div className="h-6 w-px bg-gray-300 mx-auto"></div>
-                      <div className="text-sm text-gray-500 text-center mb-4">下属部门</div>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 justify-items-center">
-                        {childDepartments.map(child => (
-                          <Card key={child.id} className="w-40 bg-amber-50 border-amber-200 hover:shadow-md transition-shadow">
-                            <CardContent className="p-3 text-center">
-                              <a href={`/executive/departments/${child.id}`} className="block">
-                                <p className="font-medium">{child.name}</p>
-                              </a>
-                            </CardContent>
-                          </Card>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </TabsContent>
-
-              <TabsContent value="performance" className="p-6">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-                  <Card>
-                    <CardHeader className="pb-2">
-                      <CardTitle className="text-lg flex items-center">
-                        <Users className="h-5 w-5 text-green-600 mr-2" />
-                        员工人数
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="text-3xl font-bold">{department.employeeCount}</div>
-                      <p className="text-sm text-muted-foreground mt-1">名员工</p>
-                    </CardContent>
-                  </Card>
-                  
-                  <Card>
-                    <CardHeader className="pb-2">
-                      <CardTitle className="text-lg flex items-center">
-                        <BarChart4 className="h-5 w-5 text-green-600 mr-2" />
-                        效能指数
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="text-3xl font-bold">{department.efficiency}%</div>
-                      <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
-                        <div 
-                          className={`h-2 rounded-full ${
-                            department.efficiency >= 80 ? 'bg-green-500' :
-                            department.efficiency >= 70 ? 'bg-blue-500' :
-                            'bg-amber-500'
-                          }`}
-                          style={{ width: `${department.efficiency}%` }}
-                        ></div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                  
-                  <Card>
-                    <CardHeader className="pb-2">
-                      <CardTitle className="text-lg flex items-center">
-                        <TrendingUp className="h-5 w-5 text-green-600 mr-2" />
-                        项目数量
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="text-3xl font-bold">{department.projects}</div>
-                      <p className="text-sm text-muted-foreground mt-1">个进行中项目</p>
-                    </CardContent>
-                  </Card>
-                </div>
-                
+          {/* 标签页 */}
+          <Tabs value={activeTab} onValueChange={setActiveTab}>
+            <TabsList className="grid grid-cols-2 mb-4">
+              <TabsTrigger value="overview" className="flex items-center gap-2">
+                <BarChart4 className="h-4 w-4" />
+                部门概览
+              </TabsTrigger>
+              <TabsTrigger value="employees" className="flex items-center gap-2">
+                <Users className="h-4 w-4" />
+                部门成员
+              </TabsTrigger>
+            </TabsList>
+            
+            {/* 部门概览 */}
+            <TabsContent value="overview" className="space-y-6">
+              {/* 部门统计卡片 */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <Card>
-                  <CardHeader>
-                    <CardTitle>部门季度绩效趋势</CardTitle>
-                    <CardDescription>最近四个季度的部门绩效变化</CardDescription>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-lg flex items-center">
+                      <Users className="h-5 w-5 text-green-600 mr-2" />
+                      员工数量
+                    </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="h-60 flex items-end space-x-6 pt-10 px-10">
-                      {['Q1', 'Q2', 'Q3', 'Q4'].map((quarter, index) => {
-                        // 生成随机高度，但确保有一定的趋势
-                        const baseHeight = 30 + index * 10; // 基础高度随季度增加
-                        const randomFactor = Math.random() * 20 - 10; // -10到+10的随机值
-                        const height = baseHeight + randomFactor;
-                        const percentage = Math.min(100, Math.max(0, height)); // 确保在0-100之间
-                        
-                        return (
-                          <div key={quarter} className="flex-1 flex flex-col items-center">
-                            <div className="w-full bg-green-100 rounded-t-md" style={{ height: `${percentage}%` }}>
-                              <div 
-                                className="w-full h-full bg-green-500 rounded-t-md flex items-center justify-center text-white text-sm font-medium"
-                                style={{ opacity: 0.3 + (index * 0.2) }} // 透明度随季度增加
-                              >
-                                {Math.round(percentage)}%
-                              </div>
-                            </div>
-                            <div className="mt-2 text-sm font-medium">{quarter}</div>
-                          </div>
-                        );
-                      })}
-                    </div>
+                    <div className="text-3xl font-bold">{employees.length}</div>
+                    <p className="text-sm text-muted-foreground mt-1">部门成员</p>
                   </CardContent>
                 </Card>
-              </TabsContent>
-            </Tabs>
-          </CardContent>
-        </Card>
-      </div>
+                
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-lg flex items-center">
+                      <User className="h-5 w-5 text-green-600 mr-2" />
+                      部门主管
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-xl font-bold">
+                      {department.managerId ? 
+                        getDepartmentManager()?.name || `ID: ${department.managerId}` : 
+                        '未指定'
+                      }
+                    </div>
+                    <p className="text-sm text-muted-foreground mt-1">负责人</p>
+                  </CardContent>
+                </Card>
+                
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-lg flex items-center">
+                      <TrendingUp className="h-5 w-5 text-green-600 mr-2" />
+                      部门绩效
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-3xl font-bold">--</div>
+                    <p className="text-sm text-muted-foreground mt-1">暂无数据</p>
+                  </CardContent>
+                </Card>
+              </div>
+              
+              {/* 部门操作 */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>部门操作</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <Button className="w-full bg-green-600 hover:bg-green-700" asChild>
+                    <a href={`/executive/transfers/new`}>
+                      <UserCog className="mr-2 h-4 w-4" />
+                      发起人事调动
+                    </a>
+                  </Button>
+                </CardContent>
+              </Card>
+            </TabsContent>
+            
+            {/* 部门成员 */}
+            <TabsContent value="employees" className="space-y-6">
+              {employees.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {employees.map((employee) => (
+                    <Card key={employee.id} className="overflow-hidden hover:shadow-md transition-shadow">
+                      <div className="p-4 flex items-center space-x-4">
+                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-green-500 to-teal-600 flex items-center justify-center text-white text-lg font-medium">
+                          {employee.name.charAt(0)}
+                        </div>
+                        <div>
+                          <h3 className="font-medium flex items-center gap-2">
+                            {employee.name}
+                            {employee.id === department.managerId && (
+                              <Badge className="bg-green-100 text-green-800">主管</Badge>
+                            )}
+                          </h3>
+                          <p className="text-sm text-gray-500">{employee.position}</p>
+                        </div>
+                      </div>
+                      <CardContent className="border-t border-gray-100 p-4 space-y-3">
+                        <div className="flex justify-between">
+                          <span className="text-gray-500 text-sm">联系电话</span>
+                          <span className="font-medium text-sm">{employee.phone}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-500 text-sm">入职日期</span>
+                          <span className="font-medium text-sm">
+                            {new Date(employee.hireDate).toLocaleDateString('zh-CN')}
+                          </span>
+                        </div>
+                        <Button className="w-full mt-2 bg-green-600 hover:bg-green-700" asChild>
+                          <a href={`/executive/employees/${employee.id}`}>
+                            查看详情
+                          </a>
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-12">
+                  <Users className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-gray-900">暂无员工</h3>
+                  <p className="text-gray-500">该部门目前没有员工</p>
+                </div>
+              )}
+            </TabsContent>
+          </Tabs>
+        </>
+      ) : (
+        <div className="text-center py-12">
+          <Building className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-gray-900">部门不存在</h3>
+          <p className="text-gray-500">未找到ID为 {departmentId} 的部门</p>
+          <Button className="mt-4" variant="outline" asChild>
+            <a href="/executive/departments">返回部门列表</a>
+          </Button>
+        </div>
+      )}
     </div>
   );
 } 

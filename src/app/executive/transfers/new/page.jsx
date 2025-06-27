@@ -58,21 +58,34 @@ export default function NewTransferPage() {
     try {
       // 获取员工数据
       const employeesData = await getAllEmployees();
-      setEmployees(employeesData);
       
       // 获取部门数据
       const departmentsData = await getAllDepartments();
-      setDepartments(departmentsData);
       
       // 获取员工-部门关系数据
+      let employeeDepts = [];
       try {
         const response = await api.get('/employee-departments');
         if (response.data && response.data.data) {
-          setEmployeeDepartments(response.data.data.filter(ed => ed.isCurrent === 1));
+          employeeDepts = response.data.data.filter(ed => ed.isCurrent === 1);
         }
       } catch (error) {
         console.error('获取员工-部门关系数据失败:', error);
       }
+      
+      // 为员工添加职位信息
+      const enrichedEmployees = employeesData.map(emp => {
+        const empDept = employeeDepts.find(ed => ed.empId === emp.id);
+        return {
+          ...emp,
+          position: empDept?.position || '无职位',
+          departmentId: empDept?.depId || null
+        };
+      });
+      
+      setEmployees(enrichedEmployees);
+      setDepartments(departmentsData);
+      setEmployeeDepartments(employeeDepts);
     } catch (error) {
       console.error('获取数据失败:', error);
     } finally {
