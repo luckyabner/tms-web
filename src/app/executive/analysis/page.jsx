@@ -1,48 +1,18 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { 
-  BarChart4, 
-  PieChart, 
-  LineChart as LineChartIcon, 
-  Building, 
-  Users, 
-  Download,
-  Filter,
-  RefreshCw,
-  ChevronDown,
-  TrendingUp
-} from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-  PieChart as PieChartComponent,
-  Pie,
-  Cell,
-  LineChart,
-  Line,
-  AreaChart,
-  Area
-} from 'recharts';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { BarChart4, PieChart, Building, Users } from 'lucide-react';
 import { getAllDepartments } from '@/lib/services/departmentService';
 import { getAllEmployees } from '@/lib/services/employeeService';
 import api from '@/lib/api';
 
-export default function DepartmentAnalysisPage() {
+export default function AnalysisPage() {
   const [departments, setDepartments] = useState([]);
   const [employees, setEmployees] = useState([]);
   const [employeeDepartments, setEmployeeDepartments] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('overview');
 
   useEffect(() => {
     fetchData();
@@ -63,8 +33,7 @@ export default function DepartmentAnalysisPage() {
       try {
         const response = await api.get('/employee-departments');
         if (response.data && response.data.data) {
-          const currentEmployeeDepts = response.data.data.filter(ed => ed.isCurrent === 1);
-          setEmployeeDepartments(currentEmployeeDepts);
+          setEmployeeDepartments(response.data.data.filter(ed => ed.isCurrent === 1));
         }
       } catch (error) {
         console.error('获取员工-部门关系数据失败:', error);
@@ -76,684 +45,301 @@ export default function DepartmentAnalysisPage() {
     }
   };
 
-  // 计算部门员工数量
+  // 计算各部门员工数量
   const getDepartmentEmployeeCounts = () => {
     const counts = {};
-    
-    // 初始化所有部门的计数为0
     departments.forEach(dept => {
-      counts[dept.id] = {
-        id: dept.id,
-        name: dept.name,
-        count: 0,
-        color: getRandomColor()
-      };
+      counts[dept.id] = 0;
     });
     
-    // 统计每个部门的员工数量
     employeeDepartments.forEach(empDept => {
-      if (counts[empDept.depId]) {
-        counts[empDept.depId].count++;
+      if (counts[empDept.depId] !== undefined) {
+        counts[empDept.depId]++;
       }
     });
     
-    return Object.values(counts);
+    return counts;
   };
 
-  // 生成随机颜色
-  const getRandomColor = () => {
-    const colors = [
-      'rgb(34, 197, 94)', // green-500
-      'rgb(16, 185, 129)', // emerald-500
-      'rgb(20, 184, 166)', // teal-500
-      'rgb(6, 182, 212)', // cyan-500
-      'rgb(14, 165, 233)', // sky-500
-      'rgb(59, 130, 246)', // blue-500
-      'rgb(99, 102, 241)', // indigo-500
-    ];
-    return colors[Math.floor(Math.random() * colors.length)];
-  };
-
-  // 计算员工性别分布
-  const getGenderDistribution = () => {
-    const genderCounts = { '男': 0, '女': 0 };
-    
-    employees.forEach(emp => {
-      if (emp.gender === '男' || emp.gender === '女') {
-        genderCounts[emp.gender]++;
-      }
-    });
-    
-    return [
-      { name: '男', value: genderCounts['男'], color: 'rgb(34, 197, 94)' },
-      { name: '女', value: genderCounts['女'], color: 'rgb(14, 165, 233)' }
-    ];
-  };
-
-  // 计算员工学历分布
-  const getEducationDistribution = () => {
-    const educationCounts = { '博士': 0, '硕士': 0, '本科': 0, '大专': 0, '高中': 0 };
-    
-    employees.forEach(emp => {
-      if (educationCounts.hasOwnProperty(emp.education)) {
-        educationCounts[emp.education]++;
-      }
-    });
-    
-    const colors = {
-      '博士': 'rgb(34, 197, 94)', // green-500
-      '硕士': 'rgb(16, 185, 129)', // emerald-500
-      '本科': 'rgb(20, 184, 166)', // teal-500
-      '大专': 'rgb(6, 182, 212)', // cyan-500
-      '高中': 'rgb(59, 130, 246)' // blue-500
+  // 计算员工状态分布
+  const getEmployeeStatusDistribution = () => {
+    const statusCounts = {
+      '在职': 0,
+      '离职': 0,
+      '借调': 0
     };
     
-    return Object.keys(educationCounts).map(key => ({
-      name: key,
-      value: educationCounts[key],
-      color: colors[key]
-    }));
-  };
-
-  // 渲染饼图
-  const renderPieChart = (data, size = 200) => {
-    const total = data.reduce((sum, item) => sum + item.value, 0);
-    if (total === 0) return null;
-    
-    let currentAngle = 0;
-    const center = size / 2;
-    const radius = size / 2;
-    
-    return (
-      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
-        {data.map((item, index) => {
-          const percentage = item.value / total;
-          const angle = percentage * 360;
-          
-          // 计算扇形路径
-          const startX = center + radius * Math.cos((currentAngle * Math.PI) / 180);
-          const startY = center + radius * Math.sin((currentAngle * Math.PI) / 180);
-          const endX = center + radius * Math.cos(((currentAngle + angle) * Math.PI) / 180);
-          const endY = center + radius * Math.sin(((currentAngle + angle) * Math.PI) / 180);
-          
-          const largeArcFlag = angle > 180 ? 1 : 0;
-          const pathData = [
-            `M ${center},${center}`,
-            `L ${startX},${startY}`,
-            `A ${radius},${radius} 0 ${largeArcFlag},1 ${endX},${endY}`,
-            'Z'
-          ].join(' ');
-          
-          // 计算标签位置
-          const labelAngle = currentAngle + angle / 2;
-          const labelRadius = radius * 0.7;
-          const labelX = center + labelRadius * Math.cos((labelAngle * Math.PI) / 180);
-          const labelY = center + labelRadius * Math.sin((labelAngle * Math.PI) / 180);
-          
-          const slice = (
-            <g key={index}>
-              <path d={pathData} fill={item.color} stroke="white" strokeWidth="1" />
-              {percentage > 0.05 && (
-                <text
-                  x={labelX}
-                  y={labelY}
-                  textAnchor="middle"
-                  dominantBaseline="middle"
-                  fill="white"
-                  fontSize="12"
-                  fontWeight="bold"
-                >
-                  {Math.round(percentage * 100)}%
-                </text>
-              )}
-            </g>
-          );
-          
-          currentAngle += angle;
-          return slice;
-        })}
-      </svg>
-    );
-  };
-
-  // 渲染水平条形图
-  const renderBarChart = (data, maxWidth = 500, height = 300) => {
-    const maxValue = Math.max(...data.map(item => item.count));
-    const barHeight = 30;
-    const spacing = 15;
-    const totalHeight = data.length * (barHeight + spacing);
-    
-    return (
-      <svg width={maxWidth} height={totalHeight} viewBox={`0 0 ${maxWidth} ${totalHeight}`}>
-        {data.map((item, index) => {
-          const barWidth = (item.count / maxValue) * (maxWidth - 150);
-          const y = index * (barHeight + spacing);
-          
-          return (
-            <g key={index}>
-              <rect
-                x={100}
-                y={y}
-                width={barWidth}
-                height={barHeight}
-                fill={item.color}
-                rx={4}
-                ry={4}
-              />
-              <text
-                x={95}
-                y={y + barHeight / 2}
-                dominantBaseline="middle"
-                textAnchor="end"
-                fontSize="12"
-              >
-                {item.name}
-              </text>
-              <text
-                x={barWidth + 110}
-                y={y + barHeight / 2}
-                dominantBaseline="middle"
-                fontSize="12"
-                fontWeight="bold"
-              >
-                {item.count} 人
-              </text>
-            </g>
-          );
-        })}
-      </svg>
-    );
-  };
-
-  // 获取部门员工数据
-  const departmentEmployeeCounts = getDepartmentEmployeeCounts();
-  const genderDistribution = getGenderDistribution();
-  const educationDistribution = getEducationDistribution();
-
-  // 生成部门员工分布数据
-  const departmentDistributionData = departments.map(dept => ({
-    name: dept.name,
-    value: dept.employeeCount || 0
-  })).filter(item => item.value > 0);
-
-  // 生成部门效能数据
-  const departmentEfficiencyData = departments.map(dept => ({
-    name: dept.name,
-    效能指数: dept.efficiency || 0
-  }));
-
-  // 生成部门绩效数据
-  const departmentPerformanceData = departments.map(dept => ({
-    name: dept.name,
-    绩效: dept.performance || 0,
-    增长率: dept.growth || 0
-  }));
-
-  // 生成季度绩效趋势
-  const generateQuarterlyData = () => {
-    const quarters = ['Q1', 'Q2', 'Q3', 'Q4'];
-    return quarters.map(quarter => {
-      const data = { name: quarter };
-      departments.slice(0, 5).forEach(dept => {
-        // 为每个部门生成一个随机的季度绩效数据，但保持一定的增长趋势
-        const baseValue = quarters.indexOf(quarter) * 5 + (Math.random() * 10 - 5);
-        data[dept.name] = Math.max(60, Math.min(95, dept.performance + baseValue));
-      });
-      return data;
+    employees.forEach(emp => {
+      if (statusCounts[emp.status] !== undefined) {
+        statusCounts[emp.status]++;
+      }
     });
+    
+    return statusCounts;
   };
 
-  const quarterlyPerformanceData = generateQuarterlyData();
-
-  // 饼图颜色
-  const COLORS = ['#10b981', '#14b8a6', '#0ea5e9', '#8b5cf6', '#f59e0b', '#ef4444', '#ec4899'];
-
-  const renderDepartmentChart = () => {
-    if (departments.length === 0) {
-      return (
-        <div className="flex items-center justify-center h-60 bg-gray-50 rounded-lg">
-          <p className="text-gray-500">暂无部门数据</p>
-        </div>
-      );
-    }
-
-    return (
-      <ResponsiveContainer width="100%" height={300}>
-        <BarChart 
-          data={departmentEfficiencyData}
-          margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-        >
-          <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey="name" />
-          <YAxis />
-          <Tooltip />
-          <Legend />
-          <Bar dataKey="效能指数" fill="#10b981" />
-        </BarChart>
-      </ResponsiveContainer>
-    );
-  };
-
-  const renderEmployeeDistribution = () => {
-    if (departmentDistributionData.length === 0) {
-      return (
-        <div className="flex items-center justify-center h-60 bg-gray-50 rounded-lg">
-          <p className="text-gray-500">暂无员工分布数据</p>
-        </div>
-      );
-    }
-
-    return (
-      <ResponsiveContainer width="100%" height={300}>
-        <PieChartComponent>
-          <Pie
-            data={departmentDistributionData}
-            cx="50%"
-            cy="50%"
-            labelLine={true}
-            outerRadius={100}
-            fill="#8884d8"
-            dataKey="value"
-            label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-          >
-            {departmentDistributionData.map((entry, index) => (
-              <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-            ))}
-          </Pie>
-          <Tooltip formatter={(value) => [`${value}人`, '员工数']} />
-        </PieChartComponent>
-      </ResponsiveContainer>
-    );
-  };
-
-  const renderPerformanceTrend = () => {
-    if (quarterlyPerformanceData.length === 0) {
-      return (
-        <div className="flex items-center justify-center h-60 bg-gray-50 rounded-lg">
-          <p className="text-gray-500">暂无绩效趋势数据</p>
-        </div>
-      );
-    }
-
-    return (
-      <ResponsiveContainer width="100%" height={300}>
-        <LineChart
-          data={quarterlyPerformanceData}
-          margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-        >
-          <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey="name" />
-          <YAxis />
-          <Tooltip />
-          <Legend />
-          {departments.slice(0, 5).map((dept, index) => (
-            <Line 
-              key={dept.id} 
-              type="monotone" 
-              dataKey={dept.name} 
-              stroke={COLORS[index % COLORS.length]} 
-              activeDot={{ r: 8 }} 
-            />
-          ))}
-        </LineChart>
-      </ResponsiveContainer>
-    );
-  };
-
-  const renderGrowthComparison = () => {
-    if (departmentPerformanceData.length === 0) {
-      return (
-        <div className="flex items-center justify-center h-60 bg-gray-50 rounded-lg">
-          <p className="text-gray-500">暂无增长率数据</p>
-        </div>
-      );
-    }
-
-    return (
-      <ResponsiveContainer width="100%" height={300}>
-        <BarChart
-          data={departmentPerformanceData}
-          margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-        >
-          <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey="name" />
-          <YAxis />
-          <Tooltip />
-          <Legend />
-          <Bar dataKey="绩效" fill="#10b981" />
-          <Bar dataKey="增长率" fill="#0ea5e9" />
-        </BarChart>
-      </ResponsiveContainer>
-    );
-  };
+  const departmentEmployeeCounts = getDepartmentEmployeeCounts();
+  const employeeStatusDistribution = getEmployeeStatusDistribution();
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
-      {/* 页面标题 */}
+    <div className="container mx-auto p-6 space-y-6 bg-gray-50 min-h-screen">
       <div>
-        <h1 className="text-3xl font-bold bg-gradient-to-r from-green-600 to-teal-600 bg-clip-text text-transparent">
-          部门分析
-        </h1>
-        <p className="text-muted-foreground">查看部门绩效与人员分布情况</p>
+        <h1 className="text-2xl font-bold bg-gradient-to-r from-green-600 to-teal-600 bg-clip-text text-transparent">数据分析</h1>
+        <p className="text-gray-500">查看公司人员和部门数据分析</p>
       </div>
 
-      {/* 操作栏 */}
-      <div className="flex flex-col sm:flex-row justify-between gap-4">
-        <div className="flex gap-2">
-          <Button variant="outline" className="gap-2">
-            <Filter className="h-4 w-4" />
-            筛选
-            <ChevronDown className="h-4 w-4" />
-          </Button>
-          <Button variant="outline" className="gap-2">
-            <RefreshCw className="h-4 w-4" />
-            刷新数据
-          </Button>
-        </div>
-        <Button className="bg-green-600 hover:bg-green-700 gap-2">
-          <Download className="h-4 w-4" />
-          导出报表
-        </Button>
-      </div>
-
-      {/* 分析内容 */}
-      <Tabs defaultValue="overview" value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid grid-cols-4 mb-6">
-          <TabsTrigger value="overview" className="data-[state=active]:bg-green-100 data-[state=active]:text-green-800">
-            <BarChart4 className="h-4 w-4 mr-2" />
-            总览
+      <Tabs defaultValue="departments">
+        <TabsList className="grid grid-cols-2 mb-6">
+          <TabsTrigger value="departments" className="flex items-center gap-2">
+            <Building className="h-4 w-4" />
+            部门分析
           </TabsTrigger>
-          <TabsTrigger value="distribution" className="data-[state=active]:bg-green-100 data-[state=active]:text-green-800">
-            <PieChart className="h-4 w-4 mr-2" />
-            人员分布
-          </TabsTrigger>
-          <TabsTrigger value="performance" className="data-[state=active]:bg-green-100 data-[state=active]:text-green-800">
-            <LineChartIcon className="h-4 w-4 mr-2" />
-            绩效趋势
-          </TabsTrigger>
-          <TabsTrigger value="growth" className="data-[state=active]:bg-green-100 data-[state=active]:text-green-800">
-            <Building className="h-4 w-4 mr-2" />
-            部门对比
+          <TabsTrigger value="employees" className="flex items-center gap-2">
+            <Users className="h-4 w-4" />
+            员工分析
           </TabsTrigger>
         </TabsList>
-
-        <TabsContent value="overview" className="space-y-6">
-          {/* 关键指标卡片 */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-lg flex items-center">
-                  <Building className="h-5 w-5 text-green-600 mr-2" />
-                  总部门数
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-3xl font-bold">{departments.length}</div>
-                <p className="text-sm text-muted-foreground mt-1">个组织单元</p>
-              </CardContent>
-            </Card>
-            
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-lg flex items-center">
-                  <Users className="h-5 w-5 text-green-600 mr-2" />
-                  总员工数
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-3xl font-bold">{employees.length}</div>
-                <p className="text-sm text-muted-foreground mt-1">名在职员工</p>
-              </CardContent>
-            </Card>
-            
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-lg flex items-center">
-                  <BarChart4 className="h-5 w-5 text-green-600 mr-2" />
-                  平均效能
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-3xl font-bold">
-                  {departments.length > 0 
-                    ? Math.round(departments.reduce((sum, dept) => sum + (dept.efficiency || 0), 0) / departments.length) 
-                    : 0}%
-                </div>
-                <p className="text-sm text-muted-foreground mt-1">部门平均效能指数</p>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* 部门效能对比图 */}
-          <Card>
-            <CardHeader>
-              <CardTitle>部门效能对比</CardTitle>
-              <CardDescription>各部门效能指数对比分析</CardDescription>
-            </CardHeader>
-            <CardContent>
-              {loading ? (
-                <div className="flex items-center justify-center h-60">
-                  <div className="w-10 h-10 border-4 border-green-200 border-t-green-600 rounded-full animate-spin"></div>
-                </div>
-              ) : (
-                renderDepartmentChart()
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="distribution" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>员工部门分布</CardTitle>
-              <CardDescription>各部门人员占比情况</CardDescription>
-            </CardHeader>
-            <CardContent>
-              {loading ? (
-                <div className="flex items-center justify-center h-60">
-                  <div className="w-10 h-10 border-4 border-green-200 border-t-green-600 rounded-full animate-spin"></div>
-                </div>
-              ) : (
-                renderEmployeeDistribution()
-              )}
-            </CardContent>
-          </Card>
-
-          {/* 部门人员明细 */}
-          <Card>
-            <CardHeader>
-              <CardTitle>部门人员明细</CardTitle>
-              <CardDescription>各部门人员数量及占比</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {loading ? (
-                  <div className="space-y-2">
-                    {[1, 2, 3, 4].map(i => (
-                      <div key={i} className="animate-pulse flex items-center justify-between">
-                        <div className="h-5 bg-gray-200 rounded w-1/4"></div>
-                        <div className="flex items-center gap-2">
-                          <div className="h-4 bg-gray-200 rounded w-16"></div>
-                          <div className="h-4 bg-gray-200 rounded w-12"></div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : departments.length > 0 ? (
-                  departments
-                    .sort((a, b) => (b.employeeCount || 0) - (a.employeeCount || 0))
-                    .map(dept => {
-                      const percentage = employees.length > 0 
-                        ? ((dept.employeeCount || 0) / employees.length * 100).toFixed(1) 
-                        : 0;
-                      
-                      return (
-                        <div key={dept.id} className="flex items-center justify-between">
-                          <div className="flex items-center">
-                            <div className="w-2 h-2 rounded-full bg-green-500 mr-2"></div>
+        
+        {/* 部门分析 */}
+        <TabsContent value="departments" className="space-y-6">
+          {loading ? (
+            <div className="flex justify-center py-12">
+              <div className="w-12 h-12 rounded-full border-4 border-green-200 border-t-green-600 animate-spin"></div>
+            </div>
+          ) : (
+            <>
+              {/* 部门人员分布 */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <PieChart className="h-5 w-5 text-green-600" />
+                    部门人员分布
+                  </CardTitle>
+                  <CardDescription>各部门员工数量统计</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {departments.length > 0 ? (
+                    <div className="space-y-4">
+                      {departments.map(dept => (
+                        <div key={dept.id} className="space-y-2">
+                          <div className="flex justify-between items-center">
                             <span className="font-medium">{dept.name}</span>
+                            <span className="text-sm text-gray-500">{departmentEmployeeCounts[dept.id] || 0} 人</span>
                           </div>
-                          <div className="flex items-center gap-4">
-                            <div className="flex items-center gap-2">
-                              <span className="text-sm">{dept.employeeCount || 0} 人</span>
-                              <span className="text-xs text-gray-500">({percentage}%)</span>
-                            </div>
-                            <div className="w-24 bg-gray-100 rounded-full h-2">
-                              <div 
-                                className="bg-green-500 h-2 rounded-full"
-                                style={{ width: `${percentage}%` }}
-                              ></div>
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })
-                ) : (
-                  <div className="text-center py-4 text-gray-500">
-                    暂无部门数据
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="performance" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>季度绩效趋势</CardTitle>
-              <CardDescription>各部门绩效季度变化趋势</CardDescription>
-            </CardHeader>
-            <CardContent>
-              {loading ? (
-                <div className="flex items-center justify-center h-60">
-                  <div className="w-10 h-10 border-4 border-green-200 border-t-green-600 rounded-full animate-spin"></div>
-                </div>
-              ) : (
-                renderPerformanceTrend()
-              )}
-            </CardContent>
-          </Card>
-
-          {/* 部门绩效明细 */}
-          <Card>
-            <CardHeader>
-              <CardTitle>部门绩效明细</CardTitle>
-              <CardDescription>各部门绩效评分</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {loading ? (
-                  <div className="space-y-2">
-                    {[1, 2, 3, 4].map(i => (
-                      <div key={i} className="animate-pulse flex items-center justify-between">
-                        <div className="h-5 bg-gray-200 rounded w-1/4"></div>
-                        <div className="h-4 bg-gray-200 rounded w-20"></div>
-                      </div>
-                    ))}
-                  </div>
-                ) : departments.length > 0 ? (
-                  departments
-                    .sort((a, b) => (b.performance || 0) - (a.performance || 0))
-                    .map(dept => (
-                      <div key={dept.id} className="flex items-center justify-between">
-                        <div className="flex items-center">
-                          <div className="w-2 h-2 rounded-full bg-green-500 mr-2"></div>
-                          <span className="font-medium">{dept.name}</span>
-                        </div>
-                        <div className="flex items-center gap-4">
-                          <div className={`font-medium ${
-                            (dept.performance || 0) >= 85 ? 'text-green-600' : 
-                            (dept.performance || 0) >= 75 ? 'text-blue-600' : 
-                            'text-amber-600'
-                          }`}>
-                            {dept.performance || 0}分
-                          </div>
-                          <div className="w-24 bg-gray-100 rounded-full h-2">
+                          <div className="w-full bg-gray-100 rounded-full h-2.5">
                             <div 
-                              className={`h-2 rounded-full ${
-                                (dept.performance || 0) >= 85 ? 'bg-green-500' : 
-                                (dept.performance || 0) >= 75 ? 'bg-blue-500' : 
-                                'bg-amber-500'
-                              }`}
-                              style={{ width: `${dept.performance || 0}%` }}
+                              className="bg-green-600 h-2.5 rounded-full" 
+                              style={{ 
+                                width: `${Math.max(
+                                  5, 
+                                  Math.min(
+                                    100, 
+                                    ((departmentEmployeeCounts[dept.id] || 0) / Math.max(1, employees.length)) * 100
+                                  )
+                                )}%` 
+                              }}
                             ></div>
                           </div>
                         </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-8">
+                      <Building className="h-12 w-12 text-gray-300 mx-auto mb-2" />
+                      <p className="text-gray-500">暂无部门数据</p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* 部门结构分析 */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <BarChart4 className="h-5 w-5 text-green-600" />
+                    部门结构分析
+                  </CardTitle>
+                  <CardDescription>部门层级和结构统计</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {departments.length > 0 ? (
+                    <div className="space-y-6">
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div className="bg-green-50 p-4 rounded-lg border border-green-100 text-center">
+                          <div className="text-3xl font-bold text-green-700">{departments.length}</div>
+                          <div className="text-sm text-green-600">总部门数</div>
+                        </div>
+                        
+                        <div className="bg-green-50 p-4 rounded-lg border border-green-100 text-center">
+                          <div className="text-3xl font-bold text-green-700">
+                            {departments.filter(d => d.parentId === null).length}
+                          </div>
+                          <div className="text-sm text-green-600">一级部门</div>
+                        </div>
+                        
+                        <div className="bg-green-50 p-4 rounded-lg border border-green-100 text-center">
+                          <div className="text-3xl font-bold text-green-700">
+                            {departments.filter(d => d.parentId !== null).length}
+                          </div>
+                          <div className="text-sm text-green-600">子部门</div>
+                        </div>
                       </div>
-                    ))
-                ) : (
-                  <div className="text-center py-4 text-gray-500">
-                    暂无绩效数据
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
+                      
+                      <div className="space-y-2">
+                        <h3 className="text-sm font-medium text-gray-500">部门层级分布</h3>
+                        <div className="flex gap-1">
+                          {departments
+                            .filter(d => d.parentId === null)
+                            .map(dept => (
+                              <div 
+                                key={dept.id} 
+                                className="flex-1 bg-green-600 h-8 rounded-md flex items-center justify-center text-xs text-white"
+                                title={dept.name}
+                              >
+                                {dept.name.length > 4 ? `${dept.name.substring(0, 4)}...` : dept.name}
+                              </div>
+                            ))}
+                        </div>
+                        <div className="flex gap-1">
+                          {departments
+                            .filter(d => d.parentId !== null)
+                            .map(dept => (
+                              <div 
+                                key={dept.id} 
+                                className="flex-1 bg-teal-500 h-6 rounded-md flex items-center justify-center text-xs text-white"
+                                title={dept.name}
+                              >
+                                {dept.name.length > 3 ? `${dept.name.substring(0, 3)}...` : dept.name}
+                              </div>
+                            ))}
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="text-center py-8">
+                      <Building className="h-12 w-12 text-gray-300 mx-auto mb-2" />
+                      <p className="text-gray-500">暂无部门数据</p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </>
+          )}
         </TabsContent>
-
-        <TabsContent value="growth" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>部门绩效与增长对比</CardTitle>
-              <CardDescription>各部门绩效与增长率对比分析</CardDescription>
-            </CardHeader>
-            <CardContent>
-              {loading ? (
-                <div className="flex items-center justify-center h-60">
-                  <div className="w-10 h-10 border-4 border-green-200 border-t-green-600 rounded-full animate-spin"></div>
-                </div>
-              ) : (
-                renderGrowthComparison()
-              )}
-            </CardContent>
-          </Card>
-
-          {/* 部门增长率排名 */}
-          <Card>
-            <CardHeader>
-              <CardTitle>部门增长率排名</CardTitle>
-              <CardDescription>各部门增长率从高到低排序</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {loading ? (
-                  <div className="space-y-2">
-                    {[1, 2, 3, 4].map(i => (
-                      <div key={i} className="animate-pulse flex items-center justify-between">
-                        <div className="h-5 bg-gray-200 rounded w-1/4"></div>
-                        <div className="h-4 bg-gray-200 rounded w-16"></div>
-                      </div>
-                    ))}
-                  </div>
-                ) : departments.length > 0 ? (
-                  departments
-                    .sort((a, b) => (b.growth || 0) - (a.growth || 0))
-                    .map(dept => (
-                      <div key={dept.id} className="flex items-center justify-between">
-                        <div className="flex items-center">
-                          <div className="w-2 h-2 rounded-full bg-green-500 mr-2"></div>
-                          <span className="font-medium">{dept.name}</span>
+        
+        {/* 员工分析 */}
+        <TabsContent value="employees" className="space-y-6">
+          {loading ? (
+            <div className="flex justify-center py-12">
+              <div className="w-12 h-12 rounded-full border-4 border-green-200 border-t-green-600 animate-spin"></div>
+            </div>
+          ) : (
+            <>
+              {/* 员工状态分布 */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Users className="h-5 w-5 text-green-600" />
+                    员工状态分布
+                  </CardTitle>
+                  <CardDescription>员工在职、离职等状态统计</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {employees.length > 0 ? (
+                    <div className="space-y-6">
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div className="bg-green-50 p-4 rounded-lg border border-green-100 text-center">
+                          <div className="text-3xl font-bold text-green-700">{employeeStatusDistribution['在职'] || 0}</div>
+                          <div className="text-sm text-green-600">在职员工</div>
                         </div>
-                        <div className={`font-medium ${
-                          (dept.growth || 0) > 0 ? 'text-green-600' : 
-                          (dept.growth || 0) === 0 ? 'text-gray-600' : 
-                          'text-red-600'
-                        }`}>
-                          {(dept.growth || 0) > 0 ? '+' : ''}{dept.growth || 0}%
+                        
+                        <div className="bg-red-50 p-4 rounded-lg border border-red-100 text-center">
+                          <div className="text-3xl font-bold text-red-700">{employeeStatusDistribution['离职'] || 0}</div>
+                          <div className="text-sm text-red-600">离职员工</div>
+                        </div>
+                        
+                        <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-100 text-center">
+                          <div className="text-3xl font-bold text-yellow-700">{employeeStatusDistribution['借调'] || 0}</div>
+                          <div className="text-sm text-yellow-600">借调员工</div>
                         </div>
                       </div>
-                    ))
-                ) : (
-                  <div className="text-center py-4 text-gray-500">
-                    暂无增长率数据
+                      
+                      <div className="space-y-2">
+                        <h3 className="text-sm font-medium text-gray-500">员工状态占比</h3>
+                        <div className="w-full h-8 bg-gray-100 rounded-full overflow-hidden flex">
+                          <div 
+                            className="bg-green-600 h-full" 
+                            style={{ 
+                              width: `${(employeeStatusDistribution['在职'] / employees.length) * 100}%` 
+                            }}
+                          ></div>
+                          <div 
+                            className="bg-red-500 h-full" 
+                            style={{ 
+                              width: `${(employeeStatusDistribution['离职'] / employees.length) * 100}%` 
+                            }}
+                          ></div>
+                          <div 
+                            className="bg-yellow-500 h-full" 
+                            style={{ 
+                              width: `${(employeeStatusDistribution['借调'] / employees.length) * 100}%` 
+                            }}
+                          ></div>
+                        </div>
+                        <div className="flex justify-between text-xs text-gray-500 mt-1">
+                          <span>在职: {((employeeStatusDistribution['在职'] / employees.length) * 100).toFixed(1)}%</span>
+                          <span>离职: {((employeeStatusDistribution['离职'] / employees.length) * 100).toFixed(1)}%</span>
+                          <span>借调: {((employeeStatusDistribution['借调'] / employees.length) * 100).toFixed(1)}%</span>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="text-center py-8">
+                      <Users className="h-12 w-12 text-gray-300 mx-auto mb-2" />
+                      <p className="text-gray-500">暂无员工数据</p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* 员工总体统计 */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <BarChart4 className="h-5 w-5 text-green-600" />
+                    员工总体统计
+                  </CardTitle>
+                  <CardDescription>员工数量和分布统计</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="bg-green-50 p-4 rounded-lg border border-green-100 text-center">
+                      <div className="text-3xl font-bold text-green-700">{employees.length}</div>
+                      <div className="text-sm text-green-600">总员工数</div>
+                    </div>
+                    
+                    <div className="bg-green-50 p-4 rounded-lg border border-green-100 text-center">
+                      <div className="text-3xl font-bold text-green-700">
+                        {departments.length > 0 ? (employees.length / departments.length).toFixed(1) : 0}
+                      </div>
+                      <div className="text-sm text-green-600">平均部门人数</div>
+                    </div>
+                    
+                    <div className="bg-green-50 p-4 rounded-lg border border-green-100 text-center">
+                      <div className="text-3xl font-bold text-green-700">
+                        {Object.values(departmentEmployeeCounts).length > 0 
+                          ? Math.max(...Object.values(departmentEmployeeCounts)) 
+                          : 0}
+                      </div>
+                      <div className="text-sm text-green-600">最大部门人数</div>
+                    </div>
                   </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
+                </CardContent>
+              </Card>
+            </>
+          )}
         </TabsContent>
       </Tabs>
     </div>
   );
-} 
+}

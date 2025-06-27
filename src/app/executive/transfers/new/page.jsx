@@ -2,28 +2,20 @@
 
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { 
-  ArrowLeft, 
-  Building, 
-  UserCog, 
-  User, 
-  Calendar, 
-  Briefcase,
-  Check,
-  AlertCircle
-} from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { Select } from '@/components/ui/select';
+import { UserCog, Building, Calendar, ArrowRight, Check, AlertCircle } from 'lucide-react';
 import { getAllEmployees } from '@/lib/services/employeeService';
 import { getAllDepartments } from '@/lib/services/departmentService';
 import api from '@/lib/api';
 
 export default function NewTransferPage() {
   const searchParams = useSearchParams();
+  const employeeId = searchParams.get('employeeId');
   const transferId = searchParams.get('transferId');
 
   const [employees, setEmployees] = useState([]);
@@ -31,27 +23,24 @@ export default function NewTransferPage() {
   const [employeeDepartments, setEmployeeDepartments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
-  const [submitError, setSubmitError] = useState(null);
-  const [submitSuccess, setSubmitSuccess] = useState(false);
+  const [success, setSuccess] = useState(false);
+  const [error, setError] = useState(null);
 
+  // 表单数据
   const [formData, setFormData] = useState({
-    empId: '',
-    currentDepId: '',
-    newDepId: '',
+    empId: employeeId || '',
+    depId: '',
     position: '',
     superiorId: '',
+    creatorId: '3', // 假设当前登录的是高层用户，ID为3
+    state: '待审批',
     description: '',
+    isCurrent: 0
   });
 
   useEffect(() => {
     fetchData();
   }, []);
-
-  useEffect(() => {
-    if (transferId) {
-      fetchTransferDetails(transferId);
-    }
-  }, [transferId]);
 
   const fetchData = async () => {
     setLoading(true);
@@ -86,304 +75,409 @@ export default function NewTransferPage() {
       setEmployees(enrichedEmployees);
       setDepartments(departmentsData);
       setEmployeeDepartments(employeeDepts);
+
+      // 如果URL中有employeeId参数，自动填充员工信息
+      if (employeeId) {
+        const selectedEmployee = enrichedEmployees.find(emp => emp.id === parseInt(employeeId));
+        if (selectedEmployee) {
+          setFormData(prev => ({
+            ...prev,
+            empId: selectedEmployee.id.toString()
+          }));
+        }
+      }
+
+      // 如果URL中有transferId参数，获取并填充调动信息
+      if (transferId) {
+        try {
+          const response = await api.get(`/employee-departments/${transferId}`);
+          if (response.data && response.data.data) {
+            const transferData = response.data.data;
+            setFormData({
+              empId: transferData.empId.toString(),
+              depId: transferData.depId.toString(),
+              position: transferData.position || '',
+              superiorId: transferData.superiorId ? transferData.superiorId.toString() : '',
+              creatorId: transferData.creatorId.toString(),
+              state: transferData.state,
+              description: transferData.description || '',
+              isCurrent: transferData.isCurrent
+            });
+          }
+        } catch (error) {
+          console.error('获取调动信息失败:', error);
+          setError('获取调动信息失败，请稍后重试');
+        }
+      }
     } catch (error) {
       console.error('获取数据失败:', error);
+      setError('获取数据失败，请稍后重试');
     } finally {
       setLoading(false);
     }
   };
 
-  const fetchTransferDetails = async (id) => {
-    try {
-      const response = await api.get(`/employee-departments/${id}`);
-      if (response.data && response.data.data) {
-        const transfer = response.data.data;
-        
-        // 获取员工当前部门
-        let currentDepartment = '';
-        try {
-          const currentDeptResponse = await api.get(`/employee-departments/employees/${transfer.empId}`);
-          if (currentDeptResponse.data && currentDeptResponse.data.data) {
-            currentDepartment = currentDeptResponse.data.data.depId;
-          }
-        } catch (error) {
-          console.error('获取员工当前部门失败:', error);
-        }
-        
-        setFormData({
-          empId: transfer.empId,
-          currentDepId: currentDepartment,
-          newDepId: transfer.depId,
-          position: transfer.position || '',
-          superiorId: transfer.superiorId || '',
-          description: transfer.description || '',
-        });
-      }
-    } catch (error) {
-      console.error('获取调动详情失败:', error);
-    }
-  };
-
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-    
-    // 如果选择了员工，自动填充当前部门
-    if (name === 'empId') {
-      const employeeId = parseInt(value);
-      const employeeDepartment = employeeDepartments.find(ed => ed.empId === employeeId);
-      if (employeeDepartment) {
-        setFormData((prev) => ({ ...prev, currentDepId: employeeDepartment.depId }));
-      }
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleSelectChange = (name, value) => {
+    // Handle special case for superiorId with "none" value
+    if (name === 'superiorId' && value === 'none') {
+      setFormData(prev => ({
+        ...prev,
+        [name]: '' // Set to empty string when "none" is selected
+      }));
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        [name]: value
+      }));
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitting(true);
-    setSubmitError(null);
-    setSubmitSuccess(false);
-    
+    setError(null);
+
     try {
-      // 验证表单
-      if (!formData.empId) {
-        throw new Error('请选择员工');
+      // 验证表单数据
+      if (!formData.empId || !formData.depId || !formData.position) {
+        throw new Error('请填写必填字段');
       }
-      
-      if (!formData.newDepId) {
-        throw new Error('请选择目标部门');
-      }
-      
-      if (!formData.position) {
-        throw new Error('请填写职位');
-      }
-      
-      if (formData.currentDepId === formData.newDepId) {
-        throw new Error('目标部门不能与当前部门相同');
-      }
-      
-      // 构造请求数据
+
+      // 构建请求数据
       const requestData = {
+        ...formData,
         empId: parseInt(formData.empId),
-        depId: parseInt(formData.newDepId),
-        position: formData.position,
+        depId: parseInt(formData.depId),
         superiorId: formData.superiorId ? parseInt(formData.superiorId) : null,
-        creatorId: 2, // 假设当前用户ID为2（高层用户）
-        state: '待审批',
-        isCurrent: 0, // 新申请的调动不是当前部门
-        description: formData.description || '人事调动申请'
+        creatorId: parseInt(formData.creatorId)
       };
-      
+
       // 发送请求
       const response = await api.post('/employee-departments', requestData);
       
-      if (response.data && response.data.code === '200') {
-        setSubmitSuccess(true);
+      if (response.status === 200) {
+        setSuccess(true);
         // 重置表单
         setFormData({
           empId: '',
-          currentDepId: '',
-          newDepId: '',
+          depId: '',
           position: '',
           superiorId: '',
+          creatorId: '3',
+          state: '待审批',
           description: '',
+          isCurrent: 0
         });
       } else {
-        throw new Error(response.data?.msg || '提交失败');
+        throw new Error('提交失败，请稍后重试');
       }
     } catch (error) {
       console.error('提交失败:', error);
-      setSubmitError(error.message);
+      setError(error.message || '提交失败，请稍后重试');
     } finally {
       setSubmitting(false);
     }
   };
 
-  // 获取员工当前部门名称
-  const getCurrentDepartmentName = (depId) => {
-    const department = departments.find(d => d.id === parseInt(depId));
-    return department ? department.name : '未知部门';
+  // 获取员工当前部门
+  const getEmployeeCurrentDepartment = (empId) => {
+    if (!empId) return null;
+    
+    const empDept = employeeDepartments.find(ed => ed.empId === parseInt(empId) && ed.isCurrent === 1);
+    if (!empDept) return null;
+    
+    const department = departments.find(dept => dept.id === empDept.depId);
+    return department ? department.name : `部门ID: ${empDept.depId}`;
+  };
+
+  // 获取员工当前职位
+  const getEmployeeCurrentPosition = (empId) => {
+    if (!empId) return null;
+    
+    const empDept = employeeDepartments.find(ed => ed.empId === parseInt(empId) && ed.isCurrent === 1);
+    return empDept ? empDept.position : null;
   };
 
   return (
     <div className="container mx-auto p-6 space-y-6 bg-gray-50 min-h-screen">
-      <div className="flex items-center gap-2 mb-6">
-        <Button variant="ghost" size="icon" asChild>
-          <a href="/executive/dashboard">
-            <ArrowLeft className="h-5 w-5" />
-          </a>
-        </Button>
-        <h1 className="text-2xl font-bold">发起人事调动</h1>
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold bg-gradient-to-r from-green-600 to-teal-600 bg-clip-text text-transparent">
+            发起人事调动
+          </h1>
+          <p className="text-gray-500">创建新的员工部门或职位变动申请</p>
+        </div>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <UserCog className="h-5 w-5 text-green-600" />
-            人事调动申请表
-          </CardTitle>
-          <CardDescription>
-            请填写以下信息以发起人事调动申请，提交后将等待审批
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {loading ? (
-            <div className="flex justify-center py-8">
-              <div className="w-8 h-8 rounded-full border-4 border-green-200 border-t-green-600 animate-spin"></div>
-            </div>
-          ) : (
-            <form onSubmit={handleSubmit} className="space-y-6">
-              {/* 员工信息 */}
-              <div className="space-y-4">
-                <h3 className="text-lg font-medium">员工信息</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="empId">选择员工</Label>
-                    <select
-                      id="empId"
-                      name="empId"
-                      value={formData.empId}
-                      onChange={handleInputChange}
-                      className="w-full p-2 border border-gray-300 rounded-md"
-                      disabled={submitting}
-                    >
-                      <option value="">请选择员工</option>
-                      {employees.map((employee) => (
-                        <option key={employee.id} value={employee.id}>
-                          {employee.name} - {employee.position || '无职位'}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="currentDepId">当前部门</Label>
-                    <Input
-                      id="currentDepId"
-                      name="currentDepId"
-                      value={getCurrentDepartmentName(formData.currentDepId)}
-                      disabled
-                      className="bg-gray-100"
-                    />
-                  </div>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2">
+          <Card className="border-green-100 shadow-sm">
+            <CardHeader className="bg-gradient-to-r from-green-50 to-teal-50 border-b border-green-100">
+              <CardTitle className="flex items-center text-green-800">
+                <UserCog className="h-5 w-5 mr-2 text-green-600" />
+                人事调动申请表
+              </CardTitle>
+              <CardDescription>
+                填写以下信息提交人事调动申请
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="p-6">
+              {loading ? (
+                <div className="flex justify-center py-12">
+                  <div className="w-12 h-12 rounded-full border-4 border-green-200 border-t-green-600 animate-spin"></div>
                 </div>
-              </div>
-
-              {/* 调动信息 */}
-              <div className="space-y-4">
-                <h3 className="text-lg font-medium">调动信息</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="newDepId">目标部门</Label>
-                    <select
-                      id="newDepId"
-                      name="newDepId"
-                      value={formData.newDepId}
-                      onChange={handleInputChange}
-                      className="w-full p-2 border border-gray-300 rounded-md"
-                      disabled={submitting}
-                    >
-                      <option value="">请选择部门</option>
-                      {departments.map((department) => (
-                        <option key={department.id} value={department.id}>
-                          {department.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="position">新职位</Label>
-                    <Input
-                      id="position"
-                      name="position"
-                      value={formData.position}
-                      onChange={handleInputChange}
-                      placeholder="请输入新职位"
-                      disabled={submitting}
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="superiorId">直接上级</Label>
-                    <select
-                      id="superiorId"
-                      name="superiorId"
-                      value={formData.superiorId}
-                      onChange={handleInputChange}
-                      className="w-full p-2 border border-gray-300 rounded-md"
-                      disabled={submitting}
-                    >
-                      <option value="">请选择上级（可选）</option>
-                      {employees
-                        .filter(emp => emp.id !== parseInt(formData.empId))
-                        .map((employee) => (
-                          <option key={employee.id} value={employee.id}>
-                            {employee.name} - {employee.position || '无职位'}
-                          </option>
-                        ))}
-                    </select>
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="description">调动原因</Label>
-                  <Textarea
-                    id="description"
-                    name="description"
-                    value={formData.description}
-                    onChange={handleInputChange}
-                    placeholder="请描述调动原因"
-                    rows={4}
-                    disabled={submitting}
-                  />
-                </div>
-              </div>
-
-              {/* 提交状态 */}
-              {submitError && (
-                <div className="bg-red-50 border border-red-200 text-red-700 p-3 rounded-md flex items-center gap-2">
-                  <AlertCircle className="h-5 w-5" />
-                  <span>{submitError}</span>
-                </div>
-              )}
-
-              {submitSuccess && (
-                <div className="bg-green-50 border border-green-200 text-green-700 p-3 rounded-md flex items-center gap-2">
-                  <Check className="h-5 w-5" />
-                  <span>申请提交成功，等待审批</span>
-                </div>
-              )}
-
-              {/* 提交按钮 */}
-              <div className="flex justify-end gap-3">
-                <Button
-                  type="button"
-                  variant="outline"
-                  disabled={submitting}
-                  onClick={() => window.history.back()}
-                >
-                  取消
-                </Button>
-                <Button
-                  type="submit"
-                  className="bg-green-600 hover:bg-green-700"
-                  disabled={submitting}
-                >
-                  {submitting ? (
-                    <>
-                      <div className="w-4 h-4 rounded-full border-2 border-white border-t-transparent animate-spin mr-2"></div>
-                      提交中...
-                    </>
-                  ) : (
-                    '提交申请'
+              ) : (
+                <form onSubmit={handleSubmit} className="space-y-6">
+                  {error && (
+                    <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded-md flex items-center">
+                      <AlertCircle className="h-5 w-5 mr-2 text-red-500" />
+                      {error}
+                    </div>
                   )}
-                </Button>
-              </div>
-            </form>
-          )}
-        </CardContent>
-      </Card>
+                  
+                  {success && (
+                    <div className="bg-green-50 border border-green-200 text-green-700 p-4 rounded-md flex items-center">
+                      <Check className="h-5 w-5 mr-2 text-green-500" />
+                      人事调动申请已成功提交！
+                    </div>
+                  )}
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <Label htmlFor="empId" className="text-sm font-medium">
+                        选择员工 <span className="text-red-500">*</span>
+                      </Label>
+                      <Select
+                        value={formData.empId}
+                        onValueChange={(value) => handleSelectChange('empId', value)}
+                        disabled={submitting}
+                        required
+                      >
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="选择员工" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {employees.map((employee) => (
+                            <SelectItem key={employee.id} value={employee.id.toString()}>
+                              {employee.name} - {employee.position || '无职位'}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="depId" className="text-sm font-medium">
+                        目标部门 <span className="text-red-500">*</span>
+                      </Label>
+                      <Select
+                        value={formData.depId}
+                        onValueChange={(value) => handleSelectChange('depId', value)}
+                        disabled={submitting}
+                        required
+                      >
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="选择部门" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {departments.map((department) => (
+                            <SelectItem key={department.id} value={department.id.toString()}>
+                              {department.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="position" className="text-sm font-medium">
+                        新职位 <span className="text-red-500">*</span>
+                      </Label>
+                      <Input
+                        id="position"
+                        name="position"
+                        value={formData.position}
+                        onChange={handleInputChange}
+                        placeholder="输入新职位"
+                        disabled={submitting}
+                        required
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="superiorId" className="text-sm font-medium">
+                        直接上级
+                      </Label>
+                      <Select
+                        value={formData.superiorId}
+                        onValueChange={(value) => handleSelectChange('superiorId', value)}
+                        disabled={submitting}
+                      >
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="选择上级" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="none">无直接上级</SelectItem>
+                          {employees.map((employee) => (
+                            <SelectItem key={employee.id} value={employee.id.toString()}>
+                              {employee.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="description" className="text-sm font-medium">
+                      调动原因
+                    </Label>
+                    <Textarea
+                      id="description"
+                      name="description"
+                      value={formData.description}
+                      onChange={handleInputChange}
+                      placeholder="请描述调动原因..."
+                      className="min-h-[120px]"
+                      disabled={submitting}
+                    />
+                  </div>
+
+                  <div className="pt-4 flex justify-end">
+                    <Button
+                      type="submit"
+                      className="bg-green-600 hover:bg-green-700 px-6"
+                      disabled={submitting}
+                    >
+                      {submitting ? (
+                        <>
+                          <div className="w-4 h-4 rounded-full border-2 border-white border-t-transparent animate-spin mr-2"></div>
+                          提交中...
+                        </>
+                      ) : (
+                        '提交申请'
+                      )}
+                    </Button>
+                  </div>
+                </form>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
+        <div className="lg:col-span-1">
+          <div className="space-y-6">
+            <Card className="border-green-100 shadow-sm">
+              <CardHeader className="bg-gradient-to-r from-green-50 to-teal-50 border-b border-green-100">
+                <CardTitle className="flex items-center text-green-800 text-lg">
+                  <Calendar className="h-5 w-5 mr-2 text-green-600" />
+                  员工当前信息
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-6">
+                {loading ? (
+                  <div className="animate-pulse space-y-4">
+                    <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                    <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+                    <div className="h-4 bg-gray-200 rounded w-2/3"></div>
+                  </div>
+                ) : formData.empId ? (
+                  <div className="space-y-4">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-green-500 to-teal-600 flex items-center justify-center text-white font-medium">
+                        {employees.find(emp => emp.id === parseInt(formData.empId))?.name.charAt(0) || '?'}
+                      </div>
+                      <div>
+                        <div className="font-medium">
+                          {employees.find(emp => emp.id === parseInt(formData.empId))?.name || '未知员工'}
+                        </div>
+                        <div className="text-sm text-gray-500">
+                          {employees.find(emp => emp.id === parseInt(formData.empId))?.phone || '无联系方式'}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="bg-gray-50 p-4 rounded-md space-y-3">
+                      <div className="flex justify-between">
+                        <span className="text-gray-500 text-sm">当前部门</span>
+                        <span className="font-medium text-sm">
+                          {getEmployeeCurrentDepartment(formData.empId) || '未分配'}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-500 text-sm">当前职位</span>
+                        <span className="font-medium text-sm">
+                          {getEmployeeCurrentPosition(formData.empId) || '未设置'}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-500 text-sm">入职日期</span>
+                        <span className="font-medium text-sm">
+                          {employees.find(emp => emp.id === parseInt(formData.empId))?.hireDate || '未知'}
+                        </span>
+                      </div>
+                    </div>
+
+                    {formData.depId && (
+                      <div className="mt-6 flex items-center justify-center">
+                        <div className="flex flex-col items-center">
+                          <div className="px-4 py-2 bg-green-100 text-green-800 rounded-md text-sm font-medium">
+                            {getEmployeeCurrentDepartment(formData.empId) || '未分配部门'}
+                          </div>
+                          <div className="h-8 w-px bg-green-300"></div>
+                          <ArrowRight className="h-5 w-5 text-green-500 my-1" />
+                          <div className="h-8 w-px bg-green-300"></div>
+                          <div className="px-4 py-2 bg-green-600 text-white rounded-md text-sm font-medium">
+                            {departments.find(dept => dept.id === parseInt(formData.depId))?.name || '未知部门'}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="text-center py-6 text-gray-500">
+                    <UserCog className="h-12 w-12 text-gray-300 mx-auto mb-2" />
+                    <p>请选择一名员工</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            <Card className="border-green-100 shadow-sm">
+              <CardHeader className="bg-gradient-to-r from-green-50 to-teal-50 border-b border-green-100">
+                <CardTitle className="flex items-center text-green-800 text-lg">
+                  <Building className="h-5 w-5 mr-2 text-green-600" />
+                  调动说明
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-6">
+                <div className="space-y-4 text-sm text-gray-600">
+                  <p>
+                    <span className="font-medium text-green-700">人事调动流程：</span> 
+                    提交后，将由人事部门审核批准。
+                  </p>
+                  <p>
+                    <span className="font-medium text-green-700">必填项：</span> 
+                    员工、目标部门和新职位为必填项。
+                  </p>
+                  <p>
+                    <span className="font-medium text-green-700">生效时间：</span> 
+                    调动申请审批通过后即刻生效。
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </div>
     </div>
   );
 } 
