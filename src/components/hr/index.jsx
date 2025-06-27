@@ -1,21 +1,21 @@
 'use client';
 
-import {
-	Users,
-	UserPlus,
-	TrendingUp,
-	Calendar,
-	Clock,
-	CheckCircle,
-	AlertTriangle,
-	Star,
-} from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { StatCard } from '@/components/ui/stat-card';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { RealTimeClock } from '@/components/ui/real-time-clock';
+import { StatCard } from '@/components/ui/stat-card';
+import {
+    AlertTriangle,
+    Calendar,
+    CheckCircle,
+    Clock,
+    Star,
+    TrendingUp,
+    UserPlus,
+    Users,
+} from 'lucide-react';
 
-export default function Dashboard() {
+export default function HrPage() {
 	return (
 		<div className="p-6 space-y-6 bg-gray-50 min-h-screen">
 			{/* 欢迎区域 */}
