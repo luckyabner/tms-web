@@ -82,7 +82,7 @@ export default function AnalysisPage() {
   const employeeStatusDistribution = getEmployeeStatusDistribution();
 
   return (
-    <div className="container mx-auto p-6 space-y-6 bg-gray-50 min-h-screen">
+    <div className="p-6 space-y-6 bg-gray-50 min-h-screen">
       <div>
         <h1 className="text-2xl font-bold bg-gradient-to-r from-green-600 to-teal-600 bg-clip-text text-transparent">数据分析</h1>
         <p className="text-gray-500">查看公司人员和部门数据分析</p>

@@ -35,7 +35,7 @@ export default function EmployeeDetailPage({ params }) {
 
   if (loading) {
     return (
-      <div className="container mx-auto p-6 flex justify-center items-center min-h-[60vh]">
+      <div className="p-6 flex justify-center items-center min-h-[60vh]">
         <div className="flex flex-col items-center space-y-4">
           <div className="w-12 h-12 rounded-full border-4 border-green-200 border-t-green-600 animate-spin"></div>
           <p className="text-green-600 font-medium">加载员工数据中...</p>
@@ -46,7 +46,7 @@ export default function EmployeeDetailPage({ params }) {
 
   if (error) {
     return (
-      <div className="container mx-auto p-6">
+      <div className="p-6">
         <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
           <p className="text-red-600">{error}</p>
           <Button variant="outline" className="mt-4" onClick={() => window.history.back()}>
@@ -60,7 +60,7 @@ export default function EmployeeDetailPage({ params }) {
 
   if (!employee) {
     return (
-      <div className="container mx-auto p-6">
+      <div className="p-6">
         <div className="bg-amber-50 border border-amber-200 rounded-lg p-6 text-center">
           <p className="text-amber-600">未找到员工信息</p>
           <Button variant="outline" className="mt-4" onClick={() => window.history.back()}>
@@ -133,7 +133,7 @@ export default function EmployeeDetailPage({ params }) {
   ];
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
+    <div className="p-6 space-y-6">
       {/* 返回按钮 */}
       <div>
         <Button variant="outline" onClick={() => window.history.back()} className="mb-4">

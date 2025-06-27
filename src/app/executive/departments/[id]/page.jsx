@@ -124,7 +124,7 @@ export default function DepartmentDetailPage({ params }) {
   const { manager, leaders, regularEmployees } = groupEmployeesByRole();
 
   return (
-    <div className="container mx-auto p-6 space-y-6 bg-gray-50 min-h-screen">
+    <div className="p-6 space-y-6 bg-gray-50 min-h-screen">
       {/* 返回按钮和标题 */}
       <div className="flex items-center gap-2 mb-2">
         <Button variant="ghost" size="icon" asChild>
