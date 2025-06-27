@@ -14,6 +14,9 @@ export default function Home() {
     return <LeaderPage />;
   } else if (role === "admin") {
     return <AdminPage />;
+  } else if (role === "employee") {
+    // 如果是员工角色，可以重定向到员工专属页面或其他逻辑
+    redirect("/employee/1");
   } else {
     // 如果不是HR角色，重定向到登录页面或其他页面
     redirect("/login");
