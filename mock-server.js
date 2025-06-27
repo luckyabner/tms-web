@@ -66,6 +66,29 @@ const employees = [
   { emp_id: 16, emp_name: '张无忌', phone: '13800138016', gender: '男', hire_date: '2021-04-01', status: '在职', emp_type: '系统管理员', education: '硕士', school: '华中科技大学', position: '系统架构师' },
 ];
 
+// 模拟员工-部门关系数据
+const employeeDepartments = [
+  { id: 1, emp_id: 1, dep_id: 1, position: 'IT管理员', is_current: 1, created_at: '2020-01-15', updated_at: '2020-01-15' },
+  { id: 2, emp_id: 2, dep_id: 2, position: '部门经理', is_current: 1, created_at: '2020-02-20', updated_at: '2020-02-20' },
+  { id: 3, emp_id: 3, dep_id: 3, position: '人力资源专员', is_current: 1, created_at: '2020-03-10', updated_at: '2020-03-10' },
+  { id: 4, emp_id: 4, dep_id: 4, position: '部门经理', is_current: 1, created_at: '2020-04-05', updated_at: '2020-04-05' },
+  { id: 5, emp_id: 5, dep_id: 5, position: '部门经理', is_current: 1, created_at: '2020-05-12', updated_at: '2020-05-12' },
+  { id: 6, emp_id: 6, dep_id: 6, position: '前端开发工程师', is_current: 1, created_at: '2020-06-15', updated_at: '2020-06-15' },
+  { id: 7, emp_id: 7, dep_id: 3, position: '人力资源专员', is_current: 1, created_at: '2020-07-01', updated_at: '2020-07-01' },
+  { id: 8, emp_id: 8, dep_id: 3, position: '人力资源专员', is_current: 1, created_at: '2020-08-01', updated_at: '2020-08-01' },
+  { id: 9, emp_id: 9, dep_id: 8, position: '测试工程师', is_current: 0, created_at: '2020-09-01', updated_at: '2023-01-01' },
+  { id: 10, emp_id: 10, dep_id: 5, position: '产品经理', is_current: 1, created_at: '2020-10-01', updated_at: '2020-10-01' },
+  { id: 11, emp_id: 11, dep_id: 9, position: '运维工程师', is_current: 1, created_at: '2020-11-01', updated_at: '2020-11-01' },
+  { id: 12, emp_id: 12, dep_id: 5, position: '数据分析师', is_current: 1, created_at: '2020-12-01', updated_at: '2020-12-01' },
+  { id: 13, emp_id: 13, dep_id: 7, position: '算法工程师', is_current: 1, created_at: '2021-01-01', updated_at: '2021-01-01' },
+  { id: 14, emp_id: 14, dep_id: 10, position: '市场专员', is_current: 0, created_at: '2021-02-01', updated_at: '2023-03-01' },
+  { id: 15, emp_id: 15, dep_id: 4, position: '财务专员', is_current: 1, created_at: '2021-03-01', updated_at: '2021-03-01' },
+  { id: 16, emp_id: 16, dep_id: 1, position: '系统架构师', is_current: 1, created_at: '2021-04-01', updated_at: '2021-04-01' },
+  // 历史记录
+  { id: 17, emp_id: 9, dep_id: 6, position: '前端开发工程师', is_current: 0, created_at: '2019-05-01', updated_at: '2020-09-01' },
+  { id: 18, emp_id: 14, dep_id: 2, position: '市场助理', is_current: 0, created_at: '2020-07-01', updated_at: '2021-02-01' },
+];
+
 // 模拟部门数据
 let departments = [
   { 
@@ -665,47 +688,28 @@ app.get('/departments/:id', (req, res) => {
 app.get('/employees', (req, res) => {
   console.log('GET /employees - 返回所有员工数据:', employees.length, '条记录');
   
-  // 处理员工数据，添加关联信息
-  const employeesWithDepartment = employees.map(emp => {
-    // 查找员工所属部门
-    const department = departments.find(d => {
-      // 检查部门的员工列表中是否包含该员工
-      return d.employeeCount > 0 && d.manager_id === emp.emp_id;
-    });
-    
-    // 确保角色名称正确映射
-    let role = emp.emp_type;
-    if (role === '普通用户') {
-      role = '普通员工';
-    } else if (role === '高层') {
-      role = '公司高层';
-    }
-    
-    console.log(`员工 ${emp.emp_name} 的角色: ${emp.emp_type} -> ${role}`);
-    
-    return {
-      id: emp.emp_id,
-      name: emp.emp_name,
-      emp_id: emp.emp_id,
-      emp_name: emp.emp_name,
-      phone: emp.phone,
-      gender: emp.gender,
-      hire_date: emp.hire_date,
-      status: emp.status,
-      emp_type: emp.emp_type,
-      role: role,
-      education: emp.education,
-      school: emp.school,
-      position: emp.position,
-      department: department ? department.dep_name : '未分配',
-      departmentId: department ? department.dep_id : null
-    };
-  });
+  const processedEmployees = employees.map(e => ({
+    id: e.emp_id,
+    name: e.emp_name,
+    gender: e.gender,
+    phone: e.phone,
+    role: e.emp_type,
+    position: e.position || '',
+    status: e.status,
+    department: e.departmentId ? 
+      (departments.find(d => d.dep_id === parseInt(e.departmentId))?.dep_name || '未知部门') : 
+      '未分配',
+    departmentId: e.departmentId,
+    hireDate: e.hire_date,
+    birthDate: e.birth_date,
+    education: e.education,
+    school: e.school
+  }));
   
   res.json({
     code: '200',
-    msg: '请求成功',
-    data: employeesWithDepartment
+    msg: '获取成功',
+    data: processedEmployees
   });
 });
 
@@ -930,7 +934,7 @@ app.delete('/departments/:id', (req, res) => {
 
 // 创建员工
 app.post('/employees', (req, res) => {
-  console.log('POST /employees - 请求体:', req.body);
+  console.log('POST /employees - 请求体:', JSON.stringify(req.body, null, 2));
   
   try {
     // 检查必填字段
@@ -944,7 +948,7 @@ app.post('/employees', (req, res) => {
     }
     
     // 处理角色映射，确保与数据库一致
-    let emp_type = req.body.role || '普通用户';
+    let emp_type = req.body.empType || req.body.role || '普通用户';
     console.log(`创建员工，接收到的角色: ${emp_type}`);
     
     const newEmployee = {
@@ -952,13 +956,21 @@ app.post('/employees', (req, res) => {
       emp_name: req.body.name,
       phone: req.body.phone || '',
       gender: req.body.gender || '男',
+      birth_date: req.body.birthDate || new Date().toISOString().split('T')[0],
       hire_date: req.body.hireDate || new Date().toISOString().split('T')[0],
-      status: req.body.status === 'active' ? '在职' : '离职',
+      status: req.body.status || '在职',
       emp_type: emp_type,
+      education: req.body.education || '本科',
+      school: req.body.school || '',
       position: req.body.position || '',
-      email: req.body.email || `${req.body.name.toLowerCase()}@company.com`,
-      departmentId: req.body.departmentId || null
+      description: req.body.description || '',
+      departmentId: req.body.departmentId || null,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      is_deleted: 0
     };
+    
+    console.log('POST /employees - 创建的新员工对象:', JSON.stringify(newEmployee, null, 2));
     
     // 如果指定了部门，更新部门员工数量
     if (newEmployee.departmentId) {
@@ -969,7 +981,8 @@ app.post('/employees', (req, res) => {
     }
     
     employees.push(newEmployee);
-    console.log('POST /employees - 创建新员工:', newEmployee.emp_name);
+    console.log('POST /employees - 创建新员工成功:', newEmployee.emp_name);
+    console.log('POST /employees - 当前员工总数:', employees.length);
     
     // 角色映射回前端格式
     let role = newEmployee.emp_type;
@@ -981,13 +994,25 @@ app.post('/employees', (req, res) => {
     
     // 构建返回数据
     const responseEmployee = {
-      ...newEmployee,
       id: newEmployee.emp_id,
+      emp_id: newEmployee.emp_id,
       name: newEmployee.emp_name,
+      emp_name: newEmployee.emp_name,
       role: role,
+      gender: newEmployee.gender,
+      phone: newEmployee.phone,
+      position: newEmployee.position,
+      status: newEmployee.status,
+      hireDate: newEmployee.hire_date,
+      hire_date: newEmployee.hire_date,
+      birthDate: newEmployee.birth_date,
+      birth_date: newEmployee.birth_date,
+      education: newEmployee.education,
+      school: newEmployee.school,
       department: newEmployee.departmentId ? 
         (departments.find(d => d.dep_id === parseInt(newEmployee.departmentId))?.dep_name || '未知部门') : 
-        '未分配'
+        '未分配',
+      departmentId: newEmployee.departmentId
     };
     
     res.status(201).json({
@@ -999,7 +1024,7 @@ app.post('/employees', (req, res) => {
     console.error('POST /employees - 处理请求时出错:', err);
     res.status(500).json({
       code: '500',
-      msg: '服务器内部错误',
+      msg: '服务器内部错误: ' + (err.message || '未知错误'),
       data: null
     });
   }
@@ -1687,3 +1712,394 @@ app.listen(PORT, () => {
   console.log('  DELETE /employee-performances/:id  - 删除员工绩效评估');
   console.log('  GET    /health             - 健康检查\n');
 }); 
+
+// 处理员工-部门关系数据，添加关联信息
+const processEmployeeDepartmentData = (empDepartments) => {
+  try {
+    return empDepartments.map(empDept => {
+      try {
+        // 获取员工信息
+        const employee = employees.find(e => e.emp_id === empDept.emp_id);
+        // 获取部门信息
+        const department = departments.find(d => d.dep_id === empDept.dep_id);
+        
+        return {
+          id: empDept.id,
+          emp_id: empDept.emp_id,
+          empId: empDept.emp_id, // 兼容前端使用empId字段
+          employeeName: employee ? employee.emp_name : '未知员工',
+          dep_id: empDept.dep_id,
+          depId: empDept.dep_id, // 兼容前端使用depId字段
+          departmentName: department ? department.dep_name : '未知部门',
+          position: empDept.position || '',
+          is_current: empDept.is_current,
+          isCurrent: empDept.is_current === 1, // 兼容前端使用isCurrent字段
+          created_at: empDept.created_at,
+          createdAt: empDept.created_at, // 兼容前端使用createdAt字段
+          updated_at: empDept.updated_at,
+          updatedAt: empDept.updated_at // 兼容前端使用updatedAt字段
+        };
+      } catch (err) {
+        console.error(`处理员工-部门关系数据出错:`, err, '员工-部门关系数据:', empDept);
+        // 返回基本数据，避免整个处理失败
+        return {
+          id: empDept.id,
+          emp_id: empDept.emp_id,
+          empId: empDept.emp_id,
+          dep_id: empDept.dep_id,
+          depId: empDept.dep_id,
+          position: empDept.position || '',
+          is_current: empDept.is_current,
+          isCurrent: empDept.is_current === 1
+        };
+      }
+    });
+  } catch (err) {
+    console.error('处理员工-部门关系数据总体失败:', err);
+    return empDepartments.map(empDept => ({
+      id: empDept.id,
+      emp_id: empDept.emp_id,
+      empId: empDept.emp_id,
+      dep_id: empDept.dep_id,
+      depId: empDept.dep_id
+    }));
+  }
+};
+
+// 员工-部门关系API
+
+// 获取所有员工-部门关系
+app.get('/employee-departments', (req, res) => {
+  try {
+    console.log('GET /employee-departments - 获取所有员工-部门关系');
+    
+    // 处理查询参数
+    const empId = req.query.empId || req.query.emp_id;
+    const depId = req.query.depId || req.query.dep_id;
+    const isCurrent = req.query.isCurrent || req.query.is_current;
+    
+    // 根据查询参数过滤数据
+    let filteredEmployeeDepartments = [...employeeDepartments];
+    
+    if (empId) {
+      filteredEmployeeDepartments = filteredEmployeeDepartments.filter(ed => 
+        ed.emp_id === parseInt(empId)
+      );
+    }
+    
+    if (depId) {
+      filteredEmployeeDepartments = filteredEmployeeDepartments.filter(ed => 
+        ed.dep_id === parseInt(depId)
+      );
+    }
+    
+    if (isCurrent !== undefined) {
+      const isCurrentValue = parseInt(isCurrent);
+      filteredEmployeeDepartments = filteredEmployeeDepartments.filter(ed => 
+        ed.is_current === isCurrentValue
+      );
+    }
+    
+    // 处理员工-部门关系数据，添加关联信息
+    const processedEmployeeDepartments = processEmployeeDepartmentData(filteredEmployeeDepartments);
+    
+    console.log(`GET /employee-departments - 返回 ${processedEmployeeDepartments.length} 条员工-部门关系记录`);
+    
+    res.json({
+      code: '200',
+      msg: '请求成功',
+      data: processedEmployeeDepartments
+    });
+  } catch (err) {
+    console.error('GET /employee-departments - 处理请求时出错:', err);
+    res.status(500).json({
+      code: '500',
+      msg: '服务器内部错误',
+      data: null
+    });
+  }
+});
+
+// 获取单个员工-部门关系
+app.get('/employee-departments/:id', (req, res) => {
+  const id = parseInt(req.params.id);
+  
+  try {
+    console.log(`GET /employee-departments/${id} - 获取单个员工-部门关系`);
+    
+    const employeeDepartment = employeeDepartments.find(ed => ed.id === id);
+    
+    if (!employeeDepartment) {
+      console.log(`GET /employee-departments/${id} - 未找到员工-部门关系`);
+      return res.status(404).json({
+        code: '404',
+        msg: '员工-部门关系不存在',
+        data: null
+      });
+    }
+    
+    // 处理员工-部门关系数据，添加关联信息
+    const [processedEmployeeDepartment] = processEmployeeDepartmentData([employeeDepartment]);
+    
+    console.log(`GET /employee-departments/${id} - 返回员工-部门关系`);
+    
+    res.json({
+      code: '200',
+      msg: '请求成功',
+      data: processedEmployeeDepartment
+    });
+  } catch (err) {
+    console.error(`GET /employee-departments/${id} - 处理请求时出错:`, err);
+    res.status(500).json({
+      code: '500',
+      msg: '服务器内部错误',
+      data: null
+    });
+  }
+});
+
+// 创建员工-部门关系（人事调动）
+app.post('/employee-departments', (req, res) => {
+  try {
+    console.log('POST /employee-departments - 请求体:', req.body);
+    
+    // 检查必填字段
+    if (!req.body.emp_id && !req.body.empId) {
+      console.error('POST /employee-departments - 缺少员工ID字段');
+      return res.status(400).json({
+        code: '400',
+        msg: '员工ID不能为空',
+        data: null
+      });
+    }
+    
+    if (!req.body.dep_id && !req.body.depId) {
+      console.error('POST /employee-departments - 缺少部门ID字段');
+      return res.status(400).json({
+        code: '400',
+        msg: '部门ID不能为空',
+        data: null
+      });
+    }
+    
+    const empId = parseInt(req.body.emp_id || req.body.empId);
+    const depId = parseInt(req.body.dep_id || req.body.depId);
+    
+    // 检查员工是否存在
+    const employee = employees.find(e => e.emp_id === empId);
+    if (!employee) {
+      console.error(`POST /employee-departments - 员工ID=${empId}不存在`);
+      return res.status(400).json({
+        code: '400',
+        msg: '员工不存在',
+        data: null
+      });
+    }
+    
+    // 检查部门是否存在
+    const department = departments.find(d => d.dep_id === depId);
+    if (!department) {
+      console.error(`POST /employee-departments - 部门ID=${depId}不存在`);
+      return res.status(400).json({
+        code: '400',
+        msg: '部门不存在',
+        data: null
+      });
+    }
+    
+    // 如果要设置为当前部门，则将其他关系设为非当前
+    if (req.body.is_current === 1 || req.body.isCurrent === true) {
+      employeeDepartments.forEach((ed, index) => {
+        if (ed.emp_id === empId && ed.is_current === 1) {
+          employeeDepartments[index].is_current = 0;
+          employeeDepartments[index].updated_at = new Date().toISOString().split('T')[0];
+        }
+      });
+    }
+    
+    const newEmployeeDepartment = {
+      id: employeeDepartments.length > 0 ? Math.max(...employeeDepartments.map(ed => ed.id)) + 1 : 1,
+      emp_id: empId,
+      dep_id: depId,
+      position: req.body.position || '',
+      is_current: req.body.is_current !== undefined ? parseInt(req.body.is_current) : 
+                 (req.body.isCurrent !== undefined ? (req.body.isCurrent ? 1 : 0) : 1),
+      created_at: new Date().toISOString().split('T')[0],
+      updated_at: new Date().toISOString().split('T')[0]
+    };
+    
+    employeeDepartments.push(newEmployeeDepartment);
+    
+    console.log('POST /employee-departments - 创建新员工-部门关系');
+    
+    // 更新部门员工数量
+    const departmentIndex = departments.findIndex(d => d.dep_id === depId);
+    if (departmentIndex !== -1) {
+      departments[departmentIndex].employeeCount += 1;
+    }
+    
+    // 更新员工的部门ID
+    const employeeIndex = employees.findIndex(e => e.emp_id === empId);
+    if (employeeIndex !== -1) {
+      employees[employeeIndex].departmentId = depId;
+      if (req.body.position) {
+        employees[employeeIndex].position = req.body.position;
+      }
+    }
+    
+    // 处理员工-部门关系数据，添加关联信息
+    const [processedEmployeeDepartment] = processEmployeeDepartmentData([newEmployeeDepartment]);
+    
+    res.status(201).json({
+      code: '200',
+      msg: '创建成功',
+      data: processedEmployeeDepartment
+    });
+  } catch (err) {
+    console.error('POST /employee-departments - 处理请求时出错:', err);
+    res.status(500).json({
+      code: '500',
+      msg: '服务器内部错误',
+      data: null
+    });
+  }
+});
+
+// 更新员工-部门关系
+app.put('/employee-departments/:id', (req, res) => {
+  const id = parseInt(req.params.id);
+  
+  try {
+    console.log(`PUT /employee-departments/${id} - 请求体:`, req.body);
+    
+    // 验证id参数
+    if (isNaN(id)) {
+      console.error(`PUT /employee-departments/${id} - 无效的ID参数`);
+      return res.status(400).json({
+        code: '400',
+        msg: '无效的员工-部门关系ID',
+        data: null
+      });
+    }
+    
+    const index = employeeDepartments.findIndex(ed => ed.id === id);
+    
+    if (index === -1) {
+      console.log(`PUT /employee-departments/${id} - 未找到员工-部门关系`);
+      return res.status(404).json({
+        code: '404',
+        msg: '员工-部门关系不存在',
+        data: null
+      });
+    }
+    
+    // 如果要设置为当前部门，则将其他关系设为非当前
+    if ((req.body.is_current !== undefined && req.body.is_current === 1) || 
+        (req.body.isCurrent !== undefined && req.body.isCurrent === true)) {
+      const empId = employeeDepartments[index].emp_id;
+      employeeDepartments.forEach((ed, idx) => {
+        if (idx !== index && ed.emp_id === empId && ed.is_current === 1) {
+          employeeDepartments[idx].is_current = 0;
+          employeeDepartments[idx].updated_at = new Date().toISOString().split('T')[0];
+        }
+      });
+    }
+    
+    // 安全地获取请求中的字段
+    const position = req.body.position !== undefined ? req.body.position : employeeDepartments[index].position;
+    const is_current = req.body.is_current !== undefined ? parseInt(req.body.is_current) : 
+                      (req.body.isCurrent !== undefined ? (req.body.isCurrent ? 1 : 0) : employeeDepartments[index].is_current);
+    
+    // 更新员工-部门关系信息
+    employeeDepartments[index] = {
+      ...employeeDepartments[index],
+      position,
+      is_current,
+      updated_at: new Date().toISOString().split('T')[0]
+    };
+    
+    console.log(`PUT /employee-departments/${id} - 更新员工-部门关系`);
+    
+    // 如果更新了职位，同时更新员工表中的职位
+    if (req.body.position !== undefined) {
+      const employeeIndex = employees.findIndex(e => e.emp_id === employeeDepartments[index].emp_id);
+      if (employeeIndex !== -1) {
+        employees[employeeIndex].position = position;
+      }
+    }
+    
+    // 处理员工-部门关系数据，添加关联信息
+    const [processedEmployeeDepartment] = processEmployeeDepartmentData([employeeDepartments[index]]);
+    
+    res.json({
+      code: '200',
+      msg: '更新成功',
+      data: processedEmployeeDepartment
+    });
+  } catch (err) {
+    console.error(`PUT /employee-departments/${id} - 处理请求时出错:`, err);
+    res.status(500).json({
+      code: '500',
+      msg: '服务器内部错误',
+      data: null
+    });
+  }
+});
+
+// 删除员工-部门关系
+app.delete('/employee-departments/:id', (req, res) => {
+  const id = parseInt(req.params.id);
+  
+  try {
+    console.log(`DELETE /employee-departments/${id} - 删除员工-部门关系`);
+    
+    const index = employeeDepartments.findIndex(ed => ed.id === id);
+    
+    if (index === -1) {
+      console.log(`DELETE /employee-departments/${id} - 未找到员工-部门关系`);
+      return res.status(404).json({
+        code: '404',
+        msg: '员工-部门关系不存在',
+        data: null
+      });
+    }
+    
+    const deletedEmployeeDepartment = employeeDepartments[index];
+    
+    // 检查是否为当前关系，如果是，可能需要更新员工的部门ID
+    if (deletedEmployeeDepartment.is_current === 1) {
+      const employeeIndex = employees.findIndex(e => e.emp_id === deletedEmployeeDepartment.emp_id);
+      if (employeeIndex !== -1) {
+        employees[employeeIndex].departmentId = null;
+      }
+      
+      // 更新部门员工数量
+      const departmentIndex = departments.findIndex(d => d.dep_id === deletedEmployeeDepartment.dep_id);
+      if (departmentIndex !== -1 && departments[departmentIndex].employeeCount > 0) {
+        departments[departmentIndex].employeeCount -= 1;
+      }
+    }
+    
+    // 物理删除，从数组中移除
+    employeeDepartments.splice(index, 1);
+    
+    console.log(`DELETE /employee-departments/${id} - 删除员工-部门关系`);
+    
+    res.json({
+      code: '200',
+      msg: '删除成功',
+      data: {
+        id: deletedEmployeeDepartment.id,
+        emp_id: deletedEmployeeDepartment.emp_id,
+        dep_id: deletedEmployeeDepartment.dep_id
+      }
+    });
+  } catch (err) {
+    console.error(`DELETE /employee-departments/${id} - 处理请求时出错:`, err);
+    res.status(500).json({
+      code: '500',
+      msg: '服务器内部错误',
+      data: null
+    });
+  }
+});

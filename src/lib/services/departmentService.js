@@ -85,7 +85,7 @@ export const getAllDepartments = async () => {
     // 获取员工-部门关系数据，用于计算部门员工数量
     let employeeDepartments = [];
     try {
-      const edResponse = await api.get('/employee-departments');
+      const edResponse = await api.get('/employee-departments?is_current=1');
       if (Array.isArray(edResponse.data)) {
         employeeDepartments = edResponse.data;
       } else if (edResponse.data && edResponse.data.data && Array.isArray(edResponse.data.data)) {
@@ -104,8 +104,7 @@ export const getAllDepartments = async () => {
       // 计算部门员工数量
       const deptId = dept.id || dept.dep_id;
       const deptEmployees = employeeDepartments.filter(ed => 
-        (ed.depId === deptId || ed.dep_id === deptId) && 
-        (ed.isCurrent === 1 || ed.is_current === 1)
+        (ed.depId === deptId || ed.dep_id === deptId)
       );
       const employeeCount = deptEmployees.length;
       
@@ -189,6 +188,30 @@ export const getDepartmentById = async (id) => {
     // 获取员工数据，用于查找主管姓名
     const employees = await fetchEmployeesData();
     
+    // 获取部门员工数量和员工列表
+    let employeeCount = department.employeeCount || 0;
+    let departmentEmployees = [];
+    
+    try {
+      const edResponse = await api.get(`/employee-departments?dep_id=${id}&is_current=1`);
+      let employeeDepartments = [];
+      
+      if (Array.isArray(edResponse.data)) {
+        employeeDepartments = edResponse.data;
+      } else if (edResponse.data && edResponse.data.data && Array.isArray(edResponse.data.data)) {
+        employeeDepartments = edResponse.data.data;
+      }
+      
+      employeeCount = employeeDepartments.length;
+      departmentEmployees = employeeDepartments.map(ed => ({
+        id: ed.empId || ed.emp_id,
+        name: ed.employeeName || '',
+        position: ed.position || '',
+      }));
+    } catch (error) {
+      console.error(`获取部门ID=${id}的员工关系失败:`, error);
+    }
+    
     // 处理managerId，获取对应的员工姓名
     const managerId = department.managerId || department.manager_id;
     let managerName = department.managerName || department.manager || '';
@@ -206,7 +229,8 @@ export const getDepartmentById = async (id) => {
       managerName: managerName,
       parentId: department.parentId || department.parent_id,
       parentName: department.parentName || '',
-      employeeCount: department.employeeCount || 0,
+      employeeCount: employeeCount,
+      departmentEmployees: departmentEmployees,
       description: department.description || '',
       isDeleted: department.isDeleted === 1 || department.is_deleted === 1,
       createdAt: department.createdAt || department.created_at || ''
