@@ -1,10 +1,11 @@
-import React from 'react';
 import { employeeColumns } from '@/components/employee/employeeColoums';
-import { getAllEmployees } from '@/lib/data/enployee';
 import { BasicTable } from '@/components/shared/tables/BasicTable';
+import { getAllEmployees } from '@/lib/data/enployee';
+import React from 'react';
 
 export default async function EmployeesPage() {
 	const employees = await getAllEmployees();
+	console.log('员工数据:', employees);
 
 	return (
 		<div className="container mx-auto p-6 space-y-6">

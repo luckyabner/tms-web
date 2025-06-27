@@ -40,11 +40,9 @@ const employees = [
  */
 export async function getAllEmployees() {
 	try {
-		return employees;
 		const res = await api.get('/employees');
-		return res.data;
+		return res.data.data || []; 
 	} catch (err) {
-		return employees;
 		console.error('Error fetching employees:', err);
 		throw err; // 重新抛出错误，让调用者处理
 	}

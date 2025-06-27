@@ -12,14 +12,6 @@ import {
 } from '@tanstack/react-table';
 import * as React from 'react';
 
-import {
-	Table,
-	TableBody,
-	TableCell,
-	TableHead,
-	TableHeader,
-	TableRow,
-} from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import {
 	DropdownMenu,
@@ -28,6 +20,14 @@ import {
 	DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
+import {
+	Table,
+	TableBody,
+	TableCell,
+	TableHead,
+	TableHeader,
+	TableRow,
+} from '@/components/ui/table';
 import { useState } from 'react';
 
 export function BasicTable({ columns, data }) {
