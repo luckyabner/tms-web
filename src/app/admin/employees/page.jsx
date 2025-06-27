@@ -288,9 +288,36 @@ export default function AdminEmployeesPage() {
   };
   
   // 处理表单提交成功
-  const handleFormSuccess = () => {
+  const handleFormSuccess = (newEmployee) => {
     setIsFormOpen(false);
-    fetchEmployees(); // 重新获取员工列表
+    
+    if (newEmployee) {
+      console.log('新建或更新的员工数据:', JSON.stringify(newEmployee, null, 2));
+      
+      // 检查是否已经存在该员工（编辑模式）
+      const existingIndex = employees.findIndex(emp => emp.id === newEmployee.id);
+      
+      if (existingIndex !== -1) {
+        // 更新已有员工
+        console.log(`更新已有员工，ID=${newEmployee.id}，索引=${existingIndex}`);
+        const updatedEmployees = [...employees];
+        updatedEmployees[existingIndex] = {
+          ...updatedEmployees[existingIndex],
+          ...newEmployee
+        };
+        setEmployees(updatedEmployees);
+      } else {
+        // 添加新员工
+        console.log('添加新员工到列表:', JSON.stringify(newEmployee, null, 2));
+        setEmployees(prevEmployees => [...prevEmployees, newEmployee]);
+      }
+      
+      // 显示成功消息
+      alert('员工信息保存成功！');
+    }
+    
+    // 确保数据同步，从服务器刷新员工列表
+    fetchEmployees();
   };
 
   // 处理页码变化

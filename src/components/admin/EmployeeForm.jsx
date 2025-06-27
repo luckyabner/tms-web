@@ -73,7 +73,32 @@ export default function EmployeeForm({ employee = null, onSuccess, onCancel }) {
     setError(null);
 
     try {
-      console.log('提交表单数据:', formData);
+      console.log('提交表单数据:', JSON.stringify(formData, null, 2));
+      
+      // 检查必填字段
+      if (!formData.name) {
+        throw new Error('员工姓名不能为空');
+      }
+      
+      if (!formData.phone) {
+        throw new Error('联系电话不能为空');
+      }
+      
+      if (!formData.gender) {
+        throw new Error('性别不能为空');
+      }
+      
+      if (!formData.birthDate) {
+        throw new Error('出生日期不能为空');
+      }
+      
+      if (!formData.hireDate) {
+        throw new Error('入职日期不能为空');
+      }
+      
+      if (!formData.education) {
+        throw new Error('学历不能为空');
+      }
       
       let result;
       if (isEditing) {
@@ -84,12 +109,13 @@ export default function EmployeeForm({ employee = null, onSuccess, onCancel }) {
         result = await createEmployee(formData);
       }
       
-      console.log('API响应结果:', result);
+      console.log('API响应结果:', JSON.stringify(result, null, 2));
       
       // 无论API返回什么，我们都认为是成功的
       // 这是为了保持用户体验流畅
       setTimeout(() => {
         setLoading(false);
+        console.log('调用onSuccess，传递结果:', JSON.stringify(result, null, 2));
         onSuccess(result);
       }, 800);
     } catch (err) {
@@ -197,12 +223,14 @@ export default function EmployeeForm({ employee = null, onSuccess, onCancel }) {
               <Label htmlFor="phone" className="flex items-center gap-2 font-medium text-gray-700">
                 <Phone className="h-4 w-4 text-purple-600 mr-1" />
                 联系电话
+                <span className="text-red-500">*</span>
               </Label>
               <Input 
                 id="phone"
                 name="phone"
                 value={formData.phone}
                 onChange={handleChange}
+                required
                 placeholder="请输入联系电话"
                 className="focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200"
               />
@@ -212,6 +240,7 @@ export default function EmployeeForm({ employee = null, onSuccess, onCancel }) {
               <Label htmlFor="gender" className="flex items-center gap-2 font-medium text-gray-700">
                 <UserCircle className="h-4 w-4 text-purple-600 mr-1" />
                 性别
+                <span className="text-red-500">*</span>
               </Label>
               <div className="relative">
                 <select
