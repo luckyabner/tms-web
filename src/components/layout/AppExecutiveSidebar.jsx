@@ -48,7 +48,7 @@ const mainItems = [
 const businessItems = [
 	{
 		title: '人事调动',
-		url: '/executive/transfers',
+		url: '/executive/transfers/new',
 		icon: UserCog,
 	},
 	{
