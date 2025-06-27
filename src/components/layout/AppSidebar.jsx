@@ -57,7 +57,7 @@ const leaderNav = [
   {
     title: "员工信息",
     icon: Users,
-    url: "/executive/employees",
+    url: "/employees",
   },
   {
     title: "部门信息",
@@ -85,7 +85,7 @@ const adminNav = [
   {
     title: "员工管理",
     icon: Users,
-    url: "/admin/employees",
+    url: "/employees",
   },
   {
     title: "部门管理",
