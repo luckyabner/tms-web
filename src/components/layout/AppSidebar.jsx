@@ -80,7 +80,7 @@ const adminNav = [
   {
     title: "工作台",
     icon: LayoutDashboard,
-    url: "/admin/dashboard",
+    url: "/",
   },
   {
     title: "员工管理",
@@ -90,12 +90,12 @@ const adminNav = [
   {
     title: "部门管理",
     icon: Building,
-    url: "/admin/departments",
+    url: "/departments",
   },
   {
     title: "系统日志",
     icon: BarChart,
-    url: "/admin/logs",
+    url: "/logs",
   },
 ];
 
