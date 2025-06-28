@@ -252,7 +252,7 @@ export default function TransfersPage() {
   };
 
   return (
-    <div className="p-6 space-y-6 bg-gradient-to-br from-blue-50 to-indigo-50 min-h-screen">
+    <div className="p-6 space-y-6 bg-white min-h-screen">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
         <div>
           <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
@@ -263,7 +263,7 @@ export default function TransfersPage() {
         <Button 
           onClick={fetchTransfers} 
           variant="outline" 
-          className="flex items-center gap-2 bg-white hover:bg-blue-50 border-blue-200"
+          className="flex items-center gap-2 bg-white hover:bg-gray-50 border-gray-200"
         >
           <Clock className="h-4 w-4" />
           刷新申请
@@ -271,25 +271,27 @@ export default function TransfersPage() {
       </div>
 
       <div className="grid grid-cols-1 gap-6">
-        <Card className="border-blue-100 shadow-md overflow-hidden">
-          <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-blue-100">
+        <Card className="border-gray-200 shadow-sm overflow-hidden">
+          <CardHeader className="bg-white border-b border-gray-100">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-              <CardTitle className="flex items-center text-blue-800">
+              <CardTitle className="flex items-center">
                 <UserCog className="h-5 w-5 mr-2 text-blue-600" />
-                人事调动申请列表
+                <span className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+                  人事调动申请列表
+                </span>
               </CardTitle>
               <div className="flex flex-col md:flex-row gap-3">
                 <div className="relative">
                   <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-400" />
                   <Input
                     placeholder="搜索员工、部门或描述..."
-                    className="pl-8 w-full md:w-[250px] border-blue-200 focus:border-blue-400"
+                    className="pl-8 w-full md:w-[250px] border-gray-200 focus:border-blue-400"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                   />
                 </div>
                 <Select value={statusFilter} onValueChange={setStatusFilter}>
-                  <SelectTrigger className="w-full md:w-[180px] border-blue-200">
+                  <SelectTrigger className="w-full md:w-[180px] border-gray-200">
                     <div className="flex items-center">
                       <Filter className="mr-2 h-4 w-4 text-blue-500" />
                       <SelectValue placeholder="筛选状态" />
@@ -326,31 +328,71 @@ export default function TransfersPage() {
             ) : (
               <div className="overflow-x-auto">
                 <Table>
-                  <TableHeader className="bg-gray-50">
-                    <TableRow>
-                      <TableHead className="w-[180px]">员工</TableHead>
-                      <TableHead>原部门</TableHead>
-                      <TableHead>原职位</TableHead>
-                      <TableHead>新部门</TableHead>
-                      <TableHead>新职位</TableHead>
-                      <TableHead>申请说明</TableHead>
-                      <TableHead>申请日期</TableHead>
-                      <TableHead>状态</TableHead>
-                      <TableHead className="text-right">操作</TableHead>
+                  <TableHeader className="bg-gradient-to-r from-blue-50 to-indigo-50">
+                    <TableRow className="border-b-0">
+                      <TableHead className="w-[150px] py-3 font-medium text-blue-700">员工</TableHead>
+                      <TableHead className="py-3 font-medium text-blue-700">原部门</TableHead>
+                      <TableHead className="py-3 font-medium text-blue-700">原职位</TableHead>
+                      <TableHead className="py-3 font-medium text-blue-700">新部门</TableHead>
+                      <TableHead className="py-3 font-medium text-blue-700">新职位</TableHead>
+                      <TableHead className="py-3 font-medium text-blue-700">申请说明</TableHead>
+                      <TableHead className="py-3 font-medium text-blue-700">申请日期</TableHead>
+                      <TableHead className="py-3 font-medium text-blue-700">状态</TableHead>
+                      <TableHead className="text-right py-3 font-medium text-blue-700">操作</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {paginatedTransfers.map((transfer) => (
-                      <TableRow key={transfer.id} className="hover:bg-blue-50/50">
-                        <TableCell className="font-medium">{transfer.employeeName}</TableCell>
-                        <TableCell>{transfer.oldDepartmentName}</TableCell>
-                        <TableCell>{transfer.oldPosition}</TableCell>
-                        <TableCell>{transfer.departmentName}</TableCell>
-                        <TableCell>{transfer.position}</TableCell>
-                        <TableCell className="max-w-[200px] truncate">{transfer.description || '无'}</TableCell>
-                        <TableCell>{formatDate(transfer.createdAt)}</TableCell>
-                        <TableCell>{getStatusBadge(transfer.state)}</TableCell>
-                        <TableCell className="text-right">
+                    {paginatedTransfers.map((transfer, index) => (
+                      <TableRow 
+                        key={transfer.id} 
+                        className={`hover:bg-gray-50 ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50/30'}`}
+                      >
+                        <TableCell className="font-medium border-b border-gray-100">
+                          <div className="flex items-center">
+                            <User className="h-4 w-4 mr-2 text-blue-500" />
+                            {transfer.employeeName}
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-gray-600 border-b border-gray-100">
+                          <div className="flex items-center">
+                            <Building className="h-4 w-4 mr-2 text-gray-400" />
+                            {transfer.oldDepartmentName}
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-gray-600 border-b border-gray-100">
+                          <div className="flex items-center">
+                            <Briefcase className="h-4 w-4 mr-2 text-gray-400" />
+                            {transfer.oldPosition}
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-gray-800 font-medium border-b border-gray-100">
+                          <div className="flex items-center">
+                            <Building className="h-4 w-4 mr-2 text-blue-500" />
+                            {transfer.departmentName}
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-gray-800 font-medium border-b border-gray-100">
+                          <div className="flex items-center">
+                            <Briefcase className="h-4 w-4 mr-2 text-blue-500" />
+                            {transfer.position}
+                          </div>
+                        </TableCell>
+                        <TableCell className="max-w-[200px] truncate text-gray-600 border-b border-gray-100">
+                          {transfer.description ? (
+                            <div className="flex items-center">
+                              <FileText className="h-4 w-4 mr-2 text-gray-400 flex-shrink-0" />
+                              <span className="truncate">{transfer.description}</span>
+                            </div>
+                          ) : '无'}
+                        </TableCell>
+                        <TableCell className="text-gray-600 border-b border-gray-100">
+                          <div className="flex items-center">
+                            <Calendar className="h-4 w-4 mr-2 text-gray-400" />
+                            {formatDate(transfer.createdAt)}
+                          </div>
+                        </TableCell>
+                        <TableCell className="border-b border-gray-100">{getStatusBadge(transfer.state)}</TableCell>
+                        <TableCell className="text-right border-b border-gray-100">
                           {transfer.state === '待审批' ? (
                             <div className="flex justify-end gap-2">
                               <Button 
@@ -399,7 +441,7 @@ export default function TransfersPage() {
               </div>
             )}
           </CardContent>
-          <CardFooter className="bg-gray-50 border-t border-gray-100 px-6 py-3 flex flex-col sm:flex-row gap-4 justify-between items-center">
+          <CardFooter className="bg-white border-t border-gray-100 px-6 py-3 flex flex-col sm:flex-row gap-4 justify-between items-center">
             <div className="flex items-center gap-2 text-sm text-gray-500">
               <span>每页显示:</span>
               <Select value={String(itemsPerPage)} onValueChange={handleItemsPerPageChange}>
@@ -459,7 +501,7 @@ export default function TransfersPage() {
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label className="text-gray-500 text-sm">员工姓名</Label>
-                  <div className="flex items-center">
+                  <div className="flex items-center p-2 bg-gray-50 rounded-md">
                     <User className="h-4 w-4 mr-2 text-blue-500" />
                     <span className="font-medium">{selectedTransfer.employeeName}</span>
                   </div>
@@ -467,7 +509,7 @@ export default function TransfersPage() {
                 
                 <div className="space-y-2">
                   <Label className="text-gray-500 text-sm">申请日期</Label>
-                  <div className="flex items-center">
+                  <div className="flex items-center p-2 bg-gray-50 rounded-md">
                     <Calendar className="h-4 w-4 mr-2 text-blue-500" />
                     <span>{formatDate(selectedTransfer.createdAt)}</span>
                   </div>
@@ -475,7 +517,7 @@ export default function TransfersPage() {
                 
                 <div className="space-y-2">
                   <Label className="text-gray-500 text-sm">原部门</Label>
-                  <div className="flex items-center">
+                  <div className="flex items-center p-2 bg-gray-50 rounded-md">
                     <Building className="h-4 w-4 mr-2 text-gray-500" />
                     <span>{selectedTransfer.oldDepartmentName}</span>
                   </div>
@@ -483,7 +525,7 @@ export default function TransfersPage() {
                 
                 <div className="space-y-2">
                   <Label className="text-gray-500 text-sm">原职位</Label>
-                  <div className="flex items-center">
+                  <div className="flex items-center p-2 bg-gray-50 rounded-md">
                     <Briefcase className="h-4 w-4 mr-2 text-gray-500" />
                     <span>{selectedTransfer.oldPosition}</span>
                   </div>
@@ -491,7 +533,7 @@ export default function TransfersPage() {
                 
                 <div className="space-y-2">
                   <Label className="text-gray-500 text-sm">新部门</Label>
-                  <div className="flex items-center">
+                  <div className="flex items-center p-2 bg-gray-50 rounded-md">
                     <Building className="h-4 w-4 mr-2 text-green-500" />
                     <span className="font-medium text-green-700">{selectedTransfer.departmentName}</span>
                   </div>
@@ -499,7 +541,7 @@ export default function TransfersPage() {
                 
                 <div className="space-y-2">
                   <Label className="text-gray-500 text-sm">新职位</Label>
-                  <div className="flex items-center">
+                  <div className="flex items-center p-2 bg-gray-50 rounded-md">
                     <Briefcase className="h-4 w-4 mr-2 text-green-500" />
                     <span className="font-medium text-green-700">{selectedTransfer.position}</span>
                   </div>
@@ -507,7 +549,7 @@ export default function TransfersPage() {
                 
                 <div className="space-y-2">
                   <Label className="text-gray-500 text-sm">申请状态</Label>
-                  <div>{getStatusBadge(selectedTransfer.state)}</div>
+                  <div className="p-2">{getStatusBadge(selectedTransfer.state)}</div>
                 </div>
               </div>
               
@@ -527,6 +569,7 @@ export default function TransfersPage() {
                     placeholder="请输入审批意见（可选）"
                     value={approvalReason}
                     onChange={(e) => setApprovalReason(e.target.value)}
+                    className="border-gray-200 focus:border-blue-400"
                   />
                 </div>
               )}
@@ -554,6 +597,7 @@ export default function TransfersPage() {
                   variant="outline" 
                   onClick={() => setIsApprovalDialogOpen(false)}
                   disabled={processingAction}
+                  className="border-gray-200"
                 >
                   取消
                 </Button>
@@ -571,6 +615,7 @@ export default function TransfersPage() {
                 <Button 
                   onClick={handleApprove}
                   disabled={processingAction}
+                  className="bg-blue-600 hover:bg-blue-700"
                 >
                   {processingAction ? (
                     <>
@@ -586,7 +631,7 @@ export default function TransfersPage() {
                 </Button>
               </>
             ) : (
-              <Button onClick={() => setIsApprovalDialogOpen(false)}>
+              <Button onClick={() => setIsApprovalDialogOpen(false)} className="bg-blue-600 hover:bg-blue-700">
                 关闭
               </Button>
             )}
@@ -609,33 +654,67 @@ export default function TransfersPage() {
           
           {selectedTransfer && (
             <div className="space-y-4">
-              <div className="p-3 bg-gray-50 rounded-md border border-gray-200">
-                <div className="flex justify-between items-center mb-2">
-                  <span className="text-sm font-medium">{selectedTransfer.employeeName}</span>
+              <div className="p-4 bg-gray-50 rounded-md border border-gray-200">
+                <div className="flex justify-between items-center mb-3">
+                  <div className="flex items-center">
+                    <User className="h-4 w-4 mr-2 text-gray-600" />
+                    <span className="font-medium">{selectedTransfer.employeeName}</span>
+                  </div>
                   <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200">
                     待审批
                   </Badge>
                 </div>
-                <div className="flex items-center text-sm text-gray-600 mb-1">
-                  <Building className="h-3 w-3 mr-1" />
-                  {selectedTransfer.oldDepartmentName}
-                  <ArrowRight className="h-3 w-3 mx-1" />
-                  {selectedTransfer.departmentName}
+                
+                <div className="grid grid-cols-2 gap-3 text-sm">
+                  <div>
+                    <p className="text-gray-500 mb-1">原部门</p>
+                    <div className="flex items-center">
+                      <Building className="h-3.5 w-3.5 mr-1 text-gray-500" />
+                      <span className="text-gray-700">{selectedTransfer.oldDepartmentName}</span>
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <p className="text-gray-500 mb-1">原职位</p>
+                    <div className="flex items-center">
+                      <Briefcase className="h-3.5 w-3.5 mr-1 text-gray-500" />
+                      <span className="text-gray-700">{selectedTransfer.oldPosition}</span>
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <p className="text-gray-500 mb-1">新部门</p>
+                    <div className="flex items-center">
+                      <Building className="h-3.5 w-3.5 mr-1 text-green-500" />
+                      <span className="text-gray-700 font-medium">{selectedTransfer.departmentName}</span>
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <p className="text-gray-500 mb-1">新职位</p>
+                    <div className="flex items-center">
+                      <Briefcase className="h-3.5 w-3.5 mr-1 text-green-500" />
+                      <span className="text-gray-700 font-medium">{selectedTransfer.position}</span>
+                    </div>
+                  </div>
                 </div>
-                <div className="flex items-center text-sm text-gray-600">
-                  <Briefcase className="h-3 w-3 mr-1" />
-                  新职位: {selectedTransfer.position}
-                </div>
+                
+                {selectedTransfer.description && (
+                  <div className="mt-3 pt-3 border-t border-gray-200">
+                    <p className="text-gray-500 mb-1">申请说明</p>
+                    <p className="text-gray-600 text-sm">{selectedTransfer.description}</p>
+                  </div>
+                )}
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="rejectReason" className="text-red-600">拒绝原因 *</Label>
+                <Label htmlFor="rejectReason" className="text-red-600">拒绝原因 <span className="text-red-500">*</span></Label>
                 <Input
                   id="rejectReason"
                   placeholder="请输入拒绝该申请的具体原因"
                   value={rejectReason}
                   onChange={(e) => setRejectReason(e.target.value)}
-                  className="border-red-200 focus:border-red-400 focus:ring-red-400"
+                  className="border-gray-200 focus:border-red-400 focus:ring-red-400"
                 />
                 <p className="text-xs text-gray-500">
                   请提供明确的拒绝理由，以便申请人了解原因
@@ -663,6 +742,7 @@ export default function TransfersPage() {
               variant="outline" 
               onClick={() => setIsRejectDialogOpen(false)}
               disabled={processingAction}
+              className="border-gray-200"
             >
               取消
             </Button>
@@ -670,6 +750,7 @@ export default function TransfersPage() {
               variant="destructive"
               onClick={handleReject}
               disabled={processingAction || !rejectReason.trim()}
+              className="bg-red-600 hover:bg-red-700"
             >
               {processingAction ? (
                 <>
