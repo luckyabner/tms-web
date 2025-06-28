@@ -1,352 +1,359 @@
-'use client';
+import { Badge } from "@/components/ui/badge";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { getEmployeeDepartmentHistory } from "@/lib/services/departmentService";
+import { getEmployeeById } from "@/lib/services/employeeService";
+import {
+  BarChart3,
+  Building,
+  CalendarDays,
+  Clock,
+  GraduationCap,
+  MapPin,
+  Phone,
+  Target,
+  TrendingUp,
+  User,
+} from "lucide-react";
 
-import { useState, useEffect } from 'react';
-import { 
-  User, Phone, Mail, Calendar, GraduationCap, Briefcase, 
-  Award, UserCheck, Building, ChevronLeft, UserCog 
-} from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { getEmployeeById } from '@/lib/services/employeeService';
+export default async function EmployeeDetailPage({ params }) {
+  const { id } = params;
+  const employee = await getEmployeeById(id);
+  const departmentHistory = await getEmployeeDepartmentHistory(id);
 
-export default function EmployeeDetailPage({ params }) {
-  const [employee, setEmployee] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  // 格式化日期
+  const formatDate = (dateString) => {
+    return new Date(dateString).toLocaleDateString("zh-CN", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+  };
 
-  useEffect(() => {
-    async function fetchEmployeeData() {
-      setLoading(true);
-      try {
-        const data = await getEmployeeById(params.id);
-        setEmployee(data);
-      } catch (err) {
-        console.error('获取员工数据失败:', err);
-        setError('获取员工数据失败，请稍后重试');
-      } finally {
-        setLoading(false);
-      }
+  // 计算工龄
+  const calculateWorkYears = (hireDate) => {
+    const years = new Date().getFullYear() - new Date(hireDate).getFullYear();
+    return years;
+  };
+
+  // 状态颜色映射
+  const getStatusColor = (status) => {
+    switch (status) {
+      case "在职":
+        return "success";
+      case "离职":
+        return "destructive";
+      case "已通过":
+        return "success";
+      case "待审核":
+        return "warning";
+      case "已拒绝":
+        return "destructive";
+      default:
+        return "secondary";
     }
+  };
 
-    fetchEmployeeData();
-  }, [params.id]);
-
-  if (loading) {
-    return (
-      <div className="p-6 flex justify-center items-center min-h-[60vh]">
-        <div className="flex flex-col items-center space-y-4">
-          <div className="w-12 h-12 rounded-full border-4 border-green-200 border-t-green-600 animate-spin"></div>
-          <p className="text-green-600 font-medium">加载员工数据中...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="p-6">
-        <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
-          <p className="text-red-600">{error}</p>
-          <Button variant="outline" className="mt-4" onClick={() => window.history.back()}>
-            <ChevronLeft className="h-4 w-4 mr-2" />
-            返回
-          </Button>
-        </div>
-      </div>
-    );
-  }
-
-  if (!employee) {
-    return (
-      <div className="p-6">
-        <div className="bg-amber-50 border border-amber-200 rounded-lg p-6 text-center">
-          <p className="text-amber-600">未找到员工信息</p>
-          <Button variant="outline" className="mt-4" onClick={() => window.history.back()}>
-            <ChevronLeft className="h-4 w-4 mr-2" />
-            返回
-          </Button>
-        </div>
-      </div>
-    );
-  }
-
-  // 模拟员工的工作经历数据
-  const workHistory = [
-    { 
-      id: 1, 
-      department: '研发部', 
-      position: '初级工程师', 
-      startDate: '2023-01-01', 
-      endDate: '2023-06-30', 
-      description: '负责前端开发工作'
-    },
-    { 
-      id: 2, 
-      department: '研发部', 
-      position: '中级工程师', 
-      startDate: '2023-07-01', 
-      endDate: null, 
-      description: '负责核心模块开发和维护'
-    },
-  ];
-
-  // 模拟员工的项目经历数据
-  const projectHistory = [
-    { 
-      id: 1, 
-      name: '人力资源管理系统', 
-      role: '前端开发', 
-      startDate: '2023-01-15', 
-      endDate: '2023-05-20',
-      status: '已完成'
-    },
-    { 
-      id: 2, 
-      name: '绩效考核平台', 
-      role: '全栈开发', 
-      startDate: '2023-06-01', 
-      endDate: null,
-      status: '进行中'
-    },
-  ];
-
-  // 模拟员工的绩效历史数据
-  const performanceHistory = [
-    { 
-      id: 1, 
-      name: '2023年Q1季度考核', 
-      score: 85, 
-      date: '2023-03-31',
-      evaluator: '张经理',
-      comment: '表现良好，但需要提高沟通能力'
-    },
-    { 
-      id: 2, 
-      name: '2023年Q2季度考核', 
-      score: 92, 
-      date: '2023-06-30',
-      evaluator: '张经理',
-      comment: '表现优秀，沟通能力有明显提升'
-    },
-  ];
+  // 员工类型颜色映射
+  const getEmpTypeColor = (empType) => {
+    switch (empType) {
+      case "管理员":
+        return "purple";
+      case "HR":
+        return "blue";
+      case "部门负责人":
+        return "warning";
+      case "普通用户":
+        return "secondary";
+      default:
+        return "outline";
+    }
+  };
 
   return (
-    <div className="p-6 space-y-6">
-      {/* 返回按钮 */}
-      <div>
-        <Button variant="outline" onClick={() => window.history.back()} className="mb-4">
-          <ChevronLeft className="h-4 w-4 mr-2" />
-          返回员工列表
-        </Button>
+    <div className="container mx-auto space-y-6 p-6">
+      {/* 页面标题 */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">员工详情</h1>
+          <p className="text-muted-foreground">查看员工的详细信息和历史记录</p>
+        </div>
+        <div className="flex items-center space-x-2">
+          <Badge variant={getStatusColor(employee.status)}>
+            {employee.status}
+          </Badge>
+          <Badge variant={getEmpTypeColor(employee.empType)}>
+            {employee.empType}
+          </Badge>
+        </div>
       </div>
 
-      {/* 员工基本信息卡片 */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <Card className="lg:col-span-1">
-          <CardHeader className="bg-green-50 border-b border-green-100">
-            <CardTitle className="flex items-center text-green-800">
-              <User className="h-5 w-5 mr-2 text-green-600" />
-              员工信息
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-6">
-            <div className="flex flex-col items-center mb-6">
-              <div className="w-24 h-24 rounded-full bg-green-100 text-green-600 flex items-center justify-center text-4xl font-bold mb-3">
-                {employee.name.charAt(0)}
-              </div>
-              <h2 className="text-xl font-bold">{employee.name}</h2>
-              <p className="text-gray-500">{employee.position || '未设置职位'}</p>
-              <Badge className={
-                employee.status === '在职' ? 'bg-green-100 text-green-800 mt-2' :
-                employee.status === '离职' ? 'bg-red-100 text-red-800 mt-2' :
-                'bg-yellow-100 text-yellow-800 mt-2'
-              }>
-                {employee.status}
-              </Badge>
-            </div>
-
-            <div className="space-y-4">
-              <div className="flex items-start">
-                <Phone className="h-5 w-5 text-green-600 mr-3 mt-0.5" />
-                <div>
-                  <p className="text-sm text-gray-500">联系电话</p>
-                  <p>{employee.phone}</p>
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+        {/* 基本信息卡片 */}
+        <div className="lg:col-span-1">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <User className="h-5 w-5" />
+                基本信息
+              </CardTitle>
+              <CardDescription>员工的基础个人信息</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {/* 头像占位 */}
+              <div className="flex justify-center">
+                <div className="flex h-24 w-24 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-purple-600 text-2xl font-bold text-white">
+                  {employee.name.charAt(0)}
                 </div>
               </div>
 
-              <div className="flex items-start">
-                <Building className="h-5 w-5 text-green-600 mr-3 mt-0.5" />
-                <div>
-                  <p className="text-sm text-gray-500">所属部门</p>
-                  <p>{employee.department || '未分配'}</p>
+              <div className="text-center">
+                <h3 className="text-xl font-semibold">{employee.name}</h3>
+                <p className="text-muted-foreground">{employee.position}</p>
+              </div>
+
+              <Separator />
+
+              <div className="space-y-3">
+                <div className="flex items-center gap-3">
+                  <User className="text-muted-foreground h-4 w-4" />
+                  <span className="text-sm">性别: {employee.gender}</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <Phone className="text-muted-foreground h-4 w-4" />
+                  <span className="text-sm">{employee.phone}</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <CalendarDays className="text-muted-foreground h-4 w-4" />
+                  <span className="text-sm">
+                    生日: {formatDate(employee.birthDate)}
+                  </span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <GraduationCap className="text-muted-foreground h-4 w-4" />
+                  <span className="text-sm">
+                    {employee.education} · {employee.school}
+                  </span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <Clock className="text-muted-foreground h-4 w-4" />
+                  <span className="text-sm">
+                    入职: {formatDate(employee.hireDate)} (
+                    {calculateWorkYears(employee.hireDate)}年)
+                  </span>
                 </div>
               </div>
 
-              <div className="flex items-start">
-                <Calendar className="h-5 w-5 text-green-600 mr-3 mt-0.5" />
-                <div>
-                  <p className="text-sm text-gray-500">入职日期</p>
-                  <p>{employee.hireDate}</p>
-                </div>
-              </div>
-
-              <div className="flex items-start">
-                <GraduationCap className="h-5 w-5 text-green-600 mr-3 mt-0.5" />
-                <div>
-                  <p className="text-sm text-gray-500">学历</p>
-                  <p>{employee.education}</p>
-                </div>
-              </div>
-
-              {employee.school && (
-                <div className="flex items-start">
-                  <Award className="h-5 w-5 text-green-600 mr-3 mt-0.5" />
+              {employee.description && (
+                <>
+                  <Separator />
                   <div>
-                    <p className="text-sm text-gray-500">毕业院校</p>
-                    <p>{employee.school}</p>
+                    <h4 className="mb-2 text-sm font-medium">个人描述</h4>
+                    <p className="text-muted-foreground text-sm">
+                      {employee.description}
+                    </p>
                   </div>
-                </div>
+                </>
               )}
-            </div>
+            </CardContent>
+          </Card>
+        </div>
 
-            <div className="mt-6 pt-6 border-t border-gray-100">
-              <Button className="w-full bg-green-600 hover:bg-green-700" asChild>
-                <a href={`/executive/transfers/new?employeeId=${employee.id}`}>
-                  <UserCog className="mr-2 h-4 w-4" />
-                  发起人事调动
-                </a>
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+        {/* 详细信息和历史记录 */}
+        <div className="lg:col-span-2">
+          <Tabs defaultValue="department" className="space-y-4">
+            <TabsList className="grid w-full grid-cols-4">
+              <TabsTrigger
+                value="department"
+                className="flex items-center gap-2"
+              >
+                <Building className="h-4 w-4" />
+                部门历史
+              </TabsTrigger>
+              <TabsTrigger
+                value="performance"
+                className="flex items-center gap-2"
+              >
+                <TrendingUp className="h-4 w-4" />
+                绩效历史
+              </TabsTrigger>
+              <TabsTrigger value="projects" className="flex items-center gap-2">
+                <Target className="h-4 w-4" />
+                项目经历
+              </TabsTrigger>
+              <TabsTrigger
+                value="analytics"
+                className="flex items-center gap-2"
+              >
+                <BarChart3 className="h-4 w-4" />
+                数据分析
+              </TabsTrigger>
+            </TabsList>
 
-        <Card className="lg:col-span-2">
-          <CardHeader className="bg-green-50 border-b border-green-100 px-6 py-4">
-            <Tabs defaultValue="work">
-              <TabsList className="grid grid-cols-3">
-                <TabsTrigger value="work" className="data-[state=active]:bg-green-100 data-[state=active]:text-green-800">
-                  <Briefcase className="h-4 w-4 mr-2" />
-                  工作履历
-                </TabsTrigger>
-                <TabsTrigger value="projects" className="data-[state=active]:bg-green-100 data-[state=active]:text-green-800">
-                  <Calendar className="h-4 w-4 mr-2" />
-                  项目经历
-                </TabsTrigger>
-                <TabsTrigger value="performance" className="data-[state=active]:bg-green-100 data-[state=active]:text-green-800">
-                  <Award className="h-4 w-4 mr-2" />
-                  绩效记录
-                </TabsTrigger>
-              </TabsList>
-            </Tabs>
-          </CardHeader>
-          <CardContent className="p-0">
-            <Tabs defaultValue="work">
-              <TabsContent value="work" className="p-6 pt-4">
-                <div className="space-y-6">
-                  {workHistory.length > 0 ? (
-                    workHistory.map((work) => (
-                      <div key={work.id} className="border-l-2 border-green-500 pl-4 pb-6 relative">
-                        <div className="absolute w-3 h-3 bg-green-500 rounded-full -left-[7px] top-1"></div>
-                        <div className="flex justify-between">
-                          <div>
-                            <h3 className="font-medium">{work.department} - {work.position}</h3>
-                            <p className="text-sm text-gray-500">{work.description}</p>
-                          </div>
-                          <div className="text-right">
-                            <p className="text-sm">{work.startDate} ~ {work.endDate || '至今'}</p>
-                            <Badge variant="outline" className="mt-1">
-                              {work.endDate ? '已结束' : '当前'}
+            {/* 部门变更历史 */}
+            <TabsContent value="department">
+              <Card>
+                <CardHeader>
+                  <CardTitle>部门变更历史</CardTitle>
+                  <CardDescription>
+                    员工的部门调动和职位变更记录
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {departmentHistory.map((record, index) => (
+                      <div
+                        key={record.id}
+                        className="flex items-start space-x-4 rounded-lg border p-4"
+                      >
+                        <div className="flex-shrink-0">
+                          <div className="mt-2 h-3 w-3 rounded-full bg-blue-500"></div>
+                          {index < departmentHistory.length - 1 && (
+                            <div className="mt-2 ml-1 h-16 w-0.5 bg-gray-200"></div>
+                          )}
+                        </div>
+                        <div className="flex-1 space-y-2">
+                          <div className="flex items-center justify-between">
+                            <h4 className="font-medium">{record.position}</h4>
+                            <Badge variant={getStatusColor(record.state)}>
+                              {record.state}
                             </Badge>
+                          </div>
+                          <p className="text-muted-foreground text-sm">
+                            {record.description}
+                          </p>
+                          <div className="text-muted-foreground flex items-center gap-4 text-xs">
+                            <span>创建: {formatDate(record.createdAt)}</span>
+                            <span>更新: {formatDate(record.updatedAt)}</span>
+                            {record.isCurrent && (
+                              <Badge variant="success" className="text-xs">
+                                当前职位
+                              </Badge>
+                            )}
                           </div>
                         </div>
                       </div>
-                    ))
-                  ) : (
-                    <div className="text-center py-10 text-gray-500">
-                      暂无工作履历记录
-                    </div>
-                  )}
-                </div>
-              </TabsContent>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
 
-              <TabsContent value="projects" className="p-6 pt-4">
-                <div className="space-y-6">
-                  {projectHistory.length > 0 ? (
-                    projectHistory.map((project) => (
-                      <Card key={project.id} className="border border-gray-200">
-                        <CardHeader className="p-4 pb-2">
-                          <div className="flex justify-between items-start">
-                            <div>
-                              <CardTitle className="text-base">{project.name}</CardTitle>
-                              <CardDescription>角色: {project.role}</CardDescription>
-                            </div>
-                            <Badge className={
-                              project.status === '已完成' ? 'bg-green-100 text-green-800' :
-                              project.status === '进行中' ? 'bg-blue-100 text-blue-800' :
-                              'bg-amber-100 text-amber-800'
-                            }>
-                              {project.status}
-                            </Badge>
-                          </div>
-                        </CardHeader>
-                        <CardContent className="p-4 pt-0 text-sm">
-                          <p className="text-gray-500">
-                            {project.startDate} ~ {project.endDate || '至今'}
-                          </p>
-                        </CardContent>
-                      </Card>
-                    ))
-                  ) : (
-                    <div className="text-center py-10 text-gray-500">
-                      暂无项目经历记录
+            {/* 绩效历史 - 预留区域 */}
+            <TabsContent value="performance">
+              <Card>
+                <CardHeader>
+                  <CardTitle>绩效评估历史</CardTitle>
+                  <CardDescription>
+                    员工的绩效评估记录和趋势分析
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex h-64 items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-gray-50">
+                    <div className="space-y-2 text-center">
+                      <TrendingUp className="mx-auto h-12 w-12 text-gray-400" />
+                      <p className="font-medium text-gray-500">
+                        绩效数据开发中
+                      </p>
+                      <p className="text-sm text-gray-400">
+                        将展示绩效评分趋势图、评估记录时间线等
+                      </p>
                     </div>
-                  )}
-                </div>
-              </TabsContent>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
 
-              <TabsContent value="performance" className="p-6 pt-4">
-                <div className="space-y-6">
-                  {performanceHistory.length > 0 ? (
-                    performanceHistory.map((performance) => (
-                      <Card key={performance.id} className="border border-gray-200">
-                        <CardHeader className="p-4 pb-2">
-                          <div className="flex justify-between items-start">
-                            <CardTitle className="text-base">{performance.name}</CardTitle>
-                            <div className="flex items-center">
-                              <span className={`text-lg font-bold ${
-                                performance.score >= 90 ? 'text-green-600' :
-                                performance.score >= 80 ? 'text-blue-600' :
-                                performance.score >= 70 ? 'text-amber-600' :
-                                'text-red-600'
-                              }`}>
-                                {performance.score}
-                              </span>
-                              <span className="text-sm text-gray-500 ml-1">分</span>
-                            </div>
-                          </div>
-                          <CardDescription>评估日期: {performance.date}</CardDescription>
-                        </CardHeader>
-                        <CardContent className="p-4 pt-0">
-                          <div className="flex justify-between items-start">
-                            <p className="text-sm">{performance.comment}</p>
-                            <Badge variant="outline">评估人: {performance.evaluator}</Badge>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))
-                  ) : (
-                    <div className="text-center py-10 text-gray-500">
-                      暂无绩效记录
+            {/* 项目经历 - 预留区域 */}
+            <TabsContent value="projects">
+              <Card>
+                <CardHeader>
+                  <CardTitle>项目参与经历</CardTitle>
+                  <CardDescription>
+                    员工参与的项目列表和贡献度分析
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex h-64 items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-gray-50">
+                    <div className="space-y-2 text-center">
+                      <Target className="mx-auto h-12 w-12 text-gray-400" />
+                      <p className="font-medium text-gray-500">
+                        项目数据开发中
+                      </p>
+                      <p className="text-sm text-gray-400">
+                        将展示项目参与时间线、角色分工、贡献度等
+                      </p>
                     </div>
-                  )}
-                </div>
-              </TabsContent>
-            </Tabs>
-          </CardContent>
-        </Card>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            {/* 数据分析 - 预留区域 */}
+            <TabsContent value="analytics">
+              <Card>
+                <CardHeader>
+                  <CardTitle>数据可视化分析</CardTitle>
+                  <CardDescription>
+                    员工综合数据的图表化展示和分析
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                    {/* 工作年限统计 */}
+                    <div className="rounded-lg border bg-gradient-to-r from-blue-50 to-indigo-50 p-4">
+                      <div className="mb-2 flex items-center justify-between">
+                        <h4 className="font-medium text-blue-900">工作年限</h4>
+                        <Clock className="h-5 w-5 text-blue-600" />
+                      </div>
+                      <div className="text-2xl font-bold text-blue-700">
+                        {calculateWorkYears(employee.hireDate)} 年
+                      </div>
+                      <p className="text-sm text-blue-600">
+                        入职于 {new Date(employee.hireDate).getFullYear()} 年
+                      </p>
+                    </div>
+
+                    {/* 部门变更次数 */}
+                    <div className="rounded-lg border bg-gradient-to-r from-green-50 to-emerald-50 p-4">
+                      <div className="mb-2 flex items-center justify-between">
+                        <h4 className="font-medium text-green-900">部门变更</h4>
+                        <Building className="h-5 w-5 text-green-600" />
+                      </div>
+                      <div className="text-2xl font-bold text-green-700">
+                        {departmentHistory.length} 次
+                      </div>
+                      <p className="text-sm text-green-600">
+                        当前: {employee.position}
+                      </p>
+                    </div>
+
+                    {/* 预留图表区域 */}
+                    <div className="flex h-48 items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 md:col-span-2">
+                      <div className="space-y-2 text-center">
+                        <BarChart3 className="mx-auto h-12 w-12 text-gray-400" />
+                        <p className="font-medium text-gray-500">
+                          详细图表开发中
+                        </p>
+                        <p className="text-sm text-gray-400">
+                          将展示绩效趋势图、项目参与度、能力雷达图等
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
+        </div>
       </div>
     </div>
   );
-} 
+}

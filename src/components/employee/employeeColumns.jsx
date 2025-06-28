@@ -59,8 +59,8 @@ export const employeeColumns = [
     header: "员工类型",
   },
   {
-    accessorKey: "department",
-    header: "部门",
+    accessorKey: "position",
+    header: "职位",
   },
   {
     accessorKey: "hireDate",

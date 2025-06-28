@@ -1,8 +1,8 @@
-import { employeeColumns } from "@/components/employee/employeeColoums";
+import { employeeColumns } from "@/components/employee/employeeColumns";
 import { BasicTable } from "@/components/shared/tables/BasicTable";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { StatCard } from "@/components/ui/stat-card";
-import { getAllEmployees } from "@/lib/data/employee";
+import { getAllEmployees } from "@/lib/services/employeeService";
 import {
   Building2,
   Calendar,
@@ -15,7 +15,6 @@ import React from "react";
 
 export default async function EmployeesPage() {
   const employees = await getAllEmployees();
-  console.log("员工数据:", employees);
 
   // 计算统计数据
   const totalEmployees = employees.length;
@@ -23,9 +22,9 @@ export default async function EmployeesPage() {
     (emp) => emp.status === "在职"
   ).length;
 
-  // 按员工类型分组
+  // 按员工职位分组
   const empTypeStats = employees.reduce((acc, emp) => {
-    acc[emp.empType] = (acc[emp.empType] || 0) + 1;
+    acc[emp.position] = (acc[emp.position] || 0) + 1;
     return acc;
   }, {});
 
@@ -94,7 +93,7 @@ export default async function EmployeesPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Building2 className="h-5 w-5" />
-              员工类型分布
+              员工职位分布
             </CardTitle>
           </CardHeader>
           <CardContent>
