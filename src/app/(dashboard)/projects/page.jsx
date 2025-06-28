@@ -218,7 +218,7 @@ export default function HrProjectsPage() {
 
   // 查看项目详情
   const handleViewProject = (id) => {
-    router.push(`/project/${id}`);
+    router.push(`/projects/${id}`);
   };
 
   return (
