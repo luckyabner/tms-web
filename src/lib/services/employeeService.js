@@ -373,22 +373,35 @@ export const getAllTransfers = async () => {
         ? department.name || department.dep_name
         : `部门ID: ${transfer.depId}`;
       const newPosition = transfer.position || "";
-      // 查找原部门/职位（该员工isCurrent=0的最新一条）
+      // 查找原部门/职位（该员工当前的部门和职位）
       let oldEmpDep = null;
-      const empDeps = allEmpDeps.filter(
+      // 首先尝试找到当前的部门和职位
+      const currentEmpDeps = allEmpDeps.filter(
         (ed) =>
           (ed.empId === transfer.empId || ed.emp_id === transfer.empId) &&
-          (ed.isCurrent === 0 || ed.is_current === 0)
+          (ed.isCurrent === 1 || ed.is_current === 1)
       );
-      if (empDeps.length > 0) {
-        // 取最新的（createdAt最大）
-        oldEmpDep = empDeps.reduce((a, b) =>
-          new Date(a.updatedAt || a.updated_at || a.createdAt || a.created_at) >
-          new Date(b.updatedAt || b.updated_at || b.createdAt || b.created_at)
-            ? a
-            : b
+      
+      if (currentEmpDeps.length > 0) {
+        oldEmpDep = currentEmpDeps[0]; // 使用当前的部门作为"原部门"
+      } else {
+        // 如果没有当前部门，则尝试找到最新的历史记录
+        const empDeps = allEmpDeps.filter(
+          (ed) =>
+            (ed.empId === transfer.empId || ed.emp_id === transfer.empId) &&
+            (ed.isCurrent === 0 || ed.is_current === 0)
         );
+        if (empDeps.length > 0) {
+          // 取最新的（createdAt最大）
+          oldEmpDep = empDeps.reduce((a, b) =>
+            new Date(a.updatedAt || a.updated_at || a.createdAt || a.created_at) >
+            new Date(b.updatedAt || b.updated_at || b.createdAt || b.created_at)
+              ? a
+              : b
+          );
+        }
       }
+      
       let oldDepartmentName = "";
       let oldPosition = "";
       if (oldEmpDep) {
@@ -523,15 +536,37 @@ export const getPendingTransfers = async () => {
  */
 export const approveTransfer = async (id, approvalData) => {
   try {
-    const response = await api.put(`/employee-departments/${id}`, approvalData);
+    console.log(`审批人事调动申请ID=${id}, 数据:`, approvalData);
+    
+    // 确保所有字段使用正确的命名约定
+    const apiData = {
+      state: approvalData.state,
+      approverId: approvalData.approverId,
+      description: approvalData.description || '',
+      position: approvalData.position || '',
+      // 将isCurrent转换为is_current，确保是数字类型
+      is_current: typeof approvalData.isCurrent === 'boolean' 
+        ? (approvalData.isCurrent ? 1 : 0) 
+        : (approvalData.isCurrent || 0),
+      // 添加必要的字段
+      superior_id: approvalData.superiorId || null,
+      dep_id: approvalData.depId || null
+    };
+    
+    console.log('格式化后的API数据:', apiData);
+    
+    const response = await api.put(`/employee-departments/${id}`, apiData);
 
-    if (response.status === 200) {
+    if (response.status >= 200 && response.status < 300) {
       return true;
     } else {
       throw new Error("审批失败");
     }
   } catch (error) {
     console.error(`审批人事调动申请ID=${id}失败:`, error);
+    if (error.response) {
+      console.error('错误详情:', error.response.status, error.response.data);
+    }
     throw error;
   }
 };

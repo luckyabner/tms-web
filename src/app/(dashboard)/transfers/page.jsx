@@ -4,48 +4,48 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Pagination } from '@/components/ui/pagination';
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue
 } from '@/components/ui/select';
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow
 } from '@/components/ui/table';
 import { approveTransfer, getAllTransfers } from '@/lib/services/employeeService';
 import { format } from 'date-fns';
 import {
-  AlertCircle,
-  ArrowRight,
-  Briefcase,
-  Building,
-  Calendar,
-  CheckCircle,
-  Clock,
-  FileText,
-  Filter,
-  Loader2,
-  Search,
-  User,
-  UserCog,
-  XCircle
+    AlertCircle,
+    ArrowRight,
+    Briefcase,
+    Building,
+    Calendar,
+    CheckCircle,
+    Clock,
+    FileText,
+    Filter,
+    Loader2,
+    Search,
+    User,
+    UserCog,
+    XCircle
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
@@ -142,8 +142,13 @@ export default function TransfersPage() {
         state: '已通过',
         approverId: 2, // 假设当前登录的人事专员ID为2
         description: approvalReason || selectedTransfer.description,
-        isCurrent: 1 // 设置为当前部门
+        isCurrent: 1, // 设置为当前部门
+        position: selectedTransfer.position, // 确保包含职位信息
+        depId: selectedTransfer.depId, // 确保包含部门ID
+        superiorId: selectedTransfer.superiorId // 确保包含上级ID
       };
+      
+      console.log('发送审批通过数据:', approvalData);
       
       // 发送审批请求
       await approveTransfer(selectedTransfer.id, approvalData);
@@ -401,6 +406,8 @@ export default function TransfersPage() {
                                 className="border-green-500 text-green-600 hover:bg-green-50"
                                 onClick={() => {
                                   setSelectedTransfer(transfer);
+                                  setActionSuccess(null);
+                                  setActionError(null);
                                   setIsApprovalDialogOpen(true);
                                 }}
                               >
@@ -413,6 +420,8 @@ export default function TransfersPage() {
                                 className="border-red-500 text-red-600 hover:bg-red-50"
                                 onClick={() => {
                                   setSelectedTransfer(transfer);
+                                  setActionSuccess(null);
+                                  setActionError(null);
                                   setIsRejectDialogOpen(true);
                                 }}
                               >
@@ -427,6 +436,8 @@ export default function TransfersPage() {
                               className="text-blue-600 hover:bg-blue-50"
                               onClick={() => {
                                 setSelectedTransfer(transfer);
+                                setActionSuccess(null);
+                                setActionError(null);
                                 setIsApprovalDialogOpen(true);
                               }}
                             >

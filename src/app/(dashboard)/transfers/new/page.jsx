@@ -1,17 +1,17 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useSearchParams } from 'next/navigation';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { UserCog, Building, Calendar, ArrowRight, Check, AlertCircle } from 'lucide-react';
-import { getAllEmployees } from '@/lib/services/employeeService';
-import { getAllDepartments } from '@/lib/services/departmentService';
 import api from '@/lib/api';
+import { getAllDepartments } from '@/lib/services/departmentService';
+import { getAllEmployees } from '@/lib/services/employeeService';
+import { AlertCircle, ArrowRight, Building, Calendar, Check, UserCog } from 'lucide-react';
+import { useSearchParams } from 'next/navigation';
+import { useEffect, useState } from 'react';
 
 export default function NewTransferPage() {
   const searchParams = useSearchParams();
@@ -153,17 +153,22 @@ export default function NewTransferPage() {
 
       // 构建请求数据
       const requestData = {
-        ...formData,
         empId: parseInt(formData.empId),
         depId: parseInt(formData.depId),
+        position: formData.position,
         superiorId: formData.superiorId ? parseInt(formData.superiorId) : null,
-        creatorId: parseInt(formData.creatorId)
+        creatorId: parseInt(formData.creatorId),
+        state: formData.state || '待审批',
+        description: formData.description || '',
+        isCurrent: parseInt(formData.isCurrent) || 0
       };
 
+      console.log('提交数据:', requestData);
+      
       // 发送请求
       const response = await api.post('/employee-departments', requestData);
       
-      if (response.status === 200) {
+      if (response.status === 200 || response.status === 201) {
         setSuccess(true);
         // 重置表单
         setFormData({
