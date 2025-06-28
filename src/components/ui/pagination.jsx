@@ -1,6 +1,6 @@
-import React from 'react';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight, MoreHorizontal } from 'lucide-react';
+import React from 'react';
 
 export function Pagination({ 
   currentPage, 
@@ -8,89 +8,84 @@ export function Pagination({
   onPageChange,
   className = ""
 }) {
-  // 计算要显示的页码
-  const getPageNumbers = () => {
-    const pageNumbers = [];
-    
-    // 始终显示第一页
-    pageNumbers.push(1);
-    
-    // 如果当前页大于3，添加省略号
-    if (currentPage > 3) {
-      pageNumbers.push('...');
+  // 如果总页数小于等于1，不显示分页
+  if (totalPages <= 1) return null;
+
+  // 生成页码数组
+  const generatePagination = () => {
+    // 如果总页数小于等于5，显示所有页码
+    if (totalPages <= 5) {
+      return Array.from({ length: totalPages }, (_, i) => i + 1);
     }
-    
-    // 显示当前页前后的页码
-    for (let i = Math.max(2, currentPage - 1); i <= Math.min(totalPages - 1, currentPage + 1); i++) {
-      if (pageNumbers[pageNumbers.length - 1] !== '...' && pageNumbers[pageNumbers.length - 1] !== i - 1) {
-        pageNumbers.push('...');
-      }
-      pageNumbers.push(i);
+
+    // 如果当前页在前3页
+    if (currentPage <= 3) {
+      return [1, 2, 3, 4, 5, "...", totalPages];
     }
-    
-    // 如果当前页小于总页数-2，添加省略号
-    if (currentPage < totalPages - 2 && totalPages > 3) {
-      if (pageNumbers[pageNumbers.length - 1] !== '...') {
-        pageNumbers.push('...');
-      }
+
+    // 如果当前页在后3页
+    if (currentPage >= totalPages - 2) {
+      return [1, "...", totalPages - 4, totalPages - 3, totalPages - 2, totalPages - 1, totalPages];
     }
-    
-    // 如果总页数大于1，始终显示最后一页
-    if (totalPages > 1 && !pageNumbers.includes(totalPages)) {
-      pageNumbers.push(totalPages);
-    }
-    
-    return pageNumbers;
+
+    // 当前页在中间
+    return [1, "...", currentPage - 1, currentPage, currentPage + 1, "...", totalPages];
   };
 
-  const pageNumbers = getPageNumbers();
+  const pages = generatePagination();
 
   return (
     <div className={`flex items-center justify-center space-x-1 ${className}`}>
       <Button
         variant="outline"
         size="icon"
+        className="h-8 w-8"
         onClick={() => onPageChange(Math.max(1, currentPage - 1))}
         disabled={currentPage === 1}
-        className="h-8 w-8"
-        aria-label="上一页"
       >
         <ChevronLeft className="h-4 w-4" />
+        <span className="sr-only">上一页</span>
       </Button>
       
-      {pageNumbers.map((pageNumber, index) => (
-        pageNumber === '...' ? (
+      {pages.map((page, index) => {
+        if (page === "...") {
+          return (
+            <Button
+              key={`ellipsis-${index}`}
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 cursor-default"
+              disabled
+            >
+              <MoreHorizontal className="h-4 w-4" />
+              <span className="sr-only">更多页</span>
+            </Button>
+          );
+        }
+
+        return (
           <Button
-            key={`ellipsis-${index}`}
-            variant="ghost"
+            key={page}
+            variant={currentPage === page ? "default" : "outline"}
             size="icon"
-            disabled
-            className="h-8 w-8 cursor-default"
+            className="h-8 w-8"
+            onClick={() => onPageChange(page)}
           >
-            <MoreHorizontal className="h-4 w-4" />
+            {page}
+            <span className="sr-only">第{page}页</span>
           </Button>
-        ) : (
-          <Button
-            key={pageNumber}
-            variant={currentPage === pageNumber ? "default" : "outline"}
-            size="icon"
-            onClick={() => onPageChange(pageNumber)}
-            className={`h-8 w-8 ${currentPage === pageNumber ? 'bg-blue-600 hover:bg-blue-700' : ''}`}
-          >
-            {pageNumber}
-          </Button>
-        )
-      ))}
+        );
+      })}
       
       <Button
         variant="outline"
         size="icon"
-        onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))}
-        disabled={currentPage === totalPages || totalPages === 0}
         className="h-8 w-8"
-        aria-label="下一页"
+        onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))}
+        disabled={currentPage === totalPages}
       >
         <ChevronRight className="h-4 w-4" />
+        <span className="sr-only">下一页</span>
       </Button>
     </div>
   );
