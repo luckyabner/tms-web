@@ -84,14 +84,6 @@ export const employeeColumns = [
     header: "状态",
   },
   {
-    accessorKey: "createdAt",
-    header: "创建时间",
-  },
-  {
-    accessorKey: "updatedAt",
-    header: "更新时间",
-  },
-  {
     id: "actions",
     enableHiding: false,
     cell: ({ row }) => {
