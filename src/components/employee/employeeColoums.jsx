@@ -114,7 +114,7 @@ export const employeeColumns = [
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() => {
-                window.location.href = `/employee/${employee.id}`;
+                window.location.href = `/employees/${employee.id}`;
               }}
             >
               查看详情

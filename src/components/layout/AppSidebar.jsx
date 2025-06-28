@@ -44,7 +44,7 @@ const hrNav = [
   {
     title: "人事审批",
     icon: UserCog,
-    url: "/hr/transfers",
+    url: "/transfers",
   },
 ];
 
@@ -52,7 +52,7 @@ const leaderNav = [
   {
     title: "工作台",
     icon: LayoutDashboard,
-    url: "/executive/dashboard",
+    url: "/",
   },
   {
     title: "员工信息",
@@ -62,17 +62,17 @@ const leaderNav = [
   {
     title: "部门信息",
     icon: Building,
-    url: "/executive/departments",
+    url: "/departments",
   },
   {
     title: "人事调动",
     icon: UserCog,
-    url: "/executive/transfers/new",
+    url: "/transfers/new",
   },
   {
     title: "数据分析",
     icon: BarChart,
-    url: "/executive/analysis",
+    url: "/analysis",
   },
 ];
 
