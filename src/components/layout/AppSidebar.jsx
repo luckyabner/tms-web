@@ -42,9 +42,9 @@ const hrNav = [
     icon: Briefcase,
   },
   {
-    title: "人事调动",
+    title: "人事审批",
     icon: UserCog,
-    url: "/executive/transfers/new",
+    url: "/hr/transfers",
   },
 ];
 

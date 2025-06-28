@@ -512,4 +512,190 @@ export const getAllDepartments = async () => {
     console.error('获取部门列表失败:', error);
     return [];
   }
+};
+
+/**
+ * 获取所有人事调动申请
+ * @returns {Promise} 返回所有人事调动申请列表
+ */
+export const getAllTransfers = async () => {
+  try {
+    const response = await api.get('/employee-departments');
+    // 处理可能的不同数据格式
+    let transfers = [];
+    if (Array.isArray(response.data)) {
+      transfers = response.data;
+    } else if (response.data && response.data.data && Array.isArray(response.data.data)) {
+      transfers = response.data.data;
+    } else {
+      console.error('未知的API响应格式:', response.data);
+      transfers = [];
+    }
+
+    // 获取所有员工、部门、所有employee_department历史
+    const employees = await getAllEmployees();
+    const departmentsResponse = await api.get('/departments');
+    let departments = [];
+    if (Array.isArray(departmentsResponse.data)) {
+      departments = departmentsResponse.data;
+    } else if (departmentsResponse.data && departmentsResponse.data.data && Array.isArray(departmentsResponse.data.data)) {
+      departments = departmentsResponse.data.data;
+    }
+    // 获取所有employee_department历史（不加is_current参数）
+    let allEmpDeps = [];
+    try {
+      const allEmpDepsResp = await api.get('/employee-departments');
+      if (Array.isArray(allEmpDepsResp.data)) {
+        allEmpDeps = allEmpDepsResp.data;
+      } else if (allEmpDepsResp.data && allEmpDepsResp.data.data && Array.isArray(allEmpDepsResp.data.data)) {
+        allEmpDeps = allEmpDepsResp.data.data;
+      }
+    } catch (e) {
+      allEmpDeps = [];
+    }
+
+    // 处理字段映射，添加员工姓名、部门名称、原部门/职位
+    const processedTransfers = transfers.map(transfer => {
+      const employee = employees.find(emp => emp.id === transfer.empId);
+      const department = departments.find(dept => dept.id === transfer.depId || dept.dep_id === transfer.depId);
+      const creator = employees.find(emp => emp.id === transfer.creatorId);
+      // 新部门/职位
+      const newDepartmentName = department ? (department.name || department.dep_name) : `部门ID: ${transfer.depId}`;
+      const newPosition = transfer.position || '';
+      // 查找原部门/职位（该员工isCurrent=0的最新一条）
+      let oldEmpDep = null;
+      const empDeps = allEmpDeps.filter(ed => (ed.empId === transfer.empId || ed.emp_id === transfer.empId) && (ed.isCurrent === 0 || ed.is_current === 0));
+      if (empDeps.length > 0) {
+        // 取最新的（createdAt最大）
+        oldEmpDep = empDeps.reduce((a, b) => (new Date(a.updatedAt || a.updated_at || a.createdAt || a.created_at) > new Date(b.updatedAt || b.updated_at || b.createdAt || b.created_at) ? a : b));
+      }
+      let oldDepartmentName = '';
+      let oldPosition = '';
+      if (oldEmpDep) {
+        const oldDept = departments.find(dept => dept.id === (oldEmpDep.depId || oldEmpDep.dep_id));
+        oldDepartmentName = oldDept ? (oldDept.name || oldDept.dep_name) : `部门ID: ${oldEmpDep.depId || oldEmpDep.dep_id}`;
+        oldPosition = oldEmpDep.position || '';
+      }
+      // 查找员工当前部门
+      let currentDepartment = null;
+      const empDept = employees.find(emp => emp.id === transfer.empId);
+      if (empDept && empDept.department) {
+        currentDepartment = empDept.department;
+      }
+      return {
+        id: transfer.id,
+        empId: transfer.empId,
+        employeeName: employee ? employee.name : `员工ID: ${transfer.empId}`,
+        depId: transfer.depId,
+        departmentName: newDepartmentName,
+        currentDepartment: currentDepartment || '未分配',
+        position: newPosition,
+        oldDepartmentName: oldDepartmentName || '未知',
+        oldPosition: oldPosition || '未知',
+        superiorId: transfer.superiorId,
+        creatorId: transfer.creatorId,
+        creatorName: creator ? creator.name : `创建者ID: ${transfer.creatorId}`,
+        state: transfer.state || '待审批',
+        approverId: transfer.approverId,
+        description: transfer.description || '',
+        createdAt: transfer.createdAt || transfer.created_at || '',
+        updatedAt: transfer.updatedAt || transfer.updated_at || ''
+      };
+    });
+    return processedTransfers;
+  } catch (error) {
+    console.error('获取人事调动申请失败:', error);
+    throw error;
+  }
+};
+
+/**
+ * 获取待审批的人事调动申请
+ * @returns {Promise} 返回待审批的人事调动申请列表
+ */
+export const getPendingTransfers = async () => {
+  try {
+    const response = await api.get('/employee-departments/pending-transfers');
+    
+    // 处理可能的不同数据格式
+    let transfers = [];
+    
+    if (Array.isArray(response.data)) {
+      transfers = response.data;
+    } else if (response.data && response.data.data && Array.isArray(response.data.data)) {
+      transfers = response.data.data;
+    } else {
+      console.error('未知的API响应格式:', response.data);
+      transfers = [];
+    }
+    
+    // 获取员工数据和部门数据，用于填充名称
+    const employees = await getAllEmployees();
+    const departmentsResponse = await api.get('/departments');
+    let departments = [];
+    
+    if (Array.isArray(departmentsResponse.data)) {
+      departments = departmentsResponse.data;
+    } else if (departmentsResponse.data && departmentsResponse.data.data && Array.isArray(departmentsResponse.data.data)) {
+      departments = departmentsResponse.data.data;
+    }
+    
+    // 处理字段映射，添加员工姓名和部门名称
+    const processedTransfers = transfers.map(transfer => {
+      const employee = employees.find(emp => emp.id === transfer.empId);
+      const department = departments.find(dept => dept.id === transfer.depId || dept.dep_id === transfer.depId);
+      const creator = employees.find(emp => emp.id === transfer.creatorId);
+      
+      // 查找员工当前部门
+      let currentDepartment = null;
+      const empDept = employees.find(emp => emp.id === transfer.empId);
+      if (empDept && empDept.department) {
+        currentDepartment = empDept.department;
+      }
+      
+      return {
+        id: transfer.id,
+        empId: transfer.empId,
+        employeeName: employee ? employee.name : `员工ID: ${transfer.empId}`,
+        depId: transfer.depId,
+        departmentName: department ? (department.name || department.dep_name) : `部门ID: ${transfer.depId}`,
+        currentDepartment: currentDepartment || '未分配',
+        position: transfer.position || '',
+        superiorId: transfer.superiorId,
+        creatorId: transfer.creatorId,
+        creatorName: creator ? creator.name : `创建者ID: ${transfer.creatorId}`,
+        state: transfer.state || '待审批',
+        approverId: transfer.approverId,
+        description: transfer.description || '',
+        createdAt: transfer.createdAt || transfer.created_at || '',
+        updatedAt: transfer.updatedAt || transfer.updated_at || ''
+      };
+    });
+    
+    return processedTransfers;
+  } catch (error) {
+    console.error('获取待审批的人事调动申请失败:', error);
+    throw error;
+  }
+};
+
+/**
+ * 审批人事调动申请
+ * @param {number} id 人事调动申请ID
+ * @param {Object} approvalData 审批数据
+ * @returns {Promise} 返回审批结果
+ */
+export const approveTransfer = async (id, approvalData) => {
+  try {
+    const response = await api.put(`/employee-departments/${id}`, approvalData);
+    
+    if (response.status === 200) {
+      return true;
+    } else {
+      throw new Error('审批失败');
+    }
+  } catch (error) {
+    console.error(`审批人事调动申请ID=${id}失败:`, error);
+    throw error;
+  }
 }; 
