@@ -1,7 +1,7 @@
 "use client";
-import AdminPage from "@/components/admin";
-import HrPage from "@/components/hr";
-import LeaderPage from "@/components/leader";
+import AdminPage from "@/components/dashboard/admin";
+import HrPage from "@/components/dashboard/hr";
+import LeaderPage from "@/components/dashboard/leader";
 import useAuth from "@/hooks/auth";
 import { redirect } from "next/navigation";
 
@@ -16,7 +16,7 @@ export default function Home() {
     return <AdminPage />;
   } else if (role === "employee") {
     // 如果是员工角色，可以重定向到员工专属页面或其他逻辑
-    redirect("/employee/1");
+    redirect("/employees/1");
   } else {
     // 如果不是HR角色，重定向到登录页面或其他页面
     redirect("/login");
