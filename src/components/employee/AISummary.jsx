@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAI } from "@/hooks/ai/useAI";
+import useAuth from "@/hooks/auth";
 import {
   AlertCircle,
   Brain,
@@ -22,6 +23,8 @@ export default function AISummary({
 }) {
   const { completion, isSubmitting, showResult, getAiResponse } = useAI();
   const [hasGenerated, setHasGenerated] = useState(false);
+  const { role } = useAuth();
+  console.log("role:", role);
 
   // 组装员工信息用于AI分析
   const employeeInfo = {
@@ -82,19 +85,25 @@ export default function AISummary({
               </p>
             </div>
           </div>
-          <Button onClick={handleGenerateAI} disabled={isSubmitting} size="sm">
-            {isSubmitting ? (
-              <>
-                <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
-                分析中
-              </>
-            ) : (
-              <>
-                <Sparkles className="mr-2 h-4 w-4" />
-                {hasGenerated ? "重新分析" : "开始分析"}
-              </>
-            )}
-          </Button>
+          {role === "leader" && (
+            <Button
+              onClick={handleGenerateAI}
+              disabled={isSubmitting}
+              size="sm"
+            >
+              {isSubmitting ? (
+                <>
+                  <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                  分析中
+                </>
+              ) : (
+                <>
+                  <Sparkles className="mr-2 h-4 w-4" />
+                  {hasGenerated ? "重新分析" : "开始分析"}
+                </>
+              )}
+            </Button>
+          )}
         </div>
       </CardHeader>
 

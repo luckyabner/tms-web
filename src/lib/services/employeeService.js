@@ -29,6 +29,18 @@ export const getEmployeeById = async (id) => {
   }
 };
 
+export async function getEmployeesByDepartment(departmentId) {
+  try {
+    const res = await api.get(
+      `/employee-departments/departments/${departmentId}`
+    );
+    return res.data.data || [];
+  } catch (err) {
+    console.error("Error fetching employees by department:", err);
+    throw err;
+  }
+}
+
 /**
  * 创建新员工
  * @param {Object} employeeData 员工数据
@@ -381,7 +393,7 @@ export const getAllTransfers = async () => {
           (ed.empId === transfer.empId || ed.emp_id === transfer.empId) &&
           (ed.isCurrent === 1 || ed.is_current === 1)
       );
-      
+
       if (currentEmpDeps.length > 0) {
         oldEmpDep = currentEmpDeps[0]; // 使用当前的部门作为"原部门"
       } else {
@@ -394,14 +406,16 @@ export const getAllTransfers = async () => {
         if (empDeps.length > 0) {
           // 取最新的（createdAt最大）
           oldEmpDep = empDeps.reduce((a, b) =>
-            new Date(a.updatedAt || a.updated_at || a.createdAt || a.created_at) >
+            new Date(
+              a.updatedAt || a.updated_at || a.createdAt || a.created_at
+            ) >
             new Date(b.updatedAt || b.updated_at || b.createdAt || b.created_at)
               ? a
               : b
           );
         }
       }
-      
+
       let oldDepartmentName = "";
       let oldPosition = "";
       if (oldEmpDep) {
@@ -537,24 +551,27 @@ export const getPendingTransfers = async () => {
 export const approveTransfer = async (id, approvalData) => {
   try {
     console.log(`审批人事调动申请ID=${id}, 数据:`, approvalData);
-    
+
     // 确保所有字段使用正确的命名约定
     const apiData = {
       state: approvalData.state,
       approverId: approvalData.approverId,
-      description: approvalData.description || '',
-      position: approvalData.position || '',
+      description: approvalData.description || "",
+      position: approvalData.position || "",
       // 将isCurrent转换为is_current，确保是数字类型
-      is_current: typeof approvalData.isCurrent === 'boolean' 
-        ? (approvalData.isCurrent ? 1 : 0) 
-        : (approvalData.isCurrent || 0),
+      is_current:
+        typeof approvalData.isCurrent === "boolean"
+          ? approvalData.isCurrent
+            ? 1
+            : 0
+          : approvalData.isCurrent || 0,
       // 添加必要的字段
       superior_id: approvalData.superiorId || null,
-      dep_id: approvalData.depId || null
+      dep_id: approvalData.depId || null,
     };
-    
-    console.log('格式化后的API数据:', apiData);
-    
+
+    console.log("格式化后的API数据:", apiData);
+
     const response = await api.put(`/employee-departments/${id}`, apiData);
 
     if (response.status >= 200 && response.status < 300) {
@@ -565,7 +582,7 @@ export const approveTransfer = async (id, approvalData) => {
   } catch (error) {
     console.error(`审批人事调动申请ID=${id}失败:`, error);
     if (error.response) {
-      console.error('错误详情:', error.response.status, error.response.data);
+      console.error("错误详情:", error.response.status, error.response.data);
     }
     throw error;
   }

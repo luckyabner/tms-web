@@ -1,4 +1,5 @@
 import api from "../api";
+import { getEmployeesByDepartment } from "./employeeService";
 
 // 缓存员工数据，避免重复请求
 let employeesCache = null;
@@ -61,125 +62,47 @@ const fetchEmployeesData = async () => {
  */
 export const getAllDepartments = async () => {
   try {
-    const response = await api.get("/departments");
-    console.log("API返回原始数据:", response.data);
+    const res = await api.get("/departments");
+    const departments = res.data.data || [];
+    const employees = await getAllEmployees();
 
-    // 处理可能的不同数据格式
-    let departments = [];
-
-    if (Array.isArray(response.data)) {
-      // 如果直接返回数组
-      departments = response.data;
-    } else if (
-      response.data &&
-      response.data.data &&
-      Array.isArray(response.data.data)
-    ) {
-      // 如果返回 {code, msg, data} 格式
-      departments = response.data.data;
-    } else {
-      console.error("未知的API响应格式:", response.data);
-      departments = [];
-    }
-
-    // 打印第一个部门的数据结构
-    if (departments.length > 0) {
-      console.log(
-        "第一个部门数据结构:",
-        JSON.stringify(departments[0], null, 2)
-      );
-    }
-
-    // 获取员工-部门关系数据，用于计算部门员工数量
-    let employeeDepartments = [];
-    try {
-      const edResponse = await api.get("/employee-departments?is_current=1");
-      if (Array.isArray(edResponse.data)) {
-        employeeDepartments = edResponse.data;
-      } else if (
-        edResponse.data &&
-        edResponse.data.data &&
-        Array.isArray(edResponse.data.data)
-      ) {
-        employeeDepartments = edResponse.data.data;
-      }
-      console.log(
-        "获取到员工-部门关系数据:",
-        employeeDepartments.length,
-        "条记录"
-      );
-    } catch (error) {
-      console.error("获取员工-部门关系数据失败:", error);
-    }
-
-    // 获取所有员工数据，用于查找主管姓名
-    const employees = await fetchEmployeesData();
-
-    // 处理字段映射，确保前端需要的字段都存在
-    const processedDepartments = departments.map((dept) => {
-      // 计算部门员工数量
-      const deptId = dept.id || dept.dep_id;
-      const deptEmployees = employeeDepartments.filter(
-        (ed) => ed.depId === deptId || ed.dep_id === deptId
-      );
-      const employeeCount = deptEmployees.length;
-
-      // 创建基本部门对象
-      const processedDept = {
-        id: dept.id || dept.dep_id,
-        name: dept.name || dept.dep_name || "",
-        managerId: dept.managerId || dept.manager_id,
-        parentId: dept.parentId || dept.parent_id,
-        employeeCount: employeeCount || dept.employeeCount || 0,
-        description: dept.description || "",
-        isDeleted: dept.isDeleted === 1 || dept.is_deleted === 1,
-        createdAt: dept.createdAt || dept.created_at || "",
-      };
-
-      // 确保managerName字段存在
-      if (dept.managerName) {
-        processedDept.managerName = dept.managerName;
-      } else if (dept.manager) {
-        processedDept.managerName = dept.manager;
-      } else if (dept.managerId) {
-        // 如果没有managerName，但有managerId，查找对应的员工姓名
-        const manager = employees.find(
-          (emp) => emp.id.toString() === dept.managerId.toString()
-        );
-        processedDept.managerName = manager
-          ? manager.name
-          : `ID: ${dept.managerId}`;
-      } else {
-        processedDept.managerName = "未指定";
-      }
-
-      // 确保parentName字段存在
-      if (dept.parentName) {
-        processedDept.parentName = dept.parentName;
-      } else {
-        // 如果没有parentName，尝试在departments中查找
-        if (dept.parentId) {
-          const parentDept = departments.find(
-            (d) => (d.id || d.dep_id) === dept.parentId
+    // 并行获取所有部门的员工数量
+    const departmentsWithEmployeeCount = await Promise.all(
+      departments.map(async (department) => {
+        const res = await getEmployeesByDepartment(department.id);
+        const empCount = Array.isArray(res) ? res.length : 0;
+        // 处理父部门名称
+        let parentDep = null;
+        if (department.parentId) {
+          const parentDepartment = departments.find(
+            (dept) => dept.id === department.parentId
           );
-          if (parentDept) {
-            processedDept.parentName =
-              parentDept.name || parentDept.dep_name || `ID: ${dept.parentId}`;
-          } else {
-            processedDept.parentName = `ID: ${dept.parentId}`;
-          }
-        } else {
-          processedDept.parentName = null;
+          parentDep = parentDepartment
+            ? parentDepartment.name
+            : `部门ID: ${department.parentId}`;
         }
-      }
+        // 处理主管名称
+        let managerName = null;
+        if (department.managerId) {
+          const manager = employees.find(
+            (emp) => emp.id.toString() === department.managerId.toString()
+          );
+          managerName = manager
+            ? manager.name
+            : `员工ID: ${department.managerId}`;
+        }
+        return {
+          ...department,
+          empCount,
+          parentDep,
+          managerName,
+        };
+      })
+    );
 
-      return processedDept;
-    });
-
-    console.log("处理后的部门数据:", processedDepartments.length, "条记录");
-    return processedDepartments;
+    return departmentsWithEmployeeCount;
   } catch (error) {
-    console.error("获取部门列表失败:", error);
+    console.error("获取部门数据失败:", error);
     throw error;
   }
 };
