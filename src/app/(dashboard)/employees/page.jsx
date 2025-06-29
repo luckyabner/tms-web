@@ -1,5 +1,6 @@
 import { employeeColumns } from "@/components/employee/employeeColumns";
 import { BasicTable } from "@/components/shared/tables/BasicTable";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { StatCard } from "@/components/ui/stat-card";
 import { getAllEmployees } from "@/lib/services/employeeService";
@@ -7,10 +8,12 @@ import {
   Building2,
   Calendar,
   GraduationCap,
+  Plus,
   TrendingUp,
   UserCheck,
   Users,
 } from "lucide-react";
+import Link from "next/link";
 import React from "react";
 
 export default async function EmployeesPage() {
@@ -51,9 +54,17 @@ export default async function EmployeesPage() {
   return (
     <div className="container mx-auto space-y-6 p-6">
       {/* 页面标题 */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold tracking-tight">员工管理</h1>
-        <p className="text-muted-foreground mt-2">管理和查看所有员工信息</p>
+      <div className="mb-8 flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">员工管理</h1>
+          <p className="text-muted-foreground mt-2">管理和查看所有员工信息</p>
+        </div>
+        <Link href="/employees/new">
+          <Button className="flex items-center gap-2">
+            <Plus className="h-4 w-4" />
+            添加员工
+          </Button>
+        </Link>
       </div>
 
       {/* 统计卡片 */}
@@ -171,7 +182,9 @@ export default async function EmployeesPage() {
                     </div>
                     <div className="h-2 w-full rounded-full bg-gray-200">
                       <div
-                        className={`h-2 rounded-full ${gender === "男" ? "bg-blue-500" : "bg-pink-500"}`}
+                        className={`h-2 rounded-full ${
+                          gender === "男" ? "bg-blue-500" : "bg-pink-500"
+                        }`}
                         style={{ width: `${percentage}%` }}
                       ></div>
                     </div>

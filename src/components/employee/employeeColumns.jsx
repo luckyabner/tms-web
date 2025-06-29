@@ -2,6 +2,7 @@
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ArrowUpDown, MoreHorizontal } from "lucide-react";
+import { useState } from "react";
 import { TableColumnHeader } from "../shared/tables/TableColumnHeader";
 import {
   DropdownMenu,
@@ -11,6 +12,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
+import DeleteEmployeeDialog from "./DeleteEmployeeDialog";
 
 export const employeeColumns = [
   {
@@ -88,31 +90,50 @@ export const employeeColumns = [
     enableHiding: false,
     cell: ({ row }) => {
       const employee = row.original;
+      const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+
       return (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="h-8 w-8 p-0">
-              <span className="sr-only">Open menu</span>
-              <MoreHorizontal />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuLabel>操作</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem
-              onClick={() => navigator.clipboard.writeText(employee.name)}
-            >
-              复制姓名
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={() => {
-                window.location.href = `/employees/${employee.id}`;
-              }}
-            >
-              查看详情
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="h-8 w-8 p-0">
+                <span className="sr-only">Open menu</span>
+                <MoreHorizontal />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuLabel>操作</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onClick={() => {
+                  window.location.href = `/employees/${employee.id}`;
+                }}
+              >
+                查看详情
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => {
+                  window.location.href = `/employees/${employee.id}/edit`;
+                }}
+              >
+                编辑
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                className="text-red-600 focus:text-red-600"
+                onClick={() => setDeleteDialogOpen(true)}
+              >
+                删除
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          <DeleteEmployeeDialog
+            employee={employee}
+            open={deleteDialogOpen}
+            onOpenChange={setDeleteDialogOpen}
+          />
+        </>
       );
     },
   },

@@ -48,152 +48,12 @@ export async function getEmployeesByDepartment(departmentId) {
  */
 export const createEmployee = async (employeeData) => {
   try {
-    console.log(
-      "创建员工，前端提交数据:",
-      JSON.stringify(employeeData, null, 2)
-    );
+    const response = await api.post("/employees/with-department", employeeData);
 
-    // 检查必填字段 - 根据数据库结构，这些字段是必需的
-    if (!employeeData.name) {
-      console.error("员工姓名不能为空");
-      throw new Error("员工姓名不能为空");
-    }
-
-    if (!employeeData.gender) {
-      console.error("员工性别不能为空");
-      throw new Error("员工性别不能为空");
-    }
-
-    if (!employeeData.phone) {
-      console.error("员工电话不能为空");
-      throw new Error("员工电话不能为空");
-    }
-
-    if (!employeeData.birthDate) {
-      console.error("出生日期不能为空");
-      throw new Error("出生日期不能为空");
-    }
-
-    if (!employeeData.hireDate) {
-      console.error("入职日期不能为空");
-      throw new Error("入职日期不能为空");
-    }
-
-    if (!employeeData.education) {
-      console.error("学历不能为空");
-      throw new Error("学历不能为空");
-    }
-
-    // 转换为API需要的格式，严格按照API文档的字段
-    const apiData = {
-      name: employeeData.name,
-      password: "123456", // 默认密码
-      gender: employeeData.gender,
-      phone: employeeData.phone,
-      birthDate: employeeData.birthDate,
-      hireDate: employeeData.hireDate,
-      education: employeeData.education,
-      status: employeeData.status || "在职",
-      empType: employeeData.role || "普通用户", // 使用empType而不是role
-      school: employeeData.school || "",
-      position: employeeData.position || "",
-      description: employeeData.description || "",
-    };
-
-    console.log("转换后的API数据:", JSON.stringify(apiData, null, 2));
-
-    // 准备模拟响应数据，用于API失败时的后备
-    const mockResponseData = {
-      success: true,
-      message: "创建成功(本地模拟)",
-      id: Date.now(),
-      name: employeeData.name,
-      gender: employeeData.gender,
-      role: employeeData.role || "普通员工",
-      phone: employeeData.phone,
-      position: employeeData.position || "",
-      status: employeeData.status || "在职",
-      hireDate: employeeData.hireDate,
-      birthDate: employeeData.birthDate,
-      education: employeeData.education || "本科",
-      school: employeeData.school || "",
-      department: employeeData.departmentId ? "待更新" : "未分配",
-      departmentId: employeeData.departmentId,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
-
-    try {
-      // 使用API创建员工
-      console.log("正在调用API创建员工...");
-      const response = await api.post("/employees", apiData);
-      console.log("API响应状态:", response.status);
-      console.log("API响应数据:", JSON.stringify(response.data, null, 2));
-
-      if (response.data && response.data.code === "200") {
-        console.log("创建员工成功，返回API数据");
-        // 确保返回的数据格式与前端期望的一致
-        const apiResponseData = response.data.data || {};
-        return {
-          id: apiResponseData.id || Date.now(),
-          name: apiResponseData.name || employeeData.name,
-          gender: apiResponseData.gender || employeeData.gender,
-          role: apiResponseData.empType || employeeData.role || "普通员工",
-          phone: apiResponseData.phone || employeeData.phone,
-          position: apiResponseData.position || employeeData.position || "",
-          status: apiResponseData.status || employeeData.status || "在职",
-          hireDate: apiResponseData.hireDate || employeeData.hireDate,
-          birthDate: apiResponseData.birthDate || employeeData.birthDate,
-          education: apiResponseData.education || employeeData.education,
-          school: apiResponseData.school || employeeData.school || "",
-          department: employeeData.departmentId ? "待更新" : "未分配",
-          departmentId: employeeData.departmentId,
-          createdAt: apiResponseData.createdAt || new Date().toISOString(),
-          updatedAt: apiResponseData.updatedAt || new Date().toISOString(),
-        };
-      } else if (response.data) {
-        console.log("API响应无标准code，直接返回响应数据");
-        return mockResponseData;
-      } else if (response.status >= 200 && response.status < 300) {
-        console.log("API响应成功但无数据，返回模拟数据");
-        return mockResponseData;
-      }
-
-      console.log("未知的API响应形式，返回模拟数据");
-      return mockResponseData;
-    } catch (apiError) {
-      console.error("API调用失败:", apiError);
-      console.error("错误详情:", apiError.message);
-      if (apiError.response) {
-        console.error("错误状态码:", apiError.response.status);
-        console.error(
-          "错误响应数据:",
-          JSON.stringify(apiError.response.data, null, 2)
-        );
-      }
-
-      // 返回模拟成功，保持用户体验流畅
-      return mockResponseData;
-    }
+    return response.data.data || response.data;
   } catch (error) {
     console.error("创建员工失败:", error);
-    // 即使出错也返回模拟数据，确保前端流程顺利进行
-    return {
-      success: true,
-      message: "创建成功(本地模拟-错误恢复)",
-      id: Date.now(),
-      name: employeeData.name || "",
-      gender: employeeData.gender || "男",
-      role: employeeData.role || "普通员工",
-      phone: employeeData.phone || "",
-      position: employeeData.position || "",
-      status: employeeData.status || "在职",
-      hireDate: employeeData.hireDate || new Date().toISOString().split("T")[0],
-      education: employeeData.education || "本科",
-      school: employeeData.school || "",
-      department: employeeData.departmentId ? "待更新" : "未分配",
-      departmentId: employeeData.departmentId,
-    };
+    throw error;
   }
 };
 
@@ -206,60 +66,26 @@ export const createEmployee = async (employeeData) => {
 export const updateEmployee = async (id, employeeData) => {
   try {
     console.log(
-      "更新员工，前端提交数据:",
+      "updateEmployee 接收到的数据:",
       JSON.stringify(employeeData, null, 2)
     );
 
-    // 转换为API需要的格式
-    const apiData = {
-      name: employeeData.name || "",
-      position: employeeData.position || "",
-      departmentId:
-        employeeData.departmentId === "" ? null : employeeData.departmentId,
-      phone: employeeData.phone || "",
-      empType: employeeData.role || "普通员工",
-      status: employeeData.status || "在职",
-      gender: employeeData.gender || "无",
-      hireDate: employeeData.hireDate || "",
-      education: employeeData.education || "未知",
-      school: employeeData.school || "",
-    };
+    const response = await api.put(
+      `/employees/with-department/${id}`,
+      employeeData
+    );
 
-    // 确保角色名称与后端一致
-    if (apiData.empType === "普通员工") {
-      apiData.empType = "普通用户";
-    } else if (apiData.empType === "公司高层") {
-      apiData.empType = "高层";
-    }
-
-    console.log("转换后的API数据:", JSON.stringify(apiData, null, 2));
-
-    // 确保departmentId是数字或null
-    if (apiData.departmentId !== null && apiData.departmentId !== undefined) {
-      const departmentId = parseInt(apiData.departmentId);
-      apiData.departmentId = isNaN(departmentId) ? null : departmentId;
-    }
-
-    // 确保id是数字类型
-    const numericId = parseInt(id);
-    if (isNaN(numericId)) {
-      throw new Error(`无效的员工ID: ${id}`);
-    }
-
-    const response = await api.put(`/employees/${numericId}`, apiData);
-
-    console.log("API响应数据:", JSON.stringify(response.data, null, 2));
-
-    // 处理响应
-    if (response.data && response.data.code === "200") {
-      return response.data.data;
-    } else if (response.data && !response.data.code) {
-      return response.data;
-    }
-
-    throw new Error("更新员工失败");
+    console.log("API 响应:", JSON.stringify(response.data, null, 2));
+    return response.data.data;
   } catch (error) {
     console.error(`更新员工ID=${id}失败:`, error);
+    if (error.response) {
+      console.error(
+        "API 错误详情:",
+        error.response.status,
+        error.response.data
+      );
+    }
     throw error;
   }
 };
@@ -271,16 +97,7 @@ export const updateEmployee = async (id, employeeData) => {
  */
 export const deleteEmployee = async (id) => {
   try {
-    const response = await api.delete(`/employees/${id}`);
-
-    // 处理响应
-    if (response.data && response.data.code === "200") {
-      return { success: true };
-    } else if (response.data && response.data.message) {
-      return { success: true, message: response.data.message };
-    }
-
-    return { success: true };
+    await api.delete(`/employees/${id}`);
   } catch (error) {
     console.error(`删除员工ID=${id}失败:`, error);
     throw error;
