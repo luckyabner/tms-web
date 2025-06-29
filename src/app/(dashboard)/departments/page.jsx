@@ -41,56 +41,6 @@ export default function DepartmentPage() {
     refreshDepartments(); // 刷新部门数据
   };
 
-  // 处理加载状态
-  if (isLoading) {
-    return (
-      <div className="container mx-auto space-y-6 p-6">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <div className="bg-primary/10 rounded-lg p-2">
-              <Building2 className="text-primary h-6 w-6" />
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold">部门管理</h1>
-              <p className="text-muted-foreground">管理组织架构和部门信息</p>
-            </div>
-          </div>
-        </div>
-        <div className="py-8 text-center">
-          <p>正在加载部门数据...</p>
-        </div>
-      </div>
-    );
-  }
-
-  // 处理错误状态
-  if (error) {
-    return (
-      <div className="container mx-auto space-y-6 p-6">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <div className="bg-primary/10 rounded-lg p-2">
-              <Building2 className="text-primary h-6 w-6" />
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold">部门管理</h1>
-              <p className="text-muted-foreground">管理组织架构和部门信息</p>
-            </div>
-          </div>
-        </div>
-        <div className="py-8 text-center text-red-500">
-          <p>加载部门数据失败: {error.message}</p>
-          <button
-            onClick={() => window.location.reload()}
-            className="bg-primary mt-2 rounded px-4 py-2 text-white"
-          >
-            重新加载
-          </button>
-        </div>
-      </div>
-    );
-  }
-
   // 确保有数据后再渲染
   const departmentData = departments || [];
 

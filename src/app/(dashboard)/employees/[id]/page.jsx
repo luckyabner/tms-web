@@ -15,7 +15,6 @@ export default async function EmployeeDetailPage({ params }) {
   const projectsHistory = await getEmployeeProjects(id);
   const performanceHistory = await getEmployeePerformances(id);
   const aiSummary = await getEmployeeAISummery(id);
-  console.log("AI Summary:", aiSummary);
 
   // 格式化日期
   const formatDate = (dateString) => {

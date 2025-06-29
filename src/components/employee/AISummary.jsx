@@ -116,25 +116,19 @@ export default function AISummary({
               </p>
             </div>
           </div>
-          {role === "leader" && (
-            <Button
-              onClick={handleGenerateAI}
-              disabled={isSubmitting}
-              size="sm"
-            >
-              {isSubmitting ? (
-                <>
-                  <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
-                  分析中
-                </>
-              ) : (
-                <>
-                  <Sparkles className="mr-2 h-4 w-4" />
-                  {hasGenerated ? "重新分析" : "开始分析"}
-                </>
-              )}
-            </Button>
-          )}
+          <Button onClick={handleGenerateAI} disabled={isSubmitting} size="sm">
+            {isSubmitting ? (
+              <>
+                <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                分析中
+              </>
+            ) : (
+              <>
+                <Sparkles className="mr-2 h-4 w-4" />
+                {hasGenerated ? "重新分析" : "开始分析"}
+              </>
+            )}
+          </Button>
         </div>
       </CardHeader>
 
