@@ -1,3 +1,4 @@
+import AISummary from "@/components/employee/AISummary";
 import EmployeeAnalysis from "@/components/employee/EmployeeAnalysis";
 import EmployeeDetail from "@/components/employee/EmployeeDetail";
 import { Badge } from "@/components/ui/badge";
@@ -127,20 +128,32 @@ export default async function EmployeeDetailPage({ params }) {
           <EmployeeDetail employee={employee} />
         </div>
 
-        {/* 详细信息和历史记录 */}
-        <EmployeeAnalysis
-          employee={employee}
-          departmentHistory={departmentHistory}
-          projectsHistory={projectsHistory}
-          performanceHistory={performanceHistory}
-          formatDate={formatDate}
-          getStatusColor={getStatusColor}
-          getScoreColor={getScoreColor}
-          getScoreGrade={getScoreGrade}
-          calculateAverageAbility={calculateAverageAbility}
-          getAbilityWidth={getAbilityWidth}
-          calculateWorkYears={calculateWorkYears}
-        />
+        <div className="space-y-6 lg:col-span-2">
+          {/* AI 智能分析区域 */}
+          <div className="w-full">
+            <AISummary
+              employee={employee}
+              departmentHistory={departmentHistory}
+              projectsHistory={projectsHistory}
+              performanceHistory={performanceHistory}
+            />
+          </div>
+
+          {/* 详细信息和历史记录 */}
+          <EmployeeAnalysis
+            employee={employee}
+            departmentHistory={departmentHistory}
+            projectsHistory={projectsHistory}
+            performanceHistory={performanceHistory}
+            formatDate={formatDate}
+            getStatusColor={getStatusColor}
+            getScoreColor={getScoreColor}
+            getScoreGrade={getScoreGrade}
+            calculateAverageAbility={calculateAverageAbility}
+            getAbilityWidth={getAbilityWidth}
+            calculateWorkYears={calculateWorkYears}
+          />
+        </div>
       </div>
     </div>
   );
