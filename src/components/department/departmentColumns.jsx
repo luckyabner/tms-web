@@ -53,6 +53,10 @@ export const departmentColumns = ({ onEdit } = {}) => [
     header: "员工数量",
   },
   {
+    accessorKey: "description",
+    header: "部门描述",
+  },
+  {
     accessorKey: "createdAt",
     header: ({ column }) => (
       <TableColumnHeader column={column} title="创建时间" />
