@@ -1,22 +1,41 @@
-'use client';
+"use client";
 
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Textarea } from '@/components/ui/textarea';
-import api from '@/lib/api';
-import { getAllDepartments } from '@/lib/services/departmentService';
-import { getAllEmployees } from '@/lib/services/employeeService';
-import { AlertCircle, ArrowRight, Building, Calendar, Check, UserCog } from 'lucide-react';
-import { useSearchParams } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import api from "@/lib/api";
+import { getAllDepartments } from "@/lib/services/departmentService";
+import { getAllEmployees } from "@/lib/services/employeeService";
+import {
+  AlertCircle,
+  ArrowRight,
+  Building,
+  Calendar,
+  Check,
+  UserCog,
+} from "lucide-react";
+import { useSearchParams } from "next/navigation";
+import { Suspense, useEffect, useState } from "react";
 
-export default function NewTransferPage() {
+function NewTransferContent() {
   const searchParams = useSearchParams();
-  const employeeId = searchParams.get('employeeId');
-  const transferId = searchParams.get('transferId');
+  const employeeId = searchParams.get("employeeId");
+  const transferId = searchParams.get("transferId");
 
   const [employees, setEmployees] = useState([]);
   const [departments, setDepartments] = useState([]);
@@ -28,14 +47,14 @@ export default function NewTransferPage() {
 
   // 表单数据
   const [formData, setFormData] = useState({
-    empId: employeeId || '',
-    depId: '',
-    position: '',
-    superiorId: '',
-    creatorId: '3', // 假设当前登录的是高层用户，ID为3
-    state: '待审批',
-    description: '',
-    isCurrent: 0
+    empId: employeeId || "",
+    depId: "",
+    position: "",
+    superiorId: "",
+    creatorId: "3", // 假设当前登录的是高层用户，ID为3
+    state: "待审批",
+    description: "",
+    isCurrent: 0,
   });
 
   useEffect(() => {
@@ -47,42 +66,44 @@ export default function NewTransferPage() {
     try {
       // 获取员工数据
       const employeesData = await getAllEmployees();
-      
+
       // 获取部门数据
       const departmentsData = await getAllDepartments();
-      
+
       // 获取员工-部门关系数据
       let employeeDepts = [];
       try {
-        const response = await api.get('/employee-departments');
+        const response = await api.get("/employee-departments");
         if (response.data && response.data.data) {
-          employeeDepts = response.data.data.filter(ed => ed.isCurrent === 1);
+          employeeDepts = response.data.data.filter((ed) => ed.isCurrent === 1);
         }
       } catch (error) {
-        console.error('获取员工-部门关系数据失败:', error);
+        console.error("获取员工-部门关系数据失败:", error);
       }
-      
+
       // 为员工添加职位信息
-      const enrichedEmployees = employeesData.map(emp => {
-        const empDept = employeeDepts.find(ed => ed.empId === emp.id);
+      const enrichedEmployees = employeesData.map((emp) => {
+        const empDept = employeeDepts.find((ed) => ed.empId === emp.id);
         return {
           ...emp,
-          position: empDept?.position || '无职位',
-          departmentId: empDept?.depId || null
+          position: empDept?.position || "无职位",
+          departmentId: empDept?.depId || null,
         };
       });
-      
+
       setEmployees(enrichedEmployees);
       setDepartments(departmentsData);
       setEmployeeDepartments(employeeDepts);
 
       // 如果URL中有employeeId参数，自动填充员工信息
       if (employeeId) {
-        const selectedEmployee = enrichedEmployees.find(emp => emp.id === parseInt(employeeId));
+        const selectedEmployee = enrichedEmployees.find(
+          (emp) => emp.id === parseInt(employeeId)
+        );
         if (selectedEmployee) {
-          setFormData(prev => ({
+          setFormData((prev) => ({
             ...prev,
-            empId: selectedEmployee.id.toString()
+            empId: selectedEmployee.id.toString(),
           }));
         }
       }
@@ -96,22 +117,24 @@ export default function NewTransferPage() {
             setFormData({
               empId: transferData.empId.toString(),
               depId: transferData.depId.toString(),
-              position: transferData.position || '',
-              superiorId: transferData.superiorId ? transferData.superiorId.toString() : '',
+              position: transferData.position || "",
+              superiorId: transferData.superiorId
+                ? transferData.superiorId.toString()
+                : "",
               creatorId: transferData.creatorId.toString(),
               state: transferData.state,
-              description: transferData.description || '',
-              isCurrent: transferData.isCurrent
+              description: transferData.description || "",
+              isCurrent: transferData.isCurrent,
             });
           }
         } catch (error) {
-          console.error('获取调动信息失败:', error);
-          setError('获取调动信息失败，请稍后重试');
+          console.error("获取调动信息失败:", error);
+          setError("获取调动信息失败，请稍后重试");
         }
       }
     } catch (error) {
-      console.error('获取数据失败:', error);
-      setError('获取数据失败，请稍后重试');
+      console.error("获取数据失败:", error);
+      setError("获取数据失败，请稍后重试");
     } finally {
       setLoading(false);
     }
@@ -119,23 +142,23 @@ export default function NewTransferPage() {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
   };
 
   const handleSelectChange = (name, value) => {
     // Handle special case for superiorId with "none" value
-    if (name === 'superiorId' && value === 'none') {
-      setFormData(prev => ({
+    if (name === "superiorId" && value === "none") {
+      setFormData((prev) => ({
         ...prev,
-        [name]: '' // Set to empty string when "none" is selected
+        [name]: "", // Set to empty string when "none" is selected
       }));
     } else {
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
-        [name]: value
+        [name]: value,
       }));
     }
   };
@@ -148,7 +171,7 @@ export default function NewTransferPage() {
     try {
       // 验证表单数据
       if (!formData.empId || !formData.depId || !formData.position) {
-        throw new Error('请填写必填字段');
+        throw new Error("请填写必填字段");
       }
 
       // 构建请求数据
@@ -158,35 +181,35 @@ export default function NewTransferPage() {
         position: formData.position,
         superiorId: formData.superiorId ? parseInt(formData.superiorId) : null,
         creatorId: parseInt(formData.creatorId),
-        state: formData.state || '待审批',
-        description: formData.description || '',
-        isCurrent: parseInt(formData.isCurrent) || 0
+        state: formData.state || "待审批",
+        description: formData.description || "",
+        isCurrent: parseInt(formData.isCurrent) || 0,
       };
 
-      console.log('提交数据:', requestData);
-      
+      console.log("提交数据:", requestData);
+
       // 发送请求
-      const response = await api.post('/employee-departments', requestData);
-      
+      const response = await api.post("/employee-departments", requestData);
+
       if (response.status === 200 || response.status === 201) {
         setSuccess(true);
         // 重置表单
         setFormData({
-          empId: '',
-          depId: '',
-          position: '',
-          superiorId: '',
-          creatorId: '3',
-          state: '待审批',
-          description: '',
-          isCurrent: 0
+          empId: "",
+          depId: "",
+          position: "",
+          superiorId: "",
+          creatorId: "3",
+          state: "待审批",
+          description: "",
+          isCurrent: 0,
         });
       } else {
-        throw new Error('提交失败，请稍后重试');
+        throw new Error("提交失败，请稍后重试");
       }
     } catch (error) {
-      console.error('提交失败:', error);
-      setError(error.message || '提交失败，请稍后重试');
+      console.error("提交失败:", error);
+      setError(error.message || "提交失败，请稍后重试");
     } finally {
       setSubmitting(false);
     }
@@ -195,74 +218,78 @@ export default function NewTransferPage() {
   // 获取员工当前部门
   const getEmployeeCurrentDepartment = (empId) => {
     if (!empId) return null;
-    
-    const empDept = employeeDepartments.find(ed => ed.empId === parseInt(empId) && ed.isCurrent === 1);
+
+    const empDept = employeeDepartments.find(
+      (ed) => ed.empId === parseInt(empId) && ed.isCurrent === 1
+    );
     if (!empDept) return null;
-    
-    const department = departments.find(dept => dept.id === empDept.depId);
+
+    const department = departments.find((dept) => dept.id === empDept.depId);
     return department ? department.name : `部门ID: ${empDept.depId}`;
   };
 
   // 获取员工当前职位
   const getEmployeeCurrentPosition = (empId) => {
     if (!empId) return null;
-    
-    const empDept = employeeDepartments.find(ed => ed.empId === parseInt(empId) && ed.isCurrent === 1);
+
+    const empDept = employeeDepartments.find(
+      (ed) => ed.empId === parseInt(empId) && ed.isCurrent === 1
+    );
     return empDept ? empDept.position : null;
   };
 
   return (
-    <div className="p-6 space-y-6 bg-gray-50 min-h-screen">
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+    <div className="min-h-screen space-y-6 bg-gray-50 p-6">
+      <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <h1 className="text-2xl font-bold bg-gradient-to-r from-green-600 to-teal-600 bg-clip-text text-transparent">
+          <h1 className="bg-gradient-to-r from-green-600 to-teal-600 bg-clip-text text-2xl font-bold text-transparent">
             发起人事调动
           </h1>
           <p className="text-gray-500">创建新的员工部门或职位变动申请</p>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <div className="lg:col-span-2">
           <Card className="border-green-100 shadow-sm">
-            <CardHeader className="bg-gradient-to-r from-green-50 to-teal-50 border-b border-green-100">
+            <CardHeader className="border-b border-green-100 bg-gradient-to-r from-green-50 to-teal-50">
               <CardTitle className="flex items-center text-green-800">
-                <UserCog className="h-5 w-5 mr-2 text-green-600" />
+                <UserCog className="mr-2 h-5 w-5 text-green-600" />
                 人事调动申请表
               </CardTitle>
-              <CardDescription>
-                填写以下信息提交人事调动申请
-              </CardDescription>
+              <CardDescription>填写以下信息提交人事调动申请</CardDescription>
             </CardHeader>
             <CardContent className="p-6">
               {loading ? (
                 <div className="flex justify-center py-12">
-                  <div className="w-12 h-12 rounded-full border-4 border-green-200 border-t-green-600 animate-spin"></div>
+                  <div className="h-12 w-12 animate-spin rounded-full border-4 border-green-200 border-t-green-600"></div>
                 </div>
               ) : (
                 <form onSubmit={handleSubmit} className="space-y-6">
                   {error && (
-                    <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded-md flex items-center">
-                      <AlertCircle className="h-5 w-5 mr-2 text-red-500" />
+                    <div className="flex items-center rounded-md border border-red-200 bg-red-50 p-4 text-red-700">
+                      <AlertCircle className="mr-2 h-5 w-5 text-red-500" />
                       {error}
                     </div>
                   )}
-                  
+
                   {success && (
-                    <div className="bg-green-50 border border-green-200 text-green-700 p-4 rounded-md flex items-center">
-                      <Check className="h-5 w-5 mr-2 text-green-500" />
+                    <div className="flex items-center rounded-md border border-green-200 bg-green-50 p-4 text-green-700">
+                      <Check className="mr-2 h-5 w-5 text-green-500" />
                       人事调动申请已成功提交！
                     </div>
                   )}
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                     <div className="space-y-2">
                       <Label htmlFor="empId" className="text-sm font-medium">
                         选择员工 <span className="text-red-500">*</span>
                       </Label>
                       <Select
                         value={formData.empId}
-                        onValueChange={(value) => handleSelectChange('empId', value)}
+                        onValueChange={(value) =>
+                          handleSelectChange("empId", value)
+                        }
                         disabled={submitting}
                         required
                       >
@@ -271,8 +298,11 @@ export default function NewTransferPage() {
                         </SelectTrigger>
                         <SelectContent>
                           {employees.map((employee) => (
-                            <SelectItem key={employee.id} value={employee.id.toString()}>
-                              {employee.name} - {employee.position || '无职位'}
+                            <SelectItem
+                              key={employee.id}
+                              value={employee.id.toString()}
+                            >
+                              {employee.name} - {employee.position || "无职位"}
                             </SelectItem>
                           ))}
                         </SelectContent>
@@ -285,7 +315,9 @@ export default function NewTransferPage() {
                       </Label>
                       <Select
                         value={formData.depId}
-                        onValueChange={(value) => handleSelectChange('depId', value)}
+                        onValueChange={(value) =>
+                          handleSelectChange("depId", value)
+                        }
                         disabled={submitting}
                         required
                       >
@@ -294,7 +326,10 @@ export default function NewTransferPage() {
                         </SelectTrigger>
                         <SelectContent>
                           {departments.map((department) => (
-                            <SelectItem key={department.id} value={department.id.toString()}>
+                            <SelectItem
+                              key={department.id}
+                              value={department.id.toString()}
+                            >
                               {department.name}
                             </SelectItem>
                           ))}
@@ -318,12 +353,17 @@ export default function NewTransferPage() {
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="superiorId" className="text-sm font-medium">
+                      <Label
+                        htmlFor="superiorId"
+                        className="text-sm font-medium"
+                      >
                         直接上级
                       </Label>
                       <Select
                         value={formData.superiorId}
-                        onValueChange={(value) => handleSelectChange('superiorId', value)}
+                        onValueChange={(value) =>
+                          handleSelectChange("superiorId", value)
+                        }
                         disabled={submitting}
                       >
                         <SelectTrigger className="w-full">
@@ -332,7 +372,10 @@ export default function NewTransferPage() {
                         <SelectContent>
                           <SelectItem value="none">无直接上级</SelectItem>
                           {employees.map((employee) => (
-                            <SelectItem key={employee.id} value={employee.id.toString()}>
+                            <SelectItem
+                              key={employee.id}
+                              value={employee.id.toString()}
+                            >
                               {employee.name}
                             </SelectItem>
                           ))}
@@ -342,7 +385,10 @@ export default function NewTransferPage() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="description" className="text-sm font-medium">
+                    <Label
+                      htmlFor="description"
+                      className="text-sm font-medium"
+                    >
                       调动原因
                     </Label>
                     <Textarea
@@ -356,19 +402,19 @@ export default function NewTransferPage() {
                     />
                   </div>
 
-                  <div className="pt-4 flex justify-end">
+                  <div className="flex justify-end pt-4">
                     <Button
                       type="submit"
-                      className="bg-green-600 hover:bg-green-700 px-6"
+                      className="bg-green-600 px-6 hover:bg-green-700"
                       disabled={submitting}
                     >
                       {submitting ? (
                         <>
-                          <div className="w-4 h-4 rounded-full border-2 border-white border-t-transparent animate-spin mr-2"></div>
+                          <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
                           提交中...
                         </>
                       ) : (
-                        '提交申请'
+                        "提交申请"
                       )}
                     </Button>
                   </div>
@@ -381,52 +427,62 @@ export default function NewTransferPage() {
         <div className="lg:col-span-1">
           <div className="space-y-6">
             <Card className="border-green-100 shadow-sm">
-              <CardHeader className="bg-gradient-to-r from-green-50 to-teal-50 border-b border-green-100">
-                <CardTitle className="flex items-center text-green-800 text-lg">
-                  <Calendar className="h-5 w-5 mr-2 text-green-600" />
+              <CardHeader className="border-b border-green-100 bg-gradient-to-r from-green-50 to-teal-50">
+                <CardTitle className="flex items-center text-lg text-green-800">
+                  <Calendar className="mr-2 h-5 w-5 text-green-600" />
                   员工当前信息
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-6">
                 {loading ? (
                   <div className="animate-pulse space-y-4">
-                    <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-                    <div className="h-4 bg-gray-200 rounded w-1/2"></div>
-                    <div className="h-4 bg-gray-200 rounded w-2/3"></div>
+                    <div className="h-4 w-3/4 rounded bg-gray-200"></div>
+                    <div className="h-4 w-1/2 rounded bg-gray-200"></div>
+                    <div className="h-4 w-2/3 rounded bg-gray-200"></div>
                   </div>
                 ) : formData.empId ? (
                   <div className="space-y-4">
                     <div className="flex items-center space-x-3">
-                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-green-500 to-teal-600 flex items-center justify-center text-white font-medium">
-                        {employees.find(emp => emp.id === parseInt(formData.empId))?.name.charAt(0) || '?'}
+                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-green-500 to-teal-600 font-medium text-white">
+                        {employees
+                          .find((emp) => emp.id === parseInt(formData.empId))
+                          ?.name.charAt(0) || "?"}
                       </div>
                       <div>
                         <div className="font-medium">
-                          {employees.find(emp => emp.id === parseInt(formData.empId))?.name || '未知员工'}
+                          {employees.find(
+                            (emp) => emp.id === parseInt(formData.empId)
+                          )?.name || "未知员工"}
                         </div>
                         <div className="text-sm text-gray-500">
-                          {employees.find(emp => emp.id === parseInt(formData.empId))?.phone || '无联系方式'}
+                          {employees.find(
+                            (emp) => emp.id === parseInt(formData.empId)
+                          )?.phone || "无联系方式"}
                         </div>
                       </div>
                     </div>
 
-                    <div className="bg-gray-50 p-4 rounded-md space-y-3">
+                    <div className="space-y-3 rounded-md bg-gray-50 p-4">
                       <div className="flex justify-between">
-                        <span className="text-gray-500 text-sm">当前部门</span>
-                        <span className="font-medium text-sm">
-                          {getEmployeeCurrentDepartment(formData.empId) || '未分配'}
+                        <span className="text-sm text-gray-500">当前部门</span>
+                        <span className="text-sm font-medium">
+                          {getEmployeeCurrentDepartment(formData.empId) ||
+                            "未分配"}
                         </span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-gray-500 text-sm">当前职位</span>
-                        <span className="font-medium text-sm">
-                          {getEmployeeCurrentPosition(formData.empId) || '未设置'}
+                        <span className="text-sm text-gray-500">当前职位</span>
+                        <span className="text-sm font-medium">
+                          {getEmployeeCurrentPosition(formData.empId) ||
+                            "未设置"}
                         </span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-gray-500 text-sm">入职日期</span>
-                        <span className="font-medium text-sm">
-                          {employees.find(emp => emp.id === parseInt(formData.empId))?.hireDate || '未知'}
+                        <span className="text-sm text-gray-500">入职日期</span>
+                        <span className="text-sm font-medium">
+                          {employees.find(
+                            (emp) => emp.id === parseInt(formData.empId)
+                          )?.hireDate || "未知"}
                         </span>
                       </div>
                     </div>
@@ -434,22 +490,25 @@ export default function NewTransferPage() {
                     {formData.depId && (
                       <div className="mt-6 flex items-center justify-center">
                         <div className="flex flex-col items-center">
-                          <div className="px-4 py-2 bg-green-100 text-green-800 rounded-md text-sm font-medium">
-                            {getEmployeeCurrentDepartment(formData.empId) || '未分配部门'}
+                          <div className="rounded-md bg-green-100 px-4 py-2 text-sm font-medium text-green-800">
+                            {getEmployeeCurrentDepartment(formData.empId) ||
+                              "未分配部门"}
                           </div>
                           <div className="h-8 w-px bg-green-300"></div>
-                          <ArrowRight className="h-5 w-5 text-green-500 my-1" />
+                          <ArrowRight className="my-1 h-5 w-5 text-green-500" />
                           <div className="h-8 w-px bg-green-300"></div>
-                          <div className="px-4 py-2 bg-green-600 text-white rounded-md text-sm font-medium">
-                            {departments.find(dept => dept.id === parseInt(formData.depId))?.name || '未知部门'}
+                          <div className="rounded-md bg-green-600 px-4 py-2 text-sm font-medium text-white">
+                            {departments.find(
+                              (dept) => dept.id === parseInt(formData.depId)
+                            )?.name || "未知部门"}
                           </div>
                         </div>
                       </div>
                     )}
                   </div>
                 ) : (
-                  <div className="text-center py-6 text-gray-500">
-                    <UserCog className="h-12 w-12 text-gray-300 mx-auto mb-2" />
+                  <div className="py-6 text-center text-gray-500">
+                    <UserCog className="mx-auto mb-2 h-12 w-12 text-gray-300" />
                     <p>请选择一名员工</p>
                   </div>
                 )}
@@ -457,24 +516,28 @@ export default function NewTransferPage() {
             </Card>
 
             <Card className="border-green-100 shadow-sm">
-              <CardHeader className="bg-gradient-to-r from-green-50 to-teal-50 border-b border-green-100">
-                <CardTitle className="flex items-center text-green-800 text-lg">
-                  <Building className="h-5 w-5 mr-2 text-green-600" />
+              <CardHeader className="border-b border-green-100 bg-gradient-to-r from-green-50 to-teal-50">
+                <CardTitle className="flex items-center text-lg text-green-800">
+                  <Building className="mr-2 h-5 w-5 text-green-600" />
                   调动说明
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-6">
                 <div className="space-y-4 text-sm text-gray-600">
                   <p>
-                    <span className="font-medium text-green-700">人事调动流程：</span> 
+                    <span className="font-medium text-green-700">
+                      人事调动流程：
+                    </span>
                     提交后，将由人事部门审核批准。
                   </p>
                   <p>
-                    <span className="font-medium text-green-700">必填项：</span> 
+                    <span className="font-medium text-green-700">必填项：</span>
                     员工、目标部门和新职位为必填项。
                   </p>
                   <p>
-                    <span className="font-medium text-green-700">生效时间：</span> 
+                    <span className="font-medium text-green-700">
+                      生效时间：
+                    </span>
                     调动申请审批通过后即刻生效。
                   </p>
                 </div>
@@ -485,4 +548,62 @@ export default function NewTransferPage() {
       </div>
     </div>
   );
-} 
+}
+
+export default function NewTransferPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen space-y-6 bg-gray-50 p-6">
+          <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+            <div>
+              <h1 className="bg-gradient-to-r from-green-600 to-teal-600 bg-clip-text text-2xl font-bold text-transparent">
+                发起人事调动
+              </h1>
+              <p className="text-gray-500">创建新的员工部门或职位变动申请</p>
+            </div>
+          </div>
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+            <div className="lg:col-span-2">
+              <Card className="border-green-100 shadow-sm">
+                <CardHeader className="border-b border-green-100 bg-gradient-to-r from-green-50 to-teal-50">
+                  <CardTitle className="flex items-center text-green-800">
+                    <UserCog className="mr-2 h-5 w-5 text-green-600" />
+                    人事调动申请表
+                  </CardTitle>
+                  <CardDescription>
+                    填写以下信息提交人事调动申请
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="p-6">
+                  <div className="flex justify-center py-12">
+                    <div className="h-12 w-12 animate-spin rounded-full border-4 border-green-200 border-t-green-600"></div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+            <div className="lg:col-span-1">
+              <Card className="border-green-100 shadow-sm">
+                <CardHeader className="border-b border-green-100 bg-gradient-to-r from-green-50 to-teal-50">
+                  <CardTitle className="flex items-center text-lg text-green-800">
+                    <Calendar className="mr-2 h-5 w-5 text-green-600" />
+                    员工当前信息
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-6">
+                  <div className="animate-pulse space-y-4">
+                    <div className="h-4 w-3/4 rounded bg-gray-200"></div>
+                    <div className="h-4 w-1/2 rounded bg-gray-200"></div>
+                    <div className="h-4 w-2/3 rounded bg-gray-200"></div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </div>
+      }
+    >
+      <NewTransferContent />
+    </Suspense>
+  );
+}
