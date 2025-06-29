@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAI } from "@/hooks/ai/useAI";
 import useAuth from "@/hooks/auth";
+import { createAISummary, updateAISummary } from "@/lib/services/aiService";
 import {
   AlertCircle,
   Brain,
@@ -13,18 +14,20 @@ import {
   TrendingUp,
   User,
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export default function AISummary({
   employee,
   departmentHistory,
   projectsHistory,
   performanceHistory,
+  summary,
 }) {
   const { completion, isSubmitting, showResult, getAiResponse } = useAI();
   const [hasGenerated, setHasGenerated] = useState(false);
+  const [isUpdating, setIsUpdating] = useState(false);
+  const { analyseResult: aiResult, id: aiSummaryId } = summary;
   const { role } = useAuth();
-  console.log("role:", role);
 
   // 组装员工信息用于AI分析
   const employeeInfo = {
@@ -68,6 +71,31 @@ export default function AISummary({
     await getAiResponse(JSON.stringify(employeeInfo, null, 2));
   };
 
+  // 监听completion变化，当它有值且不在提交中时更新数据库
+  useEffect(() => {
+    const updateDatabase = async () => {
+      // 确保completion存在且不是空字符串，并且已经触发了生成操作
+      if (completion && hasGenerated && !isSubmitting && !isUpdating) {
+        try {
+          setIsUpdating(true);
+          if (aiSummaryId) {
+            // 如果已经有AI分析结果，更新它
+            await updateAISummary(aiSummaryId, completion);
+          } else {
+            // 如果没有AI分析结果，创建一个新的
+            await createAISummary("员工", employee.id, completion);
+          }
+        } catch (error) {
+          console.error("保存AI分析结果失败:", error);
+        } finally {
+          setIsUpdating(false);
+        }
+      }
+    };
+
+    updateDatabase();
+  }, [completion, isSubmitting, hasGenerated, aiSummaryId, employee.id]);
+
   return (
     <Card className="w-full">
       <CardHeader>
@@ -108,17 +136,6 @@ export default function AISummary({
       </CardHeader>
 
       <CardContent>
-        {!hasGenerated && !isSubmitting && (
-          <div className="flex flex-col items-center justify-center py-8 text-center">
-            <div className="bg-muted mb-4 flex h-12 w-12 items-center justify-center rounded-full">
-              <Brain className="text-muted-foreground h-6 w-6" />
-            </div>
-            <p className="text-muted-foreground text-sm">
-              点击上方按钮开始AI智能分析
-            </p>
-          </div>
-        )}
-
         {isSubmitting && (
           <div className="flex flex-col items-center justify-center py-8">
             <div className="bg-primary/10 mb-4 flex h-12 w-12 items-center justify-center rounded-full">
@@ -130,22 +147,20 @@ export default function AISummary({
           </div>
         )}
 
-        {completion && showResult && (
-          <div className="space-y-4">
-            <div className="bg-card rounded-lg border p-4">
-              <div className="prose prose-sm max-w-none">
-                <div className="text-foreground text-sm leading-relaxed whitespace-pre-wrap">
-                  {completion}
-                </div>
+        <div className="space-y-4">
+          <div className="bg-card rounded-lg border p-4">
+            <div className="prose prose-sm max-w-none">
+              <div className="text-foreground text-sm leading-relaxed whitespace-pre-wrap">
+                {completion && showResult ? completion : aiResult}
               </div>
             </div>
-
-            <div className="text-muted-foreground flex items-center gap-2 text-xs">
-              <Brain className="h-3 w-3" />
-              <span>此报告由AI智能分析生成，仅供参考</span>
-            </div>
           </div>
-        )}
+
+          <div className="text-muted-foreground flex items-center gap-2 text-xs">
+            <Brain className="h-3 w-3" />
+            <span>此报告由AI智能分析生成，仅供参考</span>
+          </div>
+        </div>
       </CardContent>
     </Card>
   );

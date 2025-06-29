@@ -2,23 +2,20 @@ import AISummary from "@/components/employee/AISummary";
 import EmployeeAnalysis from "@/components/employee/EmployeeAnalysis";
 import EmployeeDetail from "@/components/employee/EmployeeDetail";
 import { Badge } from "@/components/ui/badge";
+import { getEmployeeAISummery } from "@/lib/services/aiService";
 import { getEmployeeDepartmentHistory } from "@/lib/services/departmentService";
 import { getEmployeeById } from "@/lib/services/employeeService";
 import { getEmployeePerformances } from "@/lib/services/performanceService";
 import { getEmployeeProjects } from "@/lib/services/projectService";
 
 export default async function EmployeeDetailPage({ params }) {
-  const { id } = params;
+  const { id } = await params;
   const employee = await getEmployeeById(id);
   const departmentHistory = await getEmployeeDepartmentHistory(id);
   const projectsHistory = await getEmployeeProjects(id);
   const performanceHistory = await getEmployeePerformances(id);
-  console.log(
-    "projectsHistory:",
-    projectsHistory,
-    " performanceHistory:",
-    performanceHistory
-  );
+  const aiSummary = await getEmployeeAISummery(id);
+  console.log("AI Summary:", aiSummary);
 
   // 格式化日期
   const formatDate = (dateString) => {
@@ -136,6 +133,7 @@ export default async function EmployeeDetailPage({ params }) {
               departmentHistory={departmentHistory}
               projectsHistory={projectsHistory}
               performanceHistory={performanceHistory}
+              summary={aiSummary}
             />
           </div>
 
