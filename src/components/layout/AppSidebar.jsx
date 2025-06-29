@@ -3,18 +3,18 @@
 import { Award, Briefcase, LayoutDashboard, Users } from "lucide-react";
 
 import {
-    Sidebar,
-    SidebarContent,
-    SidebarGroup,
-    SidebarGroupContent,
-    SidebarGroupLabel,
-    SidebarHeader,
-    SidebarMenu,
-    SidebarMenuButton,
-    SidebarMenuItem,
+  Sidebar,
+  SidebarContent,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
+  SidebarHeader,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
 } from "@/components/ui/sidebar";
 
-import useAuth from "@/hooks/auth";
+import { Role, useAuth } from "@/hooks/auth";
 import { cn } from "@/lib/utils";
 import { BarChart, Building, Home, Network, UserCog } from "lucide-react";
 import { usePathname } from "next/navigation";
@@ -117,13 +117,13 @@ export function AppSidebar() {
   const role = useAuth((state) => state.role);
 
   let navItems = [];
-  if (role === "hr") {
+  if (role === Role.HR) {
     navItems = hrNav;
-  } else if (role === "leader") {
+  } else if (role === Role.LEADER) {
     navItems = leaderNav;
-  } else if (role === "admin") {
+  } else if (role === Role.ADMIN) {
     navItems = adminNav;
-  } else if (role === "employee") {
+  } else if (role === Role.EMPLOYEE) {
     navItems = employeeNav;
   }
 

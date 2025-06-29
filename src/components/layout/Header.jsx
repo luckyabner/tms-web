@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { SidebarTrigger } from "@/components/ui/sidebar";
-import useAuth from "@/hooks/auth";
+import { Role, useAuth } from "@/hooks/auth";
 import { Bell, ChevronDown, LogOut, Search, User } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -21,7 +21,7 @@ export default function Header() {
   const pathname = usePathname();
   const router = useRouter();
   const isAdminPath = pathname?.startsWith("/admin");
-  const changeRole = useAuth((state) => state.changeRole);
+  const { changeRole, role } = useAuth();
 
   // 处理退出登录
   const handleLogout = () => {
@@ -84,9 +84,7 @@ export default function Header() {
                 <div className="text-sm font-medium">
                   {isAdminPath ? "张无忌" : "张三丰"}
                 </div>
-                <div className="text-muted-foreground text-xs">
-                  {isAdminPath ? "系统管理员" : "人事专员"}
-                </div>
+                <div className="text-muted-foreground text-xs">{role}</div>
               </div>
               <ChevronDown className="h-4 w-4" />
             </Button>
@@ -98,7 +96,7 @@ export default function Header() {
               <div
                 className="flex items-center"
                 onClick={() => {
-                  changeRole("hr");
+                  changeRole(Role.HR);
                   router.push("/");
                 }}
               >
@@ -111,7 +109,7 @@ export default function Header() {
               <div
                 className="flex items-center"
                 onClick={() => {
-                  changeRole("leader");
+                  changeRole(Role.LEADER);
                   router.push("/");
                 }}
               >
@@ -124,7 +122,7 @@ export default function Header() {
               <div
                 className="flex items-center"
                 onClick={() => {
-                  changeRole("admin");
+                  changeRole(Role.ADMIN);
                   router.push("/");
                 }}
               >
@@ -137,7 +135,7 @@ export default function Header() {
               <div
                 className="flex items-center"
                 onClick={() => {
-                  changeRole("employee");
+                  changeRole(Role.EMPLOYEE);
                   router.push("/employees/4");
                 }}
               >

@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAI } from "@/hooks/ai/useAI";
-import useAuth from "@/hooks/auth";
+import { useAuth } from "@/hooks/auth";
 import { createAISummary, updateAISummary } from "@/lib/services/aiService";
 import {
   AlertCircle,
