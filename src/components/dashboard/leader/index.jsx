@@ -2,11 +2,11 @@
 
 import { Button } from "@/components/ui/button";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
 } from "@/components/ui/card";
 import { RealTimeClock } from "@/components/ui/real-time-clock";
 import { StatCard } from "@/components/ui/stat-card";
@@ -14,15 +14,16 @@ import api from "@/lib/api";
 import { getAllDepartments } from "@/lib/services/departmentService";
 import { getAllEmployees } from "@/lib/services/employeeService";
 import {
-  AlertTriangle,
-  Briefcase,
-  Building,
-  Calendar,
-  CheckCircle,
-  Clock,
-  TrendingUp,
-  UserCog,
-  Users,
+    AlertTriangle,
+    Briefcase,
+    Building,
+    Calendar,
+    CheckCircle,
+    Clock,
+    Network,
+    TrendingUp,
+    UserCog,
+    Users,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 
@@ -383,6 +384,15 @@ export default function LeaderPage() {
                 <a href="/executive/departments">
                   <Building className="mr-2 h-4 w-4" />
                   查看所有部门
+                </a>
+              </Button>
+              <Button
+                className="w-full justify-start bg-green-600 hover:bg-green-700"
+                asChild
+              >
+                <a href="/executive/relations">
+                  <Network className="mr-2 h-4 w-4" />
+                  员工关系网络
                 </a>
               </Button>
               <Button

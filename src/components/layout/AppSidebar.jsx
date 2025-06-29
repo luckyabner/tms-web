@@ -3,20 +3,20 @@
 import { Award, Briefcase, LayoutDashboard, Users } from "lucide-react";
 
 import {
-  Sidebar,
-  SidebarContent,
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarGroupLabel,
-  SidebarHeader,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
+    Sidebar,
+    SidebarContent,
+    SidebarGroup,
+    SidebarGroupContent,
+    SidebarGroupLabel,
+    SidebarHeader,
+    SidebarMenu,
+    SidebarMenuButton,
+    SidebarMenuItem,
 } from "@/components/ui/sidebar";
 
 import useAuth from "@/hooks/auth";
 import { cn } from "@/lib/utils";
-import { BarChart, Building, Home, UserCog } from "lucide-react";
+import { BarChart, Building, Home, Network, UserCog } from "lucide-react";
 import { usePathname } from "next/navigation";
 
 // hr端菜单
@@ -63,6 +63,11 @@ const leaderNav = [
     title: "部门信息",
     icon: Building,
     url: "/departments",
+  },
+  {
+    title: "关系网络",
+    icon: Network,
+    url: "/relations",
   },
   {
     title: "人事调动",
