@@ -7,7 +7,14 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { CalendarDays, Clock, GraduationCap, Phone, User } from "lucide-react";
+import {
+  Cake,
+  CalendarDays,
+  Clock,
+  GraduationCap,
+  Phone,
+  User,
+} from "lucide-react";
 
 export default function EmployeeDetail({ employee }) {
   // 格式化日期
@@ -17,6 +24,23 @@ export default function EmployeeDetail({ employee }) {
       month: "long",
       day: "numeric",
     });
+  };
+
+  // 计算年龄
+  const calculateAge = (birthDate) => {
+    const today = new Date();
+    const birth = new Date(birthDate);
+    let age = today.getFullYear() - birth.getFullYear();
+    const monthDiff = today.getMonth() - birth.getMonth();
+
+    if (
+      monthDiff < 0 ||
+      (monthDiff === 0 && today.getDate() < birth.getDate())
+    ) {
+      age--;
+    }
+
+    return age;
   };
 
   // 计算工龄
@@ -59,9 +83,9 @@ export default function EmployeeDetail({ employee }) {
             <span className="text-sm">{employee.phone}</span>
           </div>
           <div className="flex items-center gap-3">
-            <CalendarDays className="text-muted-foreground h-4 w-4" />
+            <Cake className="text-muted-foreground h-4 w-4" />
             <span className="text-sm">
-              生日: {formatDate(employee.birthDate)}
+              {calculateAge(employee.birthDate)}岁
             </span>
           </div>
           <div className="flex items-center gap-3">
