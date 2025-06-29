@@ -99,6 +99,7 @@ export default function Header() {
                 className="flex items-center"
                 onClick={() => {
                   changeRole("hr");
+                  router.push("/");
                 }}
               >
                 <User className="mr-2 h-4 w-4" />
@@ -111,6 +112,7 @@ export default function Header() {
                 className="flex items-center"
                 onClick={() => {
                   changeRole("leader");
+                  router.push("/");
                 }}
               >
                 <User className="mr-2 h-4 w-4" />
@@ -123,6 +125,7 @@ export default function Header() {
                 className="flex items-center"
                 onClick={() => {
                   changeRole("admin");
+                  router.push("/");
                 }}
               >
                 <User className="mr-2 h-4 w-4" />
@@ -135,6 +138,7 @@ export default function Header() {
                 className="flex items-center"
                 onClick={() => {
                   changeRole("employee");
+                  router.push("/employees/4");
                 }}
               >
                 <User className="mr-2 h-4 w-4" />

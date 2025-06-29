@@ -103,7 +103,7 @@ const employeeNav = [
   {
     title: "个人档案",
     icon: Users,
-    url: "/employees/1",
+    url: "/employees/4",
   },
 ];
 
