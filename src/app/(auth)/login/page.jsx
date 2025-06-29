@@ -70,7 +70,7 @@ export default function Login() {
     try {
       const res = await login(formData.phone, formData.password);
       console.log("登录成功:", res);
-      router.push("/hr/dashboard");
+      router.push("/");
     } catch (err) {
       setError("登录失败，请检查您的手机号和密码");
     } finally {

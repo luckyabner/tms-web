@@ -6,7 +6,7 @@ export const login = async (phone, password) => {
       phone: phone,
       password: password,
     });
-    return res.data.data;
+    return res.data;
   } catch (err) {
     console.error("登录失败:", err);
     throw err;
