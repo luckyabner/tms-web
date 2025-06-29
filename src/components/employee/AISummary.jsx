@@ -66,9 +66,12 @@ export default function AISummary({
       })) || [],
   };
 
+  const prompt =
+    "你是一名人力资源专家，请根据以下员工的相关信息，生成一段专业的总结，内容包括但不限于：员工的工作表现、职业发展建议、培训需求等。不要用markdown，也不要过长，300字以内";
+
   const handleGenerateAI = async () => {
     setHasGenerated(true);
-    await getAiResponse(JSON.stringify(employeeInfo, null, 2));
+    await getAiResponse(prompt, JSON.stringify(employeeInfo, null, 2));
   };
 
   // 监听completion变化，当它有值且不在提交中时更新数据库
