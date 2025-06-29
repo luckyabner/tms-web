@@ -1,29 +1,31 @@
 "use client";
 
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardHeader,
-    CardTitle,
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
 } from "@/components/ui/card";
 import { RealTimeClock } from "@/components/ui/real-time-clock";
+import { Separator } from "@/components/ui/separator";
 import { StatCard } from "@/components/ui/stat-card";
 import api from "@/lib/api";
 import { getAllDepartments } from "@/lib/services/departmentService";
 import { getAllEmployees } from "@/lib/services/employeeService";
 import {
-    AlertTriangle,
-    Briefcase,
-    Building,
-    Calendar,
-    CheckCircle,
-    Clock,
-    Network,
-    TrendingUp,
-    UserCog,
-    Users,
+  ArrowRight,
+  Briefcase,
+  Building2,
+  Calendar,
+  Eye,
+  LayoutDashboard,
+  Network,
+  TrendingUp,
+  UserCog,
+  Users,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 
@@ -35,15 +37,15 @@ export default function LeaderPage() {
       trend: "up",
       trendValue: "+0%",
       icon: Users,
-      color: "green",
+      color: "default",
     },
     {
       title: "部门数量",
       value: "0",
       trend: "up",
       trendValue: "+0",
-      icon: Building,
-      color: "teal",
+      icon: Building2,
+      color: "default",
     },
     {
       title: "人事调动",
@@ -51,7 +53,7 @@ export default function LeaderPage() {
       trend: "up",
       trendValue: "+0",
       icon: UserCog,
-      color: "emerald",
+      color: "default",
     },
     {
       title: "项目进行中",
@@ -59,7 +61,7 @@ export default function LeaderPage() {
       trend: "up",
       trendValue: "+0%",
       icon: Briefcase,
-      color: "lime",
+      color: "default",
     },
   ]);
 
@@ -159,15 +161,15 @@ export default function LeaderPage() {
           trend: "up",
           trendValue: `+${Math.floor(employees.length * 0.05)}%`,
           icon: Users,
-          color: "green",
+          color: "default",
         },
         {
           title: "部门数量",
           value: departments.length.toString(),
           trend: "up",
           trendValue: "+1",
-          icon: Building,
-          color: "teal",
+          icon: Building2,
+          color: "default",
         },
         {
           title: "人事调动",
@@ -177,7 +179,7 @@ export default function LeaderPage() {
           trend: "up",
           trendValue: `+${pendingTransferData.filter((t) => t.status === "待审批").length}`,
           icon: UserCog,
-          color: "emerald",
+          color: "default",
         },
         {
           title: "项目进行中",
@@ -185,7 +187,7 @@ export default function LeaderPage() {
           trend: "up",
           trendValue: "+12%",
           icon: Briefcase,
-          color: "lime",
+          color: "default",
         },
       ]);
 
@@ -202,28 +204,27 @@ export default function LeaderPage() {
   };
 
   return (
-    <div className="container mx-auto min-h-screen space-y-6 bg-gray-50 p-6">
-      {/* 欢迎区域 */}
-      <div className="rounded-lg bg-gradient-to-r from-green-600 to-teal-600 p-6 text-white">
-        <div className="flex items-start justify-between">
-          <div>
-            <h1 className="mb-2 text-2xl font-bold">欢迎回来，公司高层！</h1>
-            <p className="text-green-100">
-              今天是{" "}
-              {new Date().toLocaleDateString("zh-CN", {
-                year: "numeric",
-                month: "long",
-                day: "numeric",
-                weekday: "long",
-              })}
-            </p>
-          </div>
-          <RealTimeClock />
+    <div className="flex-1 space-y-6 p-6">
+      {/* 页面标题 */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">工作台</h1>
+          <p className="text-muted-foreground">
+            {new Date().toLocaleDateString("zh-CN", {
+              year: "numeric",
+              month: "long",
+              day: "numeric",
+              weekday: "long",
+            })}
+          </p>
         </div>
+        <RealTimeClock />
       </div>
 
+      <Separator />
+
       {/* 统计卡片 */}
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         {stats.map((stat) => (
           <StatCard
             key={stat.title}
@@ -237,63 +238,48 @@ export default function LeaderPage() {
         ))}
       </div>
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+      <div className="grid gap-6 lg:grid-cols-2">
         {/* 待审批的人事调动 */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <UserCog className="h-5 w-5 text-green-600" />
+              <UserCog className="h-4 w-4" />
               待审批的人事调动
             </CardTitle>
+            <CardDescription>待人事审批的调动申请</CardDescription>
           </CardHeader>
           <CardContent>
             {loading ? (
-              <div className="flex justify-center py-8">
-                <div className="h-8 w-8 animate-spin rounded-full border-4 border-green-200 border-t-green-600"></div>
+              <div className="flex items-center justify-center py-8">
+                <div className="border-primary h-8 w-8 animate-spin rounded-full border-2 border-t-transparent"></div>
               </div>
             ) : pendingTransfers.length > 0 ? (
-              <div className="space-y-4">
+              <div className="space-y-3">
                 {pendingTransfers.map((transfer) => (
                   <div
                     key={transfer.id}
-                    className="flex items-center justify-between rounded-lg border-l-4 border-green-500 bg-gray-50 p-3"
+                    className="hover:bg-muted/50 flex items-center justify-between rounded-lg border p-3 transition-colors"
                   >
-                    <div className="flex-1">
-                      <div className="flex items-center">
+                    <div className="flex-1 space-y-1">
+                      <div className="flex items-center gap-2">
                         <span className="font-medium">
                           {transfer.employeeName}
                         </span>
-                        <span className="mx-2 text-gray-400">•</span>
-                        <span className="text-sm text-gray-600">
+                        <ArrowRight className="text-muted-foreground h-3 w-3" />
+                        <span className="text-muted-foreground text-sm">
                           {transfer.fromDepartment} → {transfer.toDepartment}
                         </span>
                       </div>
-                      <div className="mt-1 text-xs text-gray-500">
+                      <p className="text-muted-foreground text-xs">
                         申请日期：{transfer.date}
-                      </div>
+                      </p>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span
-                        className={`rounded-full px-2 py-1 text-xs ${
-                          transfer.status === "待审批"
-                            ? "bg-amber-100 text-amber-700"
-                            : transfer.status === "已通过"
-                              ? "bg-green-100 text-green-700"
-                              : "bg-red-100 text-red-700"
-                        }`}
-                      >
-                        {transfer.status}
-                      </span>
+                      <Badge variant="secondary">{transfer.status}</Badge>
                       {transfer.status === "待审批" && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="border-green-500 text-xs text-green-600 hover:bg-green-50"
-                          asChild
-                        >
-                          <a
-                            href={`/executive/transfers/new?transferId=${transfer.id}`}
-                          >
+                        <Button variant="outline" size="sm" asChild>
+                          <a href={`transfers/new?transferId=${transfer.id}`}>
+                            <Eye className="mr-1 h-3 w-3" />
                             查看
                           </a>
                         </Button>
@@ -303,8 +289,11 @@ export default function LeaderPage() {
                 ))}
               </div>
             ) : (
-              <div className="py-6 text-center text-gray-500">
-                暂无待审批的人事调动
+              <div className="flex flex-col items-center justify-center py-8 text-center">
+                <UserCog className="text-muted-foreground mb-2 h-8 w-8" />
+                <p className="text-muted-foreground text-sm">
+                  暂无待审批的人事调动
+                </p>
               </div>
             )}
           </CardContent>
@@ -314,14 +303,15 @@ export default function LeaderPage() {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Building className="h-5 w-5 text-green-600" />
+              <Building2 className="h-4 w-4" />
               部门人员分布
             </CardTitle>
+            <CardDescription>各部门的人员配置情况</CardDescription>
           </CardHeader>
           <CardContent>
             {loading ? (
-              <div className="flex justify-center py-8">
-                <div className="h-8 w-8 animate-spin rounded-full border-4 border-green-200 border-t-green-600"></div>
+              <div className="flex items-center justify-center py-8">
+                <div className="border-primary h-8 w-8 animate-spin rounded-full border-2 border-t-transparent"></div>
               </div>
             ) : departments.length > 0 ? (
               <div className="space-y-4">
@@ -331,92 +321,85 @@ export default function LeaderPage() {
                     className="flex items-center justify-between"
                   >
                     <div className="flex items-center gap-3">
-                      <div className="h-2 w-2 rounded-full bg-green-500"></div>
-                      <span>{dept.name}</span>
+                      <div className="bg-primary h-2 w-2 rounded-full"></div>
+                      <span className="text-sm font-medium">{dept.name}</span>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <div className="h-2 w-48 overflow-hidden rounded-full bg-gray-100">
+                    <div className="flex items-center gap-3">
+                      <div className="bg-muted h-2 w-24 overflow-hidden rounded-full">
                         <div
-                          className="h-2 rounded-full bg-green-500"
+                          className="bg-primary h-2 rounded-full transition-all"
                           style={{
-                            width: `${Math.min(100, Math.max(5, dept.employeeCount * 5))}%`,
+                            width: `${Math.min(100, Math.max(10, dept.employeeCount * 5))}%`,
                           }}
                         ></div>
                       </div>
-                      <span className="w-16 text-right text-sm text-gray-500">
-                        {dept.employeeCount || 0} 人
+                      <span className="text-muted-foreground w-8 text-right text-sm">
+                        {dept.employeeCount || 0}
                       </span>
                     </div>
                   </div>
                 ))}
               </div>
             ) : (
-              <div className="py-6 text-center text-gray-500">暂无部门数据</div>
+              <div className="flex flex-col items-center justify-center py-8 text-center">
+                <Building2 className="text-muted-foreground mb-2 h-8 w-8" />
+                <p className="text-muted-foreground text-sm">暂无部门数据</p>
+              </div>
             )}
           </CardContent>
         </Card>
       </div>
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-1">
-        {/* 快捷操作 */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <TrendingUp className="h-5 w-5 text-green-600" />
-              快捷操作
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              <Button
-                className="w-full justify-start bg-green-600 hover:bg-green-700"
-                asChild
-              >
-                <a href="/executive/employees">
-                  <Users className="mr-2 h-4 w-4" />
-                  查看所有员工
-                </a>
-              </Button>
-              <Button
-                className="w-full justify-start bg-green-600 hover:bg-green-700"
-                asChild
-              >
-                <a href="/executive/departments">
-                  <Building className="mr-2 h-4 w-4" />
-                  查看所有部门
-                </a>
-              </Button>
-              <Button
-                className="w-full justify-start bg-green-600 hover:bg-green-700"
-                asChild
-              >
-                <a href="/executive/relations">
-                  <Network className="mr-2 h-4 w-4" />
-                  员工关系网络
-                </a>
-              </Button>
-              <Button
-                className="w-full justify-start bg-green-600 hover:bg-green-700"
-                asChild
-              >
-                <a href="/executive/transfers/new">
-                  <UserCog className="mr-2 h-4 w-4" />
-                  发起人事调动
-                </a>
-              </Button>
-              <Button
-                className="w-full justify-start bg-green-600 hover:bg-green-700"
-                asChild
-              >
-                <a href="/executive/analysis">
-                  <TrendingUp className="mr-2 h-4 w-4" />
-                  部门绩效分析
-                </a>
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      {/* 快捷操作 */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <LayoutDashboard className="h-4 w-4" />
+            快捷操作
+          </CardTitle>
+          <CardDescription>常用功能入口</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            <Button variant="outline" className="justify-start" asChild>
+              <a href="/executive/employees">
+                <Users className="mr-2 h-4 w-4" />
+                查看所有员工
+              </a>
+            </Button>
+            <Button variant="outline" className="justify-start" asChild>
+              <a href="/executive/departments">
+                <Building2 className="mr-2 h-4 w-4" />
+                查看所有部门
+              </a>
+            </Button>
+            <Button variant="outline" className="justify-start" asChild>
+              <a href="/executive/relations">
+                <Network className="mr-2 h-4 w-4" />
+                员工关系网络
+              </a>
+            </Button>
+            <Button variant="outline" className="justify-start" asChild>
+              <a href="/executive/transfers/new">
+                <UserCog className="mr-2 h-4 w-4" />
+                发起人事调动
+              </a>
+            </Button>
+            <Button variant="outline" className="justify-start" asChild>
+              <a href="/executive/analysis">
+                <TrendingUp className="mr-2 h-4 w-4" />
+                部门绩效分析
+              </a>
+            </Button>
+            <Button variant="outline" className="justify-start" asChild>
+              <a href="/executive/projects">
+                <Briefcase className="mr-2 h-4 w-4" />
+                项目管理
+              </a>
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }

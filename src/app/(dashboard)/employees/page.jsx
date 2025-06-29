@@ -51,11 +51,9 @@ export default async function EmployeesPage() {
   return (
     <div className="container mx-auto space-y-6 p-6">
       {/* 页面标题 */}
-      <div>
-        <h1 className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-3xl font-bold text-transparent">
-          员工管理
-        </h1>
-        <p className="text-muted-foreground">管理和查看所有员工信息</p>
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold tracking-tight">员工管理</h1>
+        <p className="text-muted-foreground mt-2">管理和查看所有员工信息</p>
       </div>
 
       {/* 统计卡片 */}

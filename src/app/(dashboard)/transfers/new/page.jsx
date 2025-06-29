@@ -239,51 +239,49 @@ function NewTransferContent() {
   };
 
   return (
-    <div className="min-h-screen space-y-6 bg-gray-50 p-6">
-      <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <div>
-          <h1 className="bg-gradient-to-r from-green-600 to-teal-600 bg-clip-text text-2xl font-bold text-transparent">
-            发起人事调动
-          </h1>
-          <p className="text-gray-500">创建新的员工部门或职位变动申请</p>
-        </div>
+    <div className="container mx-auto p-6">
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold tracking-tight">发起人事调动</h1>
+        <p className="text-muted-foreground mt-2">
+          创建新的员工部门或职位变动申请
+        </p>
       </div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <div className="lg:col-span-2">
-          <Card className="border-green-100 shadow-sm">
-            <CardHeader className="border-b border-green-100 bg-gradient-to-r from-green-50 to-teal-50">
-              <CardTitle className="flex items-center text-green-800">
-                <UserCog className="mr-2 h-5 w-5 text-green-600" />
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <UserCog className="h-5 w-5" />
                 人事调动申请表
               </CardTitle>
               <CardDescription>填写以下信息提交人事调动申请</CardDescription>
             </CardHeader>
             <CardContent className="p-6">
               {loading ? (
-                <div className="flex justify-center py-12">
-                  <div className="h-12 w-12 animate-spin rounded-full border-4 border-green-200 border-t-green-600"></div>
+                <div className="flex justify-center py-8">
+                  <div className="border-muted border-t-primary h-8 w-8 animate-spin rounded-full border-2"></div>
                 </div>
               ) : (
                 <form onSubmit={handleSubmit} className="space-y-6">
                   {error && (
-                    <div className="flex items-center rounded-md border border-red-200 bg-red-50 p-4 text-red-700">
-                      <AlertCircle className="mr-2 h-5 w-5 text-red-500" />
-                      {error}
+                    <div className="border-destructive/20 bg-destructive/10 text-destructive flex items-center gap-2 rounded-md border p-3">
+                      <AlertCircle className="h-4 w-4" />
+                      <span className="text-sm">{error}</span>
                     </div>
                   )}
 
                   {success && (
-                    <div className="flex items-center rounded-md border border-green-200 bg-green-50 p-4 text-green-700">
-                      <Check className="mr-2 h-5 w-5 text-green-500" />
-                      人事调动申请已成功提交！
+                    <div className="flex items-center gap-2 rounded-md border border-green-200 bg-green-50 p-3 text-green-700">
+                      <Check className="h-4 w-4" />
+                      <span className="text-sm">人事调动申请已成功提交！</span>
                     </div>
                   )}
 
-                  <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                     <div className="space-y-2">
-                      <Label htmlFor="empId" className="text-sm font-medium">
-                        选择员工 <span className="text-red-500">*</span>
+                      <Label htmlFor="empId">
+                        选择员工 <span className="text-destructive">*</span>
                       </Label>
                       <Select
                         value={formData.empId}
@@ -310,8 +308,8 @@ function NewTransferContent() {
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="depId" className="text-sm font-medium">
-                        目标部门 <span className="text-red-500">*</span>
+                      <Label htmlFor="depId">
+                        目标部门 <span className="text-destructive">*</span>
                       </Label>
                       <Select
                         value={formData.depId}
@@ -338,8 +336,8 @@ function NewTransferContent() {
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="position" className="text-sm font-medium">
-                        新职位 <span className="text-red-500">*</span>
+                      <Label htmlFor="position">
+                        新职位 <span className="text-destructive">*</span>
                       </Label>
                       <Input
                         id="position"
@@ -353,12 +351,7 @@ function NewTransferContent() {
                     </div>
 
                     <div className="space-y-2">
-                      <Label
-                        htmlFor="superiorId"
-                        className="text-sm font-medium"
-                      >
-                        直接上级
-                      </Label>
+                      <Label htmlFor="superiorId">直接上级</Label>
                       <Select
                         value={formData.superiorId}
                         onValueChange={(value) =>
@@ -385,19 +378,14 @@ function NewTransferContent() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label
-                      htmlFor="description"
-                      className="text-sm font-medium"
-                    >
-                      调动原因
-                    </Label>
+                    <Label htmlFor="description">调动原因</Label>
                     <Textarea
                       id="description"
                       name="description"
                       value={formData.description}
                       onChange={handleInputChange}
                       placeholder="请描述调动原因..."
-                      className="min-h-[120px]"
+                      className="min-h-[100px]"
                       disabled={submitting}
                     />
                   </div>
@@ -405,12 +393,12 @@ function NewTransferContent() {
                   <div className="flex justify-end pt-4">
                     <Button
                       type="submit"
-                      className="bg-green-600 px-6 hover:bg-green-700"
                       disabled={submitting}
+                      className="min-w-[120px]"
                     >
                       {submitting ? (
                         <>
-                          <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
+                          <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent"></div>
                           提交中...
                         </>
                       ) : (
@@ -426,24 +414,24 @@ function NewTransferContent() {
 
         <div className="lg:col-span-1">
           <div className="space-y-6">
-            <Card className="border-green-100 shadow-sm">
-              <CardHeader className="border-b border-green-100 bg-gradient-to-r from-green-50 to-teal-50">
-                <CardTitle className="flex items-center text-lg text-green-800">
-                  <Calendar className="mr-2 h-5 w-5 text-green-600" />
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Calendar className="h-5 w-5" />
                   员工当前信息
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-6">
                 {loading ? (
-                  <div className="animate-pulse space-y-4">
-                    <div className="h-4 w-3/4 rounded bg-gray-200"></div>
-                    <div className="h-4 w-1/2 rounded bg-gray-200"></div>
-                    <div className="h-4 w-2/3 rounded bg-gray-200"></div>
+                  <div className="animate-pulse space-y-3">
+                    <div className="bg-muted h-4 w-3/4 rounded"></div>
+                    <div className="bg-muted h-4 w-1/2 rounded"></div>
+                    <div className="bg-muted h-4 w-2/3 rounded"></div>
                   </div>
                 ) : formData.empId ? (
                   <div className="space-y-4">
-                    <div className="flex items-center space-x-3">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-green-500 to-teal-600 font-medium text-white">
+                    <div className="flex items-center gap-3">
+                      <div className="bg-primary text-primary-foreground flex h-10 w-10 items-center justify-center rounded-full font-medium">
                         {employees
                           .find((emp) => emp.id === parseInt(formData.empId))
                           ?.name.charAt(0) || "?"}
@@ -454,7 +442,7 @@ function NewTransferContent() {
                             (emp) => emp.id === parseInt(formData.empId)
                           )?.name || "未知员工"}
                         </div>
-                        <div className="text-sm text-gray-500">
+                        <div className="text-muted-foreground text-sm">
                           {employees.find(
                             (emp) => emp.id === parseInt(formData.empId)
                           )?.phone || "无联系方式"}
@@ -462,23 +450,29 @@ function NewTransferContent() {
                       </div>
                     </div>
 
-                    <div className="space-y-3 rounded-md bg-gray-50 p-4">
+                    <div className="bg-muted/50 space-y-3 rounded-md p-4">
                       <div className="flex justify-between">
-                        <span className="text-sm text-gray-500">当前部门</span>
+                        <span className="text-muted-foreground text-sm">
+                          当前部门
+                        </span>
                         <span className="text-sm font-medium">
                           {getEmployeeCurrentDepartment(formData.empId) ||
                             "未分配"}
                         </span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-sm text-gray-500">当前职位</span>
+                        <span className="text-muted-foreground text-sm">
+                          当前职位
+                        </span>
                         <span className="text-sm font-medium">
                           {getEmployeeCurrentPosition(formData.empId) ||
                             "未设置"}
                         </span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-sm text-gray-500">入职日期</span>
+                        <span className="text-muted-foreground text-sm">
+                          入职日期
+                        </span>
                         <span className="text-sm font-medium">
                           {employees.find(
                             (emp) => emp.id === parseInt(formData.empId)
@@ -490,14 +484,14 @@ function NewTransferContent() {
                     {formData.depId && (
                       <div className="mt-6 flex items-center justify-center">
                         <div className="flex flex-col items-center">
-                          <div className="rounded-md bg-green-100 px-4 py-2 text-sm font-medium text-green-800">
+                          <div className="bg-muted rounded-md px-3 py-1.5 text-sm font-medium">
                             {getEmployeeCurrentDepartment(formData.empId) ||
                               "未分配部门"}
                           </div>
-                          <div className="h-8 w-px bg-green-300"></div>
-                          <ArrowRight className="my-1 h-5 w-5 text-green-500" />
-                          <div className="h-8 w-px bg-green-300"></div>
-                          <div className="rounded-md bg-green-600 px-4 py-2 text-sm font-medium text-white">
+                          <div className="bg-border h-6 w-px"></div>
+                          <ArrowRight className="text-muted-foreground my-1 h-4 w-4" />
+                          <div className="bg-border h-6 w-px"></div>
+                          <div className="bg-primary text-primary-foreground rounded-md px-3 py-1.5 text-sm font-medium">
                             {departments.find(
                               (dept) => dept.id === parseInt(formData.depId)
                             )?.name || "未知部门"}
@@ -507,39 +501,41 @@ function NewTransferContent() {
                     )}
                   </div>
                 ) : (
-                  <div className="py-6 text-center text-gray-500">
-                    <UserCog className="mx-auto mb-2 h-12 w-12 text-gray-300" />
-                    <p>请选择一名员工</p>
+                  <div className="text-muted-foreground py-6 text-center">
+                    <UserCog className="mx-auto mb-2 h-8 w-8" />
+                    <p className="text-sm">请选择一名员工</p>
                   </div>
                 )}
               </CardContent>
             </Card>
 
-            <Card className="border-green-100 shadow-sm">
-              <CardHeader className="border-b border-green-100 bg-gradient-to-r from-green-50 to-teal-50">
-                <CardTitle className="flex items-center text-lg text-green-800">
-                  <Building className="mr-2 h-5 w-5 text-green-600" />
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Building className="h-5 w-5" />
                   调动说明
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-6">
-                <div className="space-y-4 text-sm text-gray-600">
-                  <p>
-                    <span className="font-medium text-green-700">
+                <div className="text-muted-foreground space-y-3 text-sm">
+                  <div className="flex gap-2">
+                    <span className="text-foreground font-medium">
                       人事调动流程：
                     </span>
-                    提交后，将由人事部门审核批准。
-                  </p>
-                  <p>
-                    <span className="font-medium text-green-700">必填项：</span>
-                    员工、目标部门和新职位为必填项。
-                  </p>
-                  <p>
-                    <span className="font-medium text-green-700">
+                    <span>提交后，将由人事部门审核批准。</span>
+                  </div>
+                  <div className="flex gap-2">
+                    <span className="text-foreground font-medium">
+                      必填项：
+                    </span>
+                    <span>员工、目标部门和新职位为必填项。</span>
+                  </div>
+                  <div className="flex gap-2">
+                    <span className="text-foreground font-medium">
                       生效时间：
                     </span>
-                    调动申请审批通过后即刻生效。
-                  </p>
+                    <span>调动申请审批通过后即刻生效。</span>
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -554,21 +550,19 @@ export default function NewTransferPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen space-y-6 bg-gray-50 p-6">
-          <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-            <div>
-              <h1 className="bg-gradient-to-r from-green-600 to-teal-600 bg-clip-text text-2xl font-bold text-transparent">
-                发起人事调动
-              </h1>
-              <p className="text-gray-500">创建新的员工部门或职位变动申请</p>
-            </div>
+        <div className="container mx-auto p-6">
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold tracking-tight">发起人事调动</h1>
+            <p className="text-muted-foreground mt-2">
+              创建新的员工部门或职位变动申请
+            </p>
           </div>
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
             <div className="lg:col-span-2">
-              <Card className="border-green-100 shadow-sm">
-                <CardHeader className="border-b border-green-100 bg-gradient-to-r from-green-50 to-teal-50">
-                  <CardTitle className="flex items-center text-green-800">
-                    <UserCog className="mr-2 h-5 w-5 text-green-600" />
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <UserCog className="h-5 w-5" />
                     人事调动申请表
                   </CardTitle>
                   <CardDescription>
@@ -576,25 +570,25 @@ export default function NewTransferPage() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="p-6">
-                  <div className="flex justify-center py-12">
-                    <div className="h-12 w-12 animate-spin rounded-full border-4 border-green-200 border-t-green-600"></div>
+                  <div className="flex justify-center py-8">
+                    <div className="border-muted border-t-primary h-8 w-8 animate-spin rounded-full border-2"></div>
                   </div>
                 </CardContent>
               </Card>
             </div>
             <div className="lg:col-span-1">
-              <Card className="border-green-100 shadow-sm">
-                <CardHeader className="border-b border-green-100 bg-gradient-to-r from-green-50 to-teal-50">
-                  <CardTitle className="flex items-center text-lg text-green-800">
-                    <Calendar className="mr-2 h-5 w-5 text-green-600" />
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Calendar className="h-5 w-5" />
                     员工当前信息
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="p-6">
-                  <div className="animate-pulse space-y-4">
-                    <div className="h-4 w-3/4 rounded bg-gray-200"></div>
-                    <div className="h-4 w-1/2 rounded bg-gray-200"></div>
-                    <div className="h-4 w-2/3 rounded bg-gray-200"></div>
+                  <div className="animate-pulse space-y-3">
+                    <div className="bg-muted h-4 w-3/4 rounded"></div>
+                    <div className="bg-muted h-4 w-1/2 rounded"></div>
+                    <div className="bg-muted h-4 w-2/3 rounded"></div>
                   </div>
                 </CardContent>
               </Card>

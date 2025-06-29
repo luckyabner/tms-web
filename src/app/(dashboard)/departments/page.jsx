@@ -99,14 +99,9 @@ export default function DepartmentPage() {
     <div className="container mx-auto space-y-6 p-6">
       {/* 页面标题 */}
       <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-3">
-          <div className="bg-primary/10 rounded-lg p-2">
-            <Building2 className="text-primary h-6 w-6" />
-          </div>
-          <div>
-            <h1 className="text-2xl font-bold">部门管理</h1>
-            <p className="text-muted-foreground">管理组织架构和部门信息</p>
-          </div>
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold tracking-tight">部门管理</h1>
+          <p className="text-muted-foreground mt-2">管理组织架构和部门信息</p>
         </div>
         <SheetFormButton
           buttonLabel={"新建部门"}
