@@ -2,10 +2,10 @@
 module.exports = {
   darkMode: ["class"],
   content: [
-    './pages/**/*.{js,jsx}',
-    './components/**/*.{js,jsx}',
-    './app/**/*.{js,jsx}',
-    './src/**/*.{js,jsx}',
+    "./pages/**/*.{js,jsx}",
+    "./components/**/*.{js,jsx}",
+    "./app/**/*.{js,jsx}",
+    "./src/**/*.{js,jsx}",
   ],
   prefix: "",
   theme: {
@@ -51,6 +51,13 @@ module.exports = {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        chart: {
+          1: "hsl(var(--chart-1))",
+          2: "hsl(var(--chart-2))",
+          3: "hsl(var(--chart-3))",
+          4: "hsl(var(--chart-4))",
+          5: "hsl(var(--chart-5))",
+        },
       },
       borderRadius: {
         lg: "var(--radius)",
@@ -76,11 +83,11 @@ module.exports = {
             transform: "translateY(0)",
           },
         },
-        "move": {
+        move: {
           "0%": { backgroundPosition: "0 0" },
           "100%": { backgroundPosition: "128px 128px" },
         },
-        "float": {
+        float: {
           "0%, 100%": { transform: "translateY(0)" },
           "50%": { transform: "translateY(-20px)" },
         },
@@ -96,12 +103,12 @@ module.exports = {
           "0%, 100%": { transform: "translate(0, 0)" },
           "50%": { transform: "translate(15px, -20px)" },
         },
-        "wave": {
+        wave: {
           "0%": { transform: "translateX(0)" },
           "50%": { transform: "translateX(-25%)" },
           "100%": { transform: "translateX(-50%)" },
         },
-        "shake": {
+        shake: {
           "0%, 100%": { transform: "translateX(0)" },
           "25%": { transform: "translateX(-4px)" },
           "75%": { transform: "translateX(4px)" },
@@ -115,16 +122,16 @@ module.exports = {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
         "fade-up": "fade-up 0.5s ease-out forwards",
-        "move": "move 3s linear infinite",
-        "float": "float 6s ease-in-out infinite",
+        move: "move 3s linear infinite",
+        float: "float 6s ease-in-out infinite",
         "float-slow": "float-slow 8s ease-in-out infinite",
         "float-medium": "float-medium 6s ease-in-out infinite",
         "float-fast": "float-fast 4s ease-in-out infinite",
         "wave-slow": "wave 15s linear infinite",
-        "shake": "shake 0.5s cubic-bezier(0.36, 0.07, 0.19, 0.97) both",
+        shake: "shake 0.5s cubic-bezier(0.36, 0.07, 0.19, 0.97) both",
         "pulse-glow": "pulse-glow 2s ease-in-out infinite",
       },
     },
   },
   plugins: [require("tailwindcss-animate")],
-} 
+};

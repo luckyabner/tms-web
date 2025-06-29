@@ -673,49 +673,25 @@ export default function LogsDashboardPage() {
     }
   };
 
-  // 饼图颜色
-  const COLORS = ["#8b5cf6", "#6366f1", "#3b82f6", "#ec4899"];
+  // 饼图颜色 - 删除不使用的常量
+  // const COLORS = ["#8b5cf6", "#6366f1", "#3b82f6", "#ec4899"];
 
   // 获取日志级别对应的样式
   const getLogLevelBadge = (level) => {
     switch (level?.toLowerCase()) {
       case "error":
-        return (
-          <Badge
-            variant="outline"
-            className="border-red-200 bg-red-50 text-red-700"
-          >
-            错误
-          </Badge>
-        );
+        return <Badge variant="destructive">错误</Badge>;
       case "info":
-        return (
-          <Badge
-            variant="outline"
-            className="border-blue-200 bg-blue-50 text-blue-700"
-          >
-            信息
-          </Badge>
-        );
+        return <Badge variant="secondary">信息</Badge>;
       case "warn":
       case "warning":
         return (
-          <Badge
-            variant="outline"
-            className="border-amber-200 bg-amber-50 text-amber-700"
-          >
+          <Badge variant="outline" className="border-amber-500 text-amber-700">
             警告
           </Badge>
         );
       default:
-        return (
-          <Badge
-            variant="outline"
-            className="border-gray-200 bg-gray-50 text-gray-700"
-          >
-            未知
-          </Badge>
-        );
+        return <Badge variant="outline">未知</Badge>;
     }
   };
 
@@ -723,17 +699,22 @@ export default function LogsDashboardPage() {
   const hasData = logs && logs.length > 0;
 
   return (
-    <div className="container mx-auto space-y-6 p-6">
+    <div className="space-y-8 p-8">
       {/* 页面标题 */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-3xl font-bold text-transparent">
-            系统日志看板
-          </h1>
-          <p className="text-muted-foreground">监控和分析系统日志信息</p>
+      <div className="flex flex-col space-y-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
+        <div className="space-y-1">
+          <h1 className="text-3xl font-semibold tracking-tight">系统日志</h1>
+          <p className="text-muted-foreground text-sm">
+            监控和分析系统日志信息
+          </p>
         </div>
         <div className="flex items-center space-x-2">
-          <Button variant="outline" onClick={handleRefresh} disabled={loading}>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleRefresh}
+            disabled={loading}
+          >
             {loading ? (
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
             ) : (
@@ -741,22 +722,32 @@ export default function LogsDashboardPage() {
             )}
             刷新
           </Button>
-          <Button variant="outline" onClick={handleExport} disabled={loading}>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleExport}
+            disabled={loading}
+          >
             <Download className="mr-2 h-4 w-4" />
-            导出日志
+            导出
           </Button>
           <Dialog open={clearConfirmOpen} onOpenChange={setClearConfirmOpen}>
             <DialogTrigger asChild>
-              <Button variant="destructive" disabled={loading || !hasData}>
+              <Button
+                variant="outline"
+                size="sm"
+                className="text-destructive hover:bg-destructive hover:text-destructive-foreground"
+                disabled={loading || !hasData}
+              >
                 <Trash2 className="mr-2 h-4 w-4" />
-                清空日志
+                清空
               </Button>
             </DialogTrigger>
-            <DialogContent>
+            <DialogContent className="sm:max-w-[425px]">
               <DialogHeader>
                 <DialogTitle>确认清空所有日志</DialogTitle>
                 <DialogDescription>
-                  此操作将删除所有系统日志记录，且无法恢复。确定要继续吗？
+                  此操作将永久删除所有系统日志记录，无法恢复。请确认是否继续。
                 </DialogDescription>
               </DialogHeader>
               <DialogFooter>
@@ -786,83 +777,69 @@ export default function LogsDashboardPage() {
       </div>
 
       {/* 筛选条件区域 */}
-      <Card className="p-4">
-        <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
-          <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center">
-            <div>
-              <label className="mb-1 block text-sm font-medium">日志类型</label>
-              <Select value={logType} onValueChange={handleLogTypeChange}>
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="日志类型" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">全部日志</SelectItem>
-                  <SelectItem value="info">信息日志</SelectItem>
-                  <SelectItem value="error">错误日志</SelectItem>
-                  <SelectItem value="warn">警告日志</SelectItem>
-                </SelectContent>
-              </Select>
+      <Card>
+        <CardContent className="pt-6">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">日志类型</label>
+                <Select value={logType} onValueChange={handleLogTypeChange}>
+                  <SelectTrigger className="w-[160px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">全部日志</SelectItem>
+                    <SelectItem value="info">信息日志</SelectItem>
+                    <SelectItem value="error">错误日志</SelectItem>
+                    <SelectItem value="warn">警告日志</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">时间范围</label>
+                <Select value={timeRange} onValueChange={handleTimeRangeChange}>
+                  <SelectTrigger className="w-[160px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="today">今天</SelectItem>
+                    <SelectItem value="yesterday">昨天</SelectItem>
+                    <SelectItem value="week">最近7天</SelectItem>
+                    <SelectItem value="month">最近30天</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
-            <div>
-              <label className="mb-1 block text-sm font-medium">时间范围</label>
-              <Select value={timeRange} onValueChange={handleTimeRangeChange}>
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="选择时间范围" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="today">今天</SelectItem>
-                  <SelectItem value="yesterday">昨天</SelectItem>
-                  <SelectItem value="week">最近7天</SelectItem>
-                  <SelectItem value="month">最近30天</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-          <div className="flex items-center space-x-2">
-            <div className="text-muted-foreground flex items-center space-x-1 text-sm">
-              <Calendar className="h-4 w-4" />
+            <div className="text-muted-foreground flex items-center text-sm">
+              <Calendar className="mr-2 h-4 w-4" />
               <span>当前显示: {getTimeRangeText()}</span>
             </div>
           </div>
-        </div>
+        </CardContent>
       </Card>
 
       {/* 错误信息显示 */}
       {error && (
-        <Card className="border-red-200 bg-red-50">
+        <Card className="border-destructive/50 bg-destructive/5">
           <CardContent className="pt-6">
-            <div className="flex items-center text-red-700">
-              <AlertTriangle className="mr-2 h-5 w-5" />
-              <span>{error}</span>
+            <div className="text-destructive flex items-center">
+              <AlertTriangle className="mr-2 h-4 w-4" />
+              <span className="text-sm">{error}</span>
             </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* 调试信息 */}
-      {debugInfo && (
-        <Card className="border-amber-200 bg-amber-50">
-          <CardHeader>
-            <CardTitle className="text-amber-700">调试信息</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <pre className="max-h-[200px] overflow-auto text-xs">
-              {JSON.stringify(debugInfo, null, 2)}
-            </pre>
           </CardContent>
         </Card>
       )}
 
       {/* 无数据提示 */}
       {!loading && !hasData && !error && (
-        <Card className="border-blue-200 bg-blue-50">
+        <Card className="border-border">
           <CardContent className="pt-6">
-            <div className="flex flex-col items-center justify-center py-8">
-              <Info className="mb-4 h-12 w-12 text-blue-500" />
-              <h3 className="mb-2 text-xl font-medium text-blue-700">
-                暂无日志数据
-              </h3>
-              <p className="max-w-md text-center text-blue-600">
+            <div className="flex flex-col items-center justify-center py-12">
+              <div className="bg-muted mb-4 rounded-full p-3">
+                <Info className="text-muted-foreground h-6 w-6" />
+              </div>
+              <h3 className="mb-2 text-lg font-medium">暂无日志数据</h3>
+              <p className="text-muted-foreground max-w-md text-center text-sm">
                 当前筛选条件下没有日志记录。您可以尝试更改筛选条件或时间范围。
               </p>
             </div>
@@ -871,255 +848,316 @@ export default function LogsDashboardPage() {
       )}
 
       {/* 统计卡片 */}
-      <div className="grid grid-cols-4 gap-4">
-        {logStats.map((stat) => (
-          <Card key={stat.title} className="transition-shadow hover:shadow-md">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                {stat.title}
-              </CardTitle>
-              <div className={`rounded-full p-2 ${stat.color}`}>
-                <stat.icon className="h-4 w-4" />
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {loading ? "加载中..." : stat.value}
-              </div>
-              <p className="text-muted-foreground mt-1 text-xs">
-                {getTimeRangeText()}
-              </p>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+      {hasData && (
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {logStats.map((stat) => (
+            <Card key={stat.title}>
+              <CardContent className="pt-6">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-2">
+                    <p className="text-muted-foreground text-sm font-medium">
+                      {stat.title}
+                    </p>
+                    <p className="text-2xl font-semibold">
+                      {loading ? (
+                        <Loader2 className="h-6 w-6 animate-spin" />
+                      ) : (
+                        stat.value
+                      )}
+                    </p>
+                  </div>
+                  <div className="bg-muted rounded-md p-2">
+                    <stat.icon className="text-muted-foreground h-4 w-4" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
 
       {/* 图表区域 */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        {/* 日志活动图表 - 简化版 */}
-        <Card>
-          <CardHeader>
-            <CardTitle>日志活动</CardTitle>
-            <CardDescription>
-              系统日志分布 ({getTimeRangeText()})
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="h-[300px]">
-            {loading ? (
-              <div className="flex h-full items-center justify-center">
-                <Loader2 className="text-muted-foreground h-8 w-8 animate-spin" />
-              </div>
-            ) : (
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart
-                  data={[
-                    {
-                      name: "信息日志",
-                      数量: parseInt(logStats[3]?.value || 0),
-                      color: "#3b82f6",
-                    },
-                    {
-                      name: "警告日志",
-                      数量: parseInt(logStats[2]?.value || 0),
-                      color: "#f59e0b",
-                    },
-                    {
-                      name: "错误日志",
-                      数量: parseInt(logStats[1]?.value || 0),
-                      color: "#ef4444",
-                    },
-                  ]}
-                  margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-                >
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" />
-                  <YAxis />
-                  <Tooltip formatter={(value) => [`${value} 条日志`]} />
-                  <Legend />
-                  <Bar dataKey="数量" fill="#8884d8" isAnimationActive={true}>
-                    {[0, 1, 2].map((index) => (
-                      <Cell
-                        key={`cell-${index}`}
-                        fill={`${index === 0 ? "#3b82f6" : index === 1 ? "#f59e0b" : "#ef4444"}`}
+      {hasData && (
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+          {/* 日志活动图表 */}
+          <Card>
+            <CardHeader>
+              <CardTitle>日志分布</CardTitle>
+              <CardDescription>按类型统计的日志数量</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="h-[300px]">
+                {loading ? (
+                  <div className="flex h-full items-center justify-center">
+                    <Loader2 className="text-muted-foreground h-6 w-6 animate-spin" />
+                  </div>
+                ) : (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart
+                      data={[
+                        {
+                          name: "信息",
+                          数量: parseInt(logStats[3]?.value || 0),
+                          fill: "hsl(var(--chart-1))",
+                        },
+                        {
+                          name: "警告",
+                          数量: parseInt(logStats[2]?.value || 0),
+                          fill: "hsl(var(--chart-3))",
+                        },
+                        {
+                          name: "错误",
+                          数量: parseInt(logStats[1]?.value || 0),
+                          fill: "hsl(var(--chart-5))",
+                        },
+                      ]}
+                      margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                    >
+                      <CartesianGrid
+                        strokeDasharray="3 3"
+                        className="stroke-muted"
                       />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* 用户活跃度图表 */}
-        <Card>
-          <CardHeader>
-            <CardTitle>用户活跃度</CardTitle>
-            <CardDescription>
-              按用户统计的日志分布 ({getTimeRangeText()})
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="h-[300px]">
-            {loading ? (
-              <div className="flex h-full items-center justify-center">
-                <Loader2 className="text-muted-foreground h-8 w-8 animate-spin" />
+                      <XAxis
+                        dataKey="name"
+                        className="fill-muted-foreground text-xs"
+                        tick={{ fontSize: 12 }}
+                      />
+                      <YAxis
+                        className="fill-muted-foreground text-xs"
+                        tick={{ fontSize: 12 }}
+                      />
+                      <Tooltip
+                        formatter={(value, name) => [
+                          `${value} 条`,
+                          name || "数量",
+                        ]}
+                        contentStyle={{
+                          backgroundColor: "hsl(var(--popover))",
+                          border: "1px solid hsl(var(--border))",
+                          borderRadius: "8px",
+                          boxShadow:
+                            "0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)",
+                          color: "hsl(var(--popover-foreground))",
+                        }}
+                        labelStyle={{
+                          color: "blue",
+                          fontWeight: "500",
+                        }}
+                        itemStyle={{
+                          color: "blue",
+                        }}
+                      />
+                      <Bar dataKey="数量" radius={[4, 4, 0, 0]}>
+                        {[0, 1, 2].map((index) => (
+                          <Cell
+                            key={`cell-${index}`}
+                            fill={
+                              index === 0
+                                ? "hsl(var(--chart-1))"
+                                : index === 1
+                                  ? "hsl(var(--chart-3))"
+                                  : "hsl(var(--chart-5))"
+                            }
+                          />
+                        ))}
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                )}
               </div>
-            ) : logSourceData.length > 0 ? (
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={logSourceData.filter((item) =>
-                      item.name.startsWith("用户:")
-                    )}
-                    cx="50%"
-                    cy="50%"
-                    labelLine={false}
-                    label={({ name, percent }) =>
-                      `${name.replace("用户: ", "")}: ${(percent * 100).toFixed(0)}%`
-                    }
-                    outerRadius={80}
-                    fill="#8884d8"
-                    dataKey="value"
-                  >
-                    {logSourceData
-                      .filter((item) => item.name.startsWith("用户:"))
-                      .map((entry, index) => (
-                        <Cell
-                          key={`cell-${index}`}
-                          fill={COLORS[index % COLORS.length]}
-                        />
-                      ))}
-                  </Pie>
-                  <Tooltip
-                    formatter={(value, name) => {
-                      // 返回实际日志数量和用户名
-                      return [`${value} 条日志`, name.replace("用户: ", "")];
-                    }}
-                  />
-                  <Legend formatter={(value) => value.replace("用户: ", "")} />
-                </PieChart>
-              </ResponsiveContainer>
-            ) : (
-              <div className="text-muted-foreground flex h-full items-center justify-center">
-                暂无用户活跃度数据
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
+            </CardContent>
+          </Card>
 
-      {/* 最近日志表格 */}
+          {/* 用户活跃度图表 */}
+          <Card>
+            <CardHeader>
+              <CardTitle>用户活跃度</CardTitle>
+              <CardDescription>按用户统计的日志分布</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="h-[300px]">
+                {loading ? (
+                  <div className="flex h-full items-center justify-center">
+                    <Loader2 className="text-muted-foreground h-6 w-6 animate-spin" />
+                  </div>
+                ) : logSourceData.length > 0 &&
+                  logSourceData[0].name !== "暂无数据" ? (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={logSourceData.filter((item) =>
+                          item.name.startsWith("用户:")
+                        )}
+                        cx="50%"
+                        cy="50%"
+                        labelLine={false}
+                        label={({ name, percent }) =>
+                          percent > 5
+                            ? `${name.replace("用户: ", "")}: ${(percent * 100).toFixed(0)}%`
+                            : ""
+                        }
+                        outerRadius={80}
+                        innerRadius={30}
+                        paddingAngle={2}
+                        dataKey="value"
+                      >
+                        {logSourceData
+                          .filter((item) => item.name.startsWith("用户:"))
+                          .map((entry, index) => (
+                            <Cell
+                              key={`cell-${index}`}
+                              fill={`hsl(var(--chart-${(index % 5) + 1}))`}
+                              stroke="hsl(var(--background))"
+                              strokeWidth={2}
+                            />
+                          ))}
+                      </Pie>
+                      <Tooltip
+                        formatter={(value, name) => [
+                          `${value} 条`,
+                          name.replace("用户: ", ""),
+                        ]}
+                        contentStyle={{
+                          backgroundColor: "hsl(var(--popover))",
+                          border: "1px solid hsl(var(--border))",
+                          borderRadius: "8px",
+                          boxShadow:
+                            "0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)",
+                          color: "hsl(var(--popover-foreground))",
+                        }}
+                        labelStyle={{
+                          color: "blue",
+                          fontWeight: "500",
+                        }}
+                        itemStyle={{
+                          color: "blue",
+                        }}
+                      />
+                    </PieChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div className="text-muted-foreground flex h-full items-center justify-center text-sm">
+                    暂无用户活跃度数据
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* 日志表格 */}
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <div>
-            <CardTitle>日志记录</CardTitle>
-            <CardDescription>
-              系统日志活动记录 ({getTimeRangeText()})
-            </CardDescription>
-          </div>
-          <div className="text-muted-foreground text-sm">
-            总计: {pagination.total} 条记录
-          </div>
+        <CardHeader>
+          <CardTitle>日志记录</CardTitle>
+          <CardDescription>
+            系统日志详细记录 {hasData && `• 总计 ${pagination.total} 条`}
+          </CardDescription>
         </CardHeader>
         <CardContent>
           {loading ? (
             <div className="flex h-[200px] items-center justify-center">
-              <Loader2 className="text-muted-foreground h-8 w-8 animate-spin" />
+              <Loader2 className="text-muted-foreground h-6 w-6 animate-spin" />
             </div>
           ) : (
-            <>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>时间</TableHead>
-                    <TableHead>级别</TableHead>
-                    <TableHead className="w-[40%]">消息</TableHead>
-                    <TableHead>用户</TableHead>
-                    <TableHead>IP地址</TableHead>
-                    <TableHead className="w-[80px]">操作</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {logs.length > 0 ? (
-                    logs.map((log) => (
-                      <TableRow key={log.id}>
-                        <TableCell className="font-mono text-xs">
-                          {log.timestamp}
-                        </TableCell>
-                        <TableCell>{getLogLevelBadge(log.level)}</TableCell>
-                        <TableCell className="max-w-[300px] truncate">
-                          {log.message}
-                        </TableCell>
-                        <TableCell>{log.user}</TableCell>
-                        <TableCell className="font-mono text-xs">
-                          {log.ip}
-                        </TableCell>
-                        <TableCell>
-                          <Dialog
-                            open={deleteConfirmOpen && selectedLogId === log.id}
-                            onOpenChange={(open) => {
-                              setDeleteConfirmOpen(open);
-                              if (!open) setSelectedLogId(null);
-                            }}
-                          >
-                            <DialogTrigger asChild>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-8 w-8 text-red-500 hover:bg-red-50 hover:text-red-700"
-                                onClick={() => setSelectedLogId(log.id)}
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </DialogTrigger>
-                            <DialogContent>
-                              <DialogHeader>
-                                <DialogTitle>确认删除日志</DialogTitle>
-                                <DialogDescription>
-                                  您确定要删除这条日志记录吗？此操作无法撤销。
-                                </DialogDescription>
-                              </DialogHeader>
-                              <DialogFooter>
+            <div className="space-y-4">
+              <div className="rounded-md border">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-[140px]">时间</TableHead>
+                      <TableHead className="w-[80px]">级别</TableHead>
+                      <TableHead>消息</TableHead>
+                      <TableHead className="w-[100px]">用户</TableHead>
+                      <TableHead className="w-[120px]">IP地址</TableHead>
+                      <TableHead className="w-[60px]">操作</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {logs.length > 0 ? (
+                      logs.map((log) => (
+                        <TableRow key={log.id}>
+                          <TableCell className="font-mono text-xs">
+                            {log.timestamp}
+                          </TableCell>
+                          <TableCell>{getLogLevelBadge(log.level)}</TableCell>
+                          <TableCell className="max-w-[300px] truncate">
+                            {log.message}
+                          </TableCell>
+                          <TableCell className="text-sm">{log.user}</TableCell>
+                          <TableCell className="font-mono text-xs">
+                            {log.ip}
+                          </TableCell>
+                          <TableCell>
+                            <Dialog
+                              open={
+                                deleteConfirmOpen && selectedLogId === log.id
+                              }
+                              onOpenChange={(open) => {
+                                setDeleteConfirmOpen(open);
+                                if (!open) setSelectedLogId(null);
+                              }}
+                            >
+                              <DialogTrigger asChild>
                                 <Button
-                                  variant="outline"
-                                  onClick={() => setDeleteConfirmOpen(false)}
-                                  disabled={actionLoading}
+                                  variant="ghost"
+                                  size="icon"
+                                  className="text-muted-foreground hover:text-destructive h-8 w-8"
+                                  onClick={() => setSelectedLogId(log.id)}
                                 >
-                                  取消
+                                  <Trash2 className="h-4 w-4" />
                                 </Button>
-                                <Button
-                                  variant="destructive"
-                                  onClick={handleDeleteLog}
-                                  disabled={actionLoading}
-                                >
-                                  {actionLoading ? (
-                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                  ) : (
-                                    <Trash2 className="mr-2 h-4 w-4" />
-                                  )}
-                                  确认删除
-                                </Button>
-                              </DialogFooter>
-                            </DialogContent>
-                          </Dialog>
+                              </DialogTrigger>
+                              <DialogContent className="sm:max-w-[425px]">
+                                <DialogHeader>
+                                  <DialogTitle>确认删除日志</DialogTitle>
+                                  <DialogDescription>
+                                    您确定要删除这条日志记录吗？此操作无法撤销。
+                                  </DialogDescription>
+                                </DialogHeader>
+                                <DialogFooter>
+                                  <Button
+                                    variant="outline"
+                                    onClick={() => setDeleteConfirmOpen(false)}
+                                    disabled={actionLoading}
+                                  >
+                                    取消
+                                  </Button>
+                                  <Button
+                                    variant="destructive"
+                                    onClick={handleDeleteLog}
+                                    disabled={actionLoading}
+                                  >
+                                    {actionLoading ? (
+                                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                    ) : (
+                                      <Trash2 className="mr-2 h-4 w-4" />
+                                    )}
+                                    确认删除
+                                  </Button>
+                                </DialogFooter>
+                              </DialogContent>
+                            </Dialog>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    ) : (
+                      <TableRow>
+                        <TableCell
+                          colSpan={6}
+                          className="text-muted-foreground h-24 text-center"
+                        >
+                          {error ? "加载日志数据失败" : "暂无日志数据"}
                         </TableCell>
                       </TableRow>
-                    ))
-                  ) : (
-                    <TableRow>
-                      <TableCell
-                        colSpan={6}
-                        className="text-muted-foreground py-4 text-center"
-                      >
-                        {error ? "加载日志数据失败" : "暂无日志数据"}
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
 
               {/* 分页控件 */}
               {pagination.total > 0 && (
-                <div className="mt-4 flex items-center justify-between">
+                <div className="flex items-center justify-between pt-2">
                   <PaginationInfo
                     currentPage={pagination.current}
                     pageSize={pagination.pageSize}
@@ -1134,7 +1172,7 @@ export default function LogsDashboardPage() {
                   />
                 </div>
               )}
-            </>
+            </div>
           )}
         </CardContent>
       </Card>

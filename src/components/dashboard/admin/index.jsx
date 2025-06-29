@@ -1,5 +1,6 @@
 "use client";
 
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -9,7 +10,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { RealTimeClock } from "@/components/ui/real-time-clock";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Skeleton } from "@/components/ui/skeleton";
 import { getAllDepartments } from "@/lib/services/departmentService";
 import { getAllEmployees } from "@/lib/services/employeeService";
 import {
@@ -18,18 +19,18 @@ import {
   getLogStats,
 } from "@/lib/services/logService";
 import {
-  ArrowDownRight,
-  ArrowUpRight,
-  Building,
-  ClipboardList,
+  Activity,
+  ArrowRight,
+  Building2,
+  MoreHorizontal,
   RefreshCw,
-  ShieldAlert,
-  Users,
+  TrendingUp,
+  Users2,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import {
-  Bar,
-  BarChart,
+  Area,
+  AreaChart,
   CartesianGrid,
   Cell,
   Legend,
@@ -50,24 +51,24 @@ export default function AdminPage() {
       value: "0",
       change: "0%",
       trend: "up",
-      icon: Users,
-      color: "bg-blue-100 text-blue-600",
+      icon: Users2,
+      description: "系统注册用户总数",
     },
     {
       title: "部门数量",
       value: "0",
       change: "0",
       trend: "up",
-      icon: Building,
-      color: "bg-purple-100 text-purple-600",
+      icon: Building2,
+      description: "组织架构部门数",
     },
     {
-      title: "系统日志",
+      title: "系统活动",
       value: "0",
       change: "0%",
       trend: "up",
-      icon: ClipboardList,
-      color: "bg-amber-100 text-amber-600",
+      icon: Activity,
+      description: "今日系统操作次数",
     },
   ]);
 
@@ -77,8 +78,21 @@ export default function AdminPage() {
   const [loading, setLoading] = useState(true);
   const [currentUser, setCurrentUser] = useState("管理员");
 
-  // 饼图颜色
-  const COLORS = ["#6366f1", "#8b5cf6", "#d946ef", "#ec4899"];
+  // 使用 shadcn 的 chart 配色方案
+  const CHART_COLORS = {
+    primary: "hsl(var(--primary))",
+    secondary: "hsl(var(--secondary))",
+    muted: "hsl(var(--muted))",
+    accent: "hsl(var(--accent))",
+    destructive: "hsl(var(--destructive))",
+    chart: {
+      1: "hsl(var(--chart-1))",
+      2: "hsl(var(--chart-2))",
+      3: "hsl(var(--chart-3))",
+      4: "hsl(var(--chart-4))",
+      5: "hsl(var(--chart-5))",
+    },
+  };
 
   useEffect(() => {
     fetchDashboardData();
@@ -172,26 +186,26 @@ export default function AdminPage() {
         {
           title: "总用户数",
           value: employees.length.toString(),
-          change: "+12%", // 这里可以根据实际情况计算
+          change: "+12%",
           trend: "up",
-          icon: Users,
-          color: "bg-blue-100 text-blue-600",
+          icon: Users2,
+          description: "系统注册用户总数",
         },
         {
           title: "部门数量",
           value: departments.length.toString(),
-          change: "+2", // 这里可以根据实际情况计算
+          change: "+2",
           trend: "up",
-          icon: Building,
-          color: "bg-purple-100 text-purple-600",
+          icon: Building2,
+          description: "组织架构部门数",
         },
         {
-          title: "系统日志",
+          title: "系统活动",
           value: logStats.total.toString(),
-          change: "+24%", // 这里可以根据实际情况计算
+          change: "+24%",
           trend: "up",
-          icon: ClipboardList,
-          color: "bg-amber-100 text-amber-600",
+          icon: Activity,
+          description: "今日系统操作次数",
         },
       ]);
 
@@ -239,217 +253,328 @@ export default function AdminPage() {
   };
 
   return (
-    <div className="container mx-auto space-y-6 p-6">
-      {/* 欢迎区域 */}
-      <div className="rounded-lg bg-gradient-to-r from-purple-600 to-indigo-600 p-6 text-white">
-        <div className="flex items-start justify-between">
-          <div>
-            <h1 className="mb-2 text-2xl font-bold">
-              欢迎回来，{currentUser}！
+    <div className="bg-background min-h-screen">
+      <div className="container mx-auto space-y-8 p-6">
+        {/* 简约的欢迎区域 */}
+        <div className="flex items-center justify-between">
+          <div className="space-y-1">
+            <h1 className="text-3xl font-semibold tracking-tight">
+              仪表盘总览
             </h1>
-            <p className="text-purple-100">
-              今天是{" "}
+            <p className="text-muted-foreground">
+              欢迎回来，{currentUser} · 今天是{" "}
               {new Date().toLocaleDateString("zh-CN", {
-                year: "numeric",
                 month: "long",
                 day: "numeric",
                 weekday: "long",
               })}
             </p>
           </div>
-          <RealTimeClock />
+          <div className="flex items-center space-x-4">
+            <RealTimeClock />
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={fetchDashboardData}
+              disabled={loading}
+            >
+              <RefreshCw
+                className={`mr-2 h-4 w-4 ${loading ? "animate-spin" : ""}`}
+              />
+              刷新数据
+            </Button>
+          </div>
         </div>
-      </div>
 
-      {/* 统计卡片 */}
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-        {stats.map((stat) => (
-          <Card key={stat.title} className="transition-shadow hover:shadow-md">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                {stat.title}
-              </CardTitle>
-              <div className={`rounded-full p-2 ${stat.color}`}>
-                <stat.icon className="h-4 w-4" />
+        {/* 现代化统计卡片 */}
+        <div className="grid gap-6 md:grid-cols-3">
+          {loading
+            ? [...Array(3)].map((_, i) => (
+                <Card key={i}>
+                  <CardHeader className="pb-2">
+                    <Skeleton className="h-4 w-20" />
+                  </CardHeader>
+                  <CardContent>
+                    <Skeleton className="mb-2 h-8 w-16" />
+                    <Skeleton className="h-3 w-24" />
+                  </CardContent>
+                </Card>
+              ))
+            : stats.map((stat) => (
+                <Card key={stat.title} className="relative overflow-hidden">
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-muted-foreground text-sm font-medium">
+                      {stat.title}
+                    </CardTitle>
+                    <div className="bg-primary/10 rounded-md p-2">
+                      <stat.icon className="text-primary h-4 w-4" />
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold">{stat.value}</div>
+                    <div className="text-muted-foreground flex items-center space-x-2 text-xs">
+                      <div className="flex items-center">
+                        <TrendingUp className="mr-1 h-3 w-3 text-emerald-500" />
+                        <span className="text-emerald-600">{stat.change}</span>
+                      </div>
+                      <span>较上月</span>
+                    </div>
+                    <p className="text-muted-foreground mt-1 text-xs">
+                      {stat.description}
+                    </p>
+                  </CardContent>
+                </Card>
+              ))}
+        </div>
+
+        {/* 现代化图表区域 */}
+        <div className="grid gap-6 lg:grid-cols-2">
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="text-base">系统活动趋势</CardTitle>
+                  <CardDescription>过去一周的日志数据</CardDescription>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={fetchDashboardData}
+                  disabled={loading}
+                >
+                  <RefreshCw
+                    className={`h-4 w-4 ${loading ? "animate-spin" : ""}`}
+                  />
+                </Button>
               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stat.value}</div>
-              <div className="mt-1 flex items-center space-x-1 text-xs">
-                <span
-                  className={
-                    stat.trend === "up" ? "text-green-600" : "text-red-600"
-                  }
-                >
-                  {stat.trend === "up" ? (
-                    <ArrowUpRight className="h-3 w-3" />
-                  ) : (
-                    <ArrowDownRight className="h-3 w-3" />
-                  )}
-                </span>
-                <span
-                  className={
-                    stat.trend === "up" ? "text-green-600" : "text-red-600"
-                  }
-                >
-                  {stat.change}
-                </span>
-                <span className="text-muted-foreground">较上月</span>
+              <div className="h-80">
+                {loading ? (
+                  <div className="flex h-full items-center justify-center">
+                    <Skeleton className="h-full w-full" />
+                  </div>
+                ) : (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart data={logActivityData}>
+                      <defs>
+                        <linearGradient
+                          id="colorInfo"
+                          x1="0"
+                          y1="0"
+                          x2="0"
+                          y2="1"
+                        >
+                          <stop
+                            offset="5%"
+                            stopColor={CHART_COLORS.chart[1]}
+                            stopOpacity={0.3}
+                          />
+                          <stop
+                            offset="95%"
+                            stopColor={CHART_COLORS.chart[1]}
+                            stopOpacity={0}
+                          />
+                        </linearGradient>
+                        <linearGradient
+                          id="colorError"
+                          x1="0"
+                          y1="0"
+                          x2="0"
+                          y2="1"
+                        >
+                          <stop
+                            offset="5%"
+                            stopColor={CHART_COLORS.destructive}
+                            stopOpacity={0.3}
+                          />
+                          <stop
+                            offset="95%"
+                            stopColor={CHART_COLORS.destructive}
+                            stopOpacity={0}
+                          />
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid
+                        strokeDasharray="3 3"
+                        className="stroke-muted"
+                      />
+                      <XAxis
+                        dataKey="name"
+                        className="fill-muted-foreground text-xs"
+                        tickLine={false}
+                        axisLine={false}
+                      />
+                      <YAxis
+                        className="fill-muted-foreground text-xs"
+                        tickLine={false}
+                        axisLine={false}
+                      />
+                      <Tooltip
+                        contentStyle={{
+                          backgroundColor: "hsl(var(--card))",
+                          border: "1px solid hsl(var(--border))",
+                          borderRadius: "6px",
+                        }}
+                      />
+                      <Area
+                        type="monotone"
+                        dataKey="信息日志"
+                        stroke={CHART_COLORS.chart[1]}
+                        fillOpacity={1}
+                        fill="url(#colorInfo)"
+                        strokeWidth={2}
+                      />
+                      <Area
+                        type="monotone"
+                        dataKey="错误日志"
+                        stroke={CHART_COLORS.destructive}
+                        fillOpacity={1}
+                        fill="url(#colorError)"
+                        strokeWidth={2}
+                      />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                )}
               </div>
             </CardContent>
           </Card>
-        ))}
-      </div>
 
-      {/* 图表区域 */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <Card className="transition-shadow hover:shadow-md">
-          <CardHeader className="flex flex-row items-center justify-between">
-            <div>
-              <CardTitle>日志数量曲线</CardTitle>
-              <CardDescription>过去一周的系统日志数据</CardDescription>
-            </div>
-            <Button variant="outline" size="icon" onClick={fetchDashboardData}>
-              <RefreshCw className="h-4 w-4" />
-            </Button>
-          </CardHeader>
-          <CardContent className="h-80">
-            {loading ? (
-              <div className="flex h-full items-center justify-center">
-                <p>加载中...</p>
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">用户角色分布</CardTitle>
+              <CardDescription>系统中不同角色的用户数量</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="h-80">
+                {loading ? (
+                  <div className="flex h-full items-center justify-center">
+                    <Skeleton className="h-full w-full" />
+                  </div>
+                ) : (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={userRoleData}
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={40}
+                        outerRadius={80}
+                        paddingAngle={5}
+                        dataKey="value"
+                      >
+                        {userRoleData.map((entry, index) => (
+                          <Cell
+                            key={`cell-${index}`}
+                            fill={
+                              Object.values(CHART_COLORS.chart)[
+                                index % Object.values(CHART_COLORS.chart).length
+                              ]
+                            }
+                          />
+                        ))}
+                      </Pie>
+                      <Tooltip
+                        formatter={(value, name) => [`${value} 人`, name]}
+                        contentStyle={{
+                          backgroundColor: "hsl(var(--card))",
+                          border: "1px solid hsl(var(--border))",
+                          borderRadius: "6px",
+                        }}
+                      />
+                      <Legend
+                        verticalAlign="bottom"
+                        height={36}
+                        wrapperStyle={{ fontSize: "12px" }}
+                      />
+                    </PieChart>
+                  </ResponsiveContainer>
+                )}
               </div>
-            ) : (
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={logActivityData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" />
-                  <YAxis />
-                  <Tooltip />
-                  <Legend />
-                  <Line
-                    type="monotone"
-                    dataKey="信息日志"
-                    stroke="#6366f1"
-                    strokeWidth={2}
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="错误日志"
-                    stroke="#ef4444"
-                    strokeWidth={2}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-            )}
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        </div>
 
-        <Card className="transition-shadow hover:shadow-md">
+        {/* 现代化最近日志 */}
+        <Card>
           <CardHeader>
-            <CardTitle>用户角色分布</CardTitle>
-            <CardDescription>系统中不同角色的用户数量</CardDescription>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="text-base">最近活动</CardTitle>
+                <CardDescription>系统中最近的操作记录</CardDescription>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => (window.location.href = "/logs")}
+              >
+                查看全部
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
+            </div>
           </CardHeader>
-          <CardContent className="h-80">
+          <CardContent>
             {loading ? (
-              <div className="flex h-full items-center justify-center">
-                <p>加载中...</p>
+              <div className="space-y-3">
+                {[...Array(5)].map((_, i) => (
+                  <div key={i} className="flex items-center space-x-3">
+                    <Skeleton className="h-2 w-2 rounded-full" />
+                    <div className="flex-1">
+                      <Skeleton className="mb-1 h-4 w-3/4" />
+                      <Skeleton className="h-3 w-1/2" />
+                    </div>
+                    <Skeleton className="h-3 w-12" />
+                  </div>
+                ))}
               </div>
             ) : (
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={userRoleData}
-                    cx="50%"
-                    cy="50%"
-                    labelLine={true}
-                    outerRadius={70}
-                    label={({ name, percent }) =>
-                      `${(percent * 100).toFixed(0)}%`
-                    }
-                    fill="#8884d8"
-                    dataKey="value"
-                  >
-                    {userRoleData.map((entry, index) => (
-                      <Cell
-                        key={`cell-${index}`}
-                        fill={COLORS[index % COLORS.length]}
-                      />
-                    ))}
-                  </Pie>
-                  <Tooltip formatter={(value, name) => [`${value} 人`, name]} />
-                  <Legend
-                    layout="horizontal"
-                    verticalAlign="bottom"
-                    align="center"
-                  />
-                </PieChart>
-              </ResponsiveContainer>
-            )}
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* 最近日志 */}
-      <Card className="transition-shadow hover:shadow-md">
-        <CardHeader className="flex flex-row items-center justify-between">
-          <div>
-            <CardTitle>最近系统日志</CardTitle>
-            <CardDescription>系统中最近的活动记录</CardDescription>
-          </div>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => (window.location.href = "/admin/logs/dashboard")}
-          >
-            查看全部
-          </Button>
-        </CardHeader>
-        <CardContent>
-          {loading ? (
-            <div className="flex h-24 items-center justify-center">
-              <p>加载中...</p>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {recentLogs.length > 0 ? (
-                recentLogs.map((log) => (
-                  <div
-                    key={log.id}
-                    className="flex items-center justify-between border-b pb-2 last:border-0"
-                  >
-                    <div className="flex items-center space-x-3">
-                      <div
-                        className={`h-2 w-2 rounded-full ${
-                          log.type === "info"
-                            ? "bg-blue-500"
-                            : log.type === "warning"
-                              ? "bg-amber-500"
-                              : log.type === "error"
-                                ? "bg-red-500"
-                                : "bg-gray-500"
-                        }`}
-                      />
-                      <div>
-                        <p className="text-sm font-medium">{log.action}</p>
-                        <p className="text-muted-foreground text-xs">
-                          由 {log.user} 操作
-                        </p>
+              <div className="space-y-4">
+                {recentLogs.length > 0 ? (
+                  recentLogs.map((log) => (
+                    <div
+                      key={log.id}
+                      className="border-border/50 flex items-start justify-between border-b pb-3 last:border-0"
+                    >
+                      <div className="flex items-start space-x-3">
+                        <div className="mt-1.5">
+                          <Badge
+                            variant={
+                              log.type === "info"
+                                ? "secondary"
+                                : log.type === "warning"
+                                  ? "outline"
+                                  : "destructive"
+                            }
+                            className="h-2 w-2 rounded-full p-0"
+                          />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-sm leading-none font-medium">
+                            {log.action}
+                          </p>
+                          <p className="text-muted-foreground mt-1 text-xs">
+                            由 {log.user} 操作
+                          </p>
+                        </div>
+                      </div>
+                      <div className="text-muted-foreground text-xs whitespace-nowrap">
+                        {log.time}
                       </div>
                     </div>
-                    <div className="text-muted-foreground text-xs">
-                      {log.time}
-                    </div>
+                  ))
+                ) : (
+                  <div className="py-8 text-center">
+                    <Activity className="text-muted-foreground/50 mx-auto mb-2 h-8 w-8" />
+                    <p className="text-muted-foreground text-sm">
+                      暂无活动记录
+                    </p>
                   </div>
-                ))
-              ) : (
-                <div className="text-muted-foreground py-4 text-center">
-                  暂无日志数据
-                </div>
-              )}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+                )}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }

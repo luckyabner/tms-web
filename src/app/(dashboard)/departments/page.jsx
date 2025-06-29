@@ -22,7 +22,6 @@ export default function DepartmentPage() {
   const { departments, error, isLoading, refreshDepartments } = useDepartment();
   const [editingDepartment, setEditingDepartment] = useState(null);
   const [isEditFormOpen, setIsEditFormOpen] = useState(false);
-  console.log("部门数据:", departments);
 
   // 处理编辑部门
   const handleEditDepartment = (department) => {
