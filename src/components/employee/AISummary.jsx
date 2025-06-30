@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAI } from "@/hooks/ai/useAI";
-import { useAuth } from "@/hooks/auth";
+import { Role, useAuth } from "@/hooks/auth";
 import { createAISummary, updateAISummary } from "@/lib/services/aiService";
 import {
   AlertCircle,
@@ -100,6 +100,9 @@ export default function AISummary({
     updateDatabase();
   }, [completion, isSubmitting, hasGenerated, aiSummaryId, employee.id]);
 
+  if (role === Role.EMPLOYEE) {
+    return null;
+  }
   return (
     <Card className="w-full">
       <CardHeader>
@@ -117,19 +120,25 @@ export default function AISummary({
               </p>
             </div>
           </div>
-          <Button onClick={handleGenerateAI} disabled={isSubmitting} size="sm">
-            {isSubmitting ? (
-              <>
-                <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
-                分析中
-              </>
-            ) : (
-              <>
-                <Sparkles className="mr-2 h-4 w-4" />
-                {hasGenerated ? "重新分析" : "开始分析"}
-              </>
-            )}
-          </Button>
+          {role === Role.LEADER && (
+            <Button
+              onClick={handleGenerateAI}
+              disabled={isSubmitting}
+              size="sm"
+            >
+              {isSubmitting ? (
+                <>
+                  <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                  分析中
+                </>
+              ) : (
+                <>
+                  <Sparkles className="mr-2 h-4 w-4" />
+                  {hasGenerated ? "重新分析" : "开始分析"}
+                </>
+              )}
+            </Button>
+          )}
         </div>
       </CardHeader>
 

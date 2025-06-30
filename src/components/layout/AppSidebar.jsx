@@ -104,18 +104,17 @@ const adminNav = [
   },
 ];
 
-const employeeNav = [
-  {
-    title: "个人档案",
-    icon: Users,
-    url: "/employees/4",
-  },
-];
-
 export function AppSidebar() {
   const pathname = usePathname();
   const { userInfo } = useAuth();
   const role = userInfo?.empType;
+  const employeeNav = [
+    {
+      title: "个人档案",
+      icon: Users,
+      url: `/employees/${userInfo.empId}`,
+    },
+  ];
 
   let navItems = [];
   if (role === Role.HR) {

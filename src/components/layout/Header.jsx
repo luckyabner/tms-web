@@ -60,14 +60,6 @@ export default function Header() {
 
       {/* 右侧：通知和用户菜单 */}
       <div className="flex items-center space-x-4">
-        {/* 通知按钮 */}
-        <Button variant="ghost" size="icon" className="relative">
-          <Bell className="h-5 w-5" />
-          <span className="absolute -top-1 -right-1 flex h-3 w-3 items-center justify-center rounded-full bg-red-500 text-xs text-white">
-            3
-          </span>
-        </Button>
-
         {/* 用户菜单 */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -82,7 +74,7 @@ export default function Header() {
               </div>
               <div className="text-left">
                 <div className="text-sm font-medium">
-                  {isAdminPath ? "张无忌" : "张三丰"}
+                  {userInfo?.name || "未登录"}
                 </div>
                 <div className="text-muted-foreground text-xs">{role}</div>
               </div>
@@ -91,58 +83,6 @@ export default function Header() {
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-56">
             <DropdownMenuLabel>我的账户</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem asChild>
-              <div
-                className="flex items-center"
-                onClick={() => {
-                  changeRole(Role.HR);
-                  router.push("/");
-                }}
-              >
-                <User className="mr-2 h-4 w-4" />
-                切换到hr
-              </div>
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem asChild>
-              <div
-                className="flex items-center"
-                onClick={() => {
-                  changeRole(Role.LEADER);
-                  router.push("/");
-                }}
-              >
-                <User className="mr-2 h-4 w-4" />
-                切换到领导
-              </div>
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem asChild>
-              <div
-                className="flex items-center"
-                onClick={() => {
-                  changeRole(Role.ADMIN);
-                  router.push("/");
-                }}
-              >
-                <User className="mr-2 h-4 w-4" />
-                切换到管理员
-              </div>
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem asChild>
-              <div
-                className="flex items-center"
-                onClick={() => {
-                  changeRole(Role.EMPLOYEE);
-                  router.push("/employees/4");
-                }}
-              >
-                <User className="mr-2 h-4 w-4" />
-                切换到员工
-              </div>
-            </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem
               className="cursor-pointer text-red-600"

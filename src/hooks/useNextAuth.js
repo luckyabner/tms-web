@@ -62,7 +62,6 @@ export function useNextAuth() {
       Cookies.remove("tms_userinfo");
 
       setIsLoggedIn(false);
-      setUsername(null);
       setUserInfo({
         empId: null,
         name: null,
