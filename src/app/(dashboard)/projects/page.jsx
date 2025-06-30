@@ -222,74 +222,77 @@ export default function HrProjectsPage() {
   };
 
   return (
-    <div className="container mx-auto space-y-6 p-6">
+    <div className="container mx-auto space-y-8 p-6">
       {/* 页面标题 */}
-      <div className="flex items-center justify-between">
+      <div className="mb-2 flex items-center justify-between">
         <div>
-          <h1 className="bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-3xl font-bold text-transparent">
-            项目管理
-          </h1>
-          <p className="text-muted-foreground">管理公司项目和团队分配</p>
+          <h1 className="text-primary text-2xl font-semibold">项目管理</h1>
+          <p className="text-muted-foreground text-sm">
+            管理公司项目和团队分配
+          </p>
         </div>
         <Button
           onClick={handleAddProject}
-          className="bg-gradient-to-r from-blue-500 to-blue-700 text-white hover:from-blue-600 hover:to-blue-800"
+          className="bg-primary hover:bg-primary/90 rounded-md px-4 py-2 text-white shadow-none"
         >
-          <Plus className="mr-2 h-4 w-4" /> 添加项目
+          <Plus className="mr-2 h-4 w-4" /> 新建项目
         </Button>
       </div>
 
       {/* 项目统计卡片 */}
       <div className="grid gap-4 md:grid-cols-3">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">总项目数</CardTitle>
-            <Briefcase className="text-muted-foreground h-4 w-4" />
+        <Card className="border-muted bg-background rounded-lg border shadow-none">
+          <CardHeader className="flex flex-row items-center justify-between pb-1">
+            <CardTitle className="text-muted-foreground text-xs font-medium">
+              总项目数
+            </CardTitle>
+            <Briefcase className="text-muted-foreground h-5 w-5" />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{projects.length}</div>
-            <p className="text-muted-foreground text-xs">所有项目数量</p>
+          <CardContent className="pt-0">
+            <div className="text-xl font-bold">{projects.length}</div>
           </CardContent>
         </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">进行中项目</CardTitle>
-            <Calendar className="text-muted-foreground h-4 w-4" />
+        <Card className="border-muted bg-background rounded-lg border shadow-none">
+          <CardHeader className="flex flex-row items-center justify-between pb-1">
+            <CardTitle className="text-muted-foreground text-xs font-medium">
+              进行中
+            </CardTitle>
+            <Calendar className="text-muted-foreground h-5 w-5" />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
+          <CardContent className="pt-0">
+            <div className="text-xl font-bold">
               {projects.filter((p) => p.state === "进行中").length}
             </div>
-            <p className="text-muted-foreground text-xs">当前正在进行的项目</p>
           </CardContent>
         </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">已完成项目</CardTitle>
-            <CheckCircle2 className="text-muted-foreground h-4 w-4" />
+        <Card className="border-muted bg-background rounded-lg border shadow-none">
+          <CardHeader className="flex flex-row items-center justify-between pb-1">
+            <CardTitle className="text-muted-foreground text-xs font-medium">
+              已完成
+            </CardTitle>
+            <CheckCircle2 className="text-muted-foreground h-5 w-5" />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
+          <CardContent className="pt-0">
+            <div className="text-xl font-bold">
               {projects.filter((p) => p.state === "已完成").length}
             </div>
-            <p className="text-muted-foreground text-xs">已完成的项目数量</p>
           </CardContent>
         </Card>
       </div>
 
-      {/* 搜索和筛选 */}
-      <div className="flex flex-col gap-4 sm:flex-row">
-        <div className="relative flex-1">
-          <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform" />
+      {/* 筛选区 */}
+      <div className="mb-2 flex flex-wrap items-center gap-2">
+        <div className="relative w-64">
+          <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
           <Input
             placeholder="搜索项目名称或负责人..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
+            className="border-muted h-9 rounded-md pl-9"
           />
         </div>
         <Select value={selectedStatus} onValueChange={setSelectedStatus}>
-          <SelectTrigger className="w-[180px]">
+          <SelectTrigger className="border-muted h-9 w-32 rounded-md">
             <SelectValue placeholder="状态筛选" />
           </SelectTrigger>
           <SelectContent>
@@ -302,139 +305,140 @@ export default function HrProjectsPage() {
       </div>
 
       {/* 项目列表 */}
-      <Card>
-        <CardHeader>
-          <CardTitle>项目列表</CardTitle>
-          <CardDescription>查看和管理所有项目</CardDescription>
+      <Card className="border-muted bg-background rounded-lg border shadow-none">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-base font-semibold">项目列表</CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="pt-0">
           {loading ? (
-            <div className="flex items-center justify-center py-10">
-              <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
-              <span className="text-muted-foreground ml-2">加载中...</span>
+            <div className="text-muted-foreground flex items-center justify-center py-10">
+              <Loader2 className="h-6 w-6 animate-spin" />
+              <span className="ml-2 text-sm">加载中...</span>
             </div>
           ) : error ? (
-            <div className="flex items-center justify-center py-10">
-              <p className="text-red-500">{error}</p>
+            <div className="text-destructive flex items-center justify-center py-10">
+              <span>{error}</span>
             </div>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>项目名称</TableHead>
-                  <TableHead>项目负责人</TableHead>
-                  <TableHead>开始日期</TableHead>
-                  <TableHead>结束日期</TableHead>
-                  <TableHead>状态</TableHead>
-                  <TableHead className="text-right">操作</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {currentPageData.length === 0 ? (
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader className="bg-muted/40">
                   <TableRow>
-                    <TableCell
-                      colSpan={6}
-                      className="text-muted-foreground py-10 text-center"
-                    >
-                      {filteredProjects.length === 0
-                        ? "暂无项目数据"
-                        : "没有匹配的搜索结果"}
-                    </TableCell>
+                    <TableHead>项目名称</TableHead>
+                    <TableHead>项目负责人</TableHead>
+                    <TableHead>开始日期</TableHead>
+                    <TableHead>结束日期</TableHead>
+                    <TableHead>状态</TableHead>
+                    <TableHead className="text-right">操作</TableHead>
                   </TableRow>
-                ) : (
-                  currentPageData.map((project) => (
-                    <TableRow key={project.id} className="hover:bg-gray-50">
-                      <TableCell>
-                        <div className="font-medium">{project.name}</div>
-                      </TableCell>
-                      <TableCell>
-                        {project.leaderName ? (
-                          <div className="flex items-center space-x-2">
-                            <User className="text-muted-foreground h-4 w-4" />
-                            <span>{project.leaderName}</span>
-                          </div>
-                        ) : (
-                          <span className="text-sm text-gray-400">未指定</span>
-                        )}
-                      </TableCell>
-                      <TableCell>{formatDate(project.startDate)}</TableCell>
-                      <TableCell>{formatDate(project.endDate)}</TableCell>
-                      <TableCell>
-                        <Badge
-                          variant={getStatusBadge(project.state).variant}
-                          className={getStatusBadge(project.state).className}
-                        >
-                          {getStatusBadge(project.state).icon}
-                          {project.state}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" className="h-8 w-8 p-0">
-                              <span className="sr-only">打开菜单</span>
-                              <MoreHorizontal className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuLabel>操作</DropdownMenuLabel>
-                            <DropdownMenuItem
-                              onClick={() => handleViewProject(project.id)}
-                            >
-                              <Eye className="mr-2 h-4 w-4" />
-                              查看详情
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              onClick={() => handleEditProject(project)}
-                            >
-                              <Pencil className="mr-2 h-4 w-4" />
-                              编辑项目
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem
-                              className="text-red-600"
-                              onClick={() => handleDeleteProject(project.id)}
-                            >
-                              <Trash2 className="mr-2 h-4 w-4" />
-                              删除项目
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
+                </TableHeader>
+                <TableBody>
+                  {currentPageData.length === 0 ? (
+                    <TableRow>
+                      <TableCell
+                        colSpan={6}
+                        className="text-muted-foreground py-10 text-center"
+                      >
+                        {filteredProjects.length === 0
+                          ? "暂无项目数据"
+                          : "没有匹配的搜索结果"}
                       </TableCell>
                     </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
+                  ) : (
+                    currentPageData.map((project) => (
+                      <TableRow
+                        key={project.id}
+                        className="hover:bg-muted/30 group cursor-pointer"
+                      >
+                        <TableCell className="font-medium">
+                          {project.name}
+                        </TableCell>
+                        <TableCell>
+                          {project.leaderName ? (
+                            <div className="flex items-center gap-2">
+                              <User className="text-muted-foreground h-4 w-4" />
+                              <span>{project.leaderName}</span>
+                            </div>
+                          ) : (
+                            <span className="text-muted-foreground text-xs">
+                              未指定
+                            </span>
+                          )}
+                        </TableCell>
+                        <TableCell>{formatDate(project.startDate)}</TableCell>
+                        <TableCell>{formatDate(project.endDate)}</TableCell>
+                        <TableCell>
+                          <Badge
+                            variant={getStatusBadge(project.state).variant}
+                            className={
+                              getStatusBadge(project.state).className +
+                              " px-2 py-0.5 text-xs font-normal"
+                            }
+                          >
+                            {getStatusBadge(project.state).icon}
+                            {project.state}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex justify-end gap-1">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="text-muted-foreground hover:text-primary h-8 w-8 p-0"
+                              onClick={() => handleViewProject(project.id)}
+                            >
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="text-muted-foreground hover:text-primary h-8 w-8 p-0"
+                              onClick={() => handleEditProject(project)}
+                            >
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="text-destructive hover:text-destructive h-8 w-8 p-0"
+                              onClick={() => handleDeleteProject(project.id)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </div>
           )}
         </CardContent>
         {!loading && !error && filteredProjects.length > 0 && (
-          <CardFooter className="flex flex-col items-center justify-between border-t px-6 py-4 sm:flex-row">
+          <CardFooter className="flex items-center justify-between pt-2">
             <PaginationInfo
               currentPage={currentPage}
               pageSize={pageSize}
               totalItems={totalItems}
-              className="mb-4 sm:mb-0"
+              className="text-muted-foreground text-xs"
             />
-            <div className="flex items-center space-x-6">
-              <div className="flex items-center space-x-2">
-                <p className="text-sm font-medium">每页显示</p>
-                <Select
-                  value={pageSize.toString()}
-                  onValueChange={handlePageSizeChange}
-                >
-                  <SelectTrigger className="h-8 w-[70px]">
-                    <SelectValue placeholder={pageSize} />
-                  </SelectTrigger>
-                  <SelectContent side="top">
-                    {[5, 10, 20, 50].map((size) => (
-                      <SelectItem key={size} value={size.toString()}>
-                        {size}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+            <div className="flex items-center gap-4">
+              <Select
+                value={pageSize.toString()}
+                onValueChange={handlePageSizeChange}
+              >
+                <SelectTrigger className="border-muted h-8 w-16 rounded-md text-xs">
+                  <SelectValue placeholder={pageSize} />
+                </SelectTrigger>
+                <SelectContent side="top">
+                  {[5, 10, 20, 50].map((size) => (
+                    <SelectItem key={size} value={size.toString()}>
+                      {size}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
               <Pagination
                 currentPage={currentPage}
                 totalPages={totalPages}
@@ -447,14 +451,14 @@ export default function HrProjectsPage() {
 
       {/* 项目表单侧边抽屉 */}
       <Sheet open={isFormOpen} onOpenChange={setIsFormOpen}>
-        <SheetContent className="w-full overflow-y-auto sm:max-w-xl">
-          <SheetHeader>
-            <SheetTitle className="mb-2 flex items-center gap-2 rounded-md bg-gradient-to-r from-blue-50 to-blue-100 p-2 text-2xl font-bold text-blue-800">
-              <Briefcase className="h-6 w-6 text-blue-600" />
-              {selectedProject ? "编辑项目" : "添加新项目"}
+        <SheetContent className="p-0 sm:max-w-md">
+          <SheetHeader className="border-muted border-b px-6 py-4">
+            <SheetTitle className="text-primary flex items-center gap-2 text-lg font-semibold">
+              <Briefcase className="text-primary h-5 w-5" />
+              {selectedProject ? "编辑项目" : "新建项目"}
             </SheetTitle>
           </SheetHeader>
-          <div className="mt-0">
+          <div className="px-6 py-6">
             <ProjectForm
               project={selectedProject}
               onSuccess={handleFormSuccess}

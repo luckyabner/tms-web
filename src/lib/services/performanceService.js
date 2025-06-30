@@ -476,7 +476,7 @@ export const updatePerformance = async (id, performanceData) => {
  */
 export const deletePerformance = async (id) => {
   try {
-    const response = await api.delete(`/performances/${id}`);
+    const response = await api.delete(`/employee-performances/${id}`);
 
     // 处理响应
     if (response.data && response.data.code === "200") {
