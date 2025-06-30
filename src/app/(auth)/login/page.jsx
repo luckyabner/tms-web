@@ -39,16 +39,13 @@ export default function Login() {
   const { login } = useNextAuth();
   const { setUserInfo } = useAuth();
 
-  // 添加动画效果
   useEffect(() => {
     const timer = setTimeout(() => {
       setAnimationComplete(true);
-    }, 300);
-
+    }, 200);
     return () => clearTimeout(timer);
   }, []);
 
-  // 验证手机号格式
   const isValidPhone = (phone) => {
     return /^1[3-9]\d{9}$/.test(phone);
   };
@@ -57,20 +54,16 @@ export default function Login() {
     e.preventDefault();
     setError("");
     setIsLoading(true);
-
-    // 简单的表单验证
     if (!formData.phone || !formData.password) {
       setError("请填写所有必填字段");
       setIsLoading(false);
       return;
     }
-
     if (!isValidPhone(formData.phone)) {
       setError("请输入有效的手机号码");
       setIsLoading(false);
       return;
     }
-
     try {
       const res = await loginServer(formData.phone, formData.password);
       if (res.token) {
@@ -83,7 +76,6 @@ export default function Login() {
         };
         setUserInfo(loginData);
         await login(loginData);
-        console.log("登录成功:", res);
         router.push("/");
       }
     } catch (err) {
@@ -95,57 +87,38 @@ export default function Login() {
 
   return (
     <div
-      className={`transition-all duration-700 ease-out ${animationComplete ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0"}`}
+      className={`bg-muted/50 flex min-h-screen items-center justify-center transition-opacity duration-700 ${animationComplete ? "opacity-100" : "opacity-0"}`}
     >
-      <div className="mt-4 mb-8 flex flex-col items-center justify-center space-y-4">
-        <div className="relative">
-          <div className="absolute -inset-0.5 animate-pulse rounded-full bg-gradient-to-r from-pink-500 via-purple-500 to-blue-500 opacity-70 blur-sm"></div>
-          <div className="relative flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-blue-600 to-indigo-700 shadow-xl">
-            <UserCircle2 className="h-10 w-10 text-white drop-shadow-md" />
+      <Card className="bg-background w-full max-w-md border shadow-md">
+        <CardHeader className="space-y-2 text-center">
+          <div className="mb-2 flex justify-center">
+            <div className="bg-primary/10 flex h-14 w-14 items-center justify-center rounded-full">
+              <UserCircle2 className="text-primary h-8 w-8" />
+            </div>
           </div>
-        </div>
-        <h1 className="bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 bg-clip-text text-3xl font-bold tracking-tight text-transparent drop-shadow-sm">
-          人才管理系统
-        </h1>
-        <div className="mt-1 h-1.5 w-16 rounded-full bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600"></div>
-      </div>
-
-      <Card className="relative w-full max-w-[380px] overflow-hidden rounded-xl border-none bg-white/95 py-6 shadow-2xl backdrop-blur-[12px] dark:bg-gray-900/80">
-        {/* 装饰元素 */}
-        <div className="absolute top-0 left-0 h-1 w-full bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600"></div>
-        <div className="absolute top-0 right-0 h-40 w-40 translate-x-1/2 -translate-y-1/2 transform rounded-full bg-gradient-to-br from-blue-600/20 to-transparent blur-3xl"></div>
-        <div className="absolute bottom-0 left-0 h-40 w-40 -translate-x-1/2 translate-y-1/2 transform rounded-full bg-gradient-to-tr from-purple-600/20 to-transparent blur-3xl"></div>
-        <div className="absolute right-0 bottom-0 h-24 w-24 translate-x-1/2 translate-y-1/2 transform rounded-full bg-gradient-to-tl from-indigo-600/20 to-transparent blur-3xl"></div>
-
-        <CardHeader className="space-y-3 pt-2 pb-4">
-          <div className="space-y-3 text-center">
-            <CardTitle className="text-2xl font-bold">
-              <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent">
-                欢迎回来
-              </span>
-            </CardTitle>
-            <CardDescription className="mx-auto max-w-xs text-sm text-gray-500">
-              请登录您的账号以继续使用系统，享受高效的人才管理体验
-            </CardDescription>
-          </div>
+          <CardTitle className="text-foreground text-2xl font-bold tracking-tight">
+            登录账号
+          </CardTitle>
+          <CardDescription className="text-muted-foreground text-sm">
+            欢迎使用人才管理系统
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-5">
             {error && (
-              <div className="flex animate-pulse items-center gap-2 rounded-lg border border-red-100 bg-red-50 p-3 text-xs text-red-600 shadow-sm">
+              <div className="border-destructive/30 bg-destructive/10 text-destructive flex items-center gap-2 rounded-md border p-2 text-xs">
                 <AlertCircle className="h-4 w-4 flex-shrink-0" />
                 <span>{error}</span>
               </div>
             )}
-            <div className="space-y-2.5">
+            <div className="space-y-2">
               <Label
                 htmlFor="phone"
-                className="flex items-center gap-1.5 text-xs font-medium"
+                className="flex items-center gap-1 text-xs font-medium"
               >
-                <Phone className="h-3 w-3 text-gray-500" />
-                手机号码
+                <Phone className="text-muted-foreground h-3 w-3" /> 手机号码
               </Label>
-              <div className="group relative">
+              <div className="relative">
                 <Input
                   id="phone"
                   type="tel"
@@ -154,40 +127,40 @@ export default function Login() {
                   onChange={(e) =>
                     setFormData({ ...formData, phone: e.target.value })
                   }
-                  className="h-12 rounded-lg border-gray-200 pl-4 text-sm transition-all hover:border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-600/20 dark:border-gray-700 dark:bg-gray-800/50 dark:focus:border-blue-500"
+                  className="h-11 text-sm"
                   required
                   disabled={isLoading}
                   pattern="^1[3-9]\d{9}$"
                 />
                 {formData.phone && isValidPhone(formData.phone) && (
-                  <CheckCircle2 className="absolute top-1/2 right-3 h-3.5 w-3.5 -translate-y-1/2 text-green-500 transition-opacity" />
+                  <CheckCircle2 className="absolute top-1/2 right-3 h-4 w-4 -translate-y-1/2 text-green-500" />
                 )}
               </div>
               {formData.phone && !isValidPhone(formData.phone) && (
-                <p className="mt-1 flex items-center gap-1 pl-1 text-xs text-red-500">
-                  <AlertCircle className="h-3 w-3 flex-shrink-0" />
+                <p className="text-destructive mt-1 flex items-center gap-1 pl-1 text-xs">
+                  <AlertCircle className="h-3 w-3 flex-shrink-0" />{" "}
                   请输入有效的11位手机号码
                 </p>
               )}
             </div>
-            <div className="space-y-2.5">
+            <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <Label
                   htmlFor="password"
-                  className="flex items-center gap-1.5 text-xs font-medium"
+                  className="flex items-center gap-1 text-xs font-medium"
                 >
-                  <Lock className="h-3 w-3 text-gray-500" />
-                  密码
+                  <Lock className="text-muted-foreground h-3 w-3" /> 密码
                 </Label>
                 <Button
                   variant="link"
-                  className="h-auto px-0 py-0 text-xs text-blue-600 transition-colors hover:text-blue-700"
+                  className="text-primary h-auto px-0 py-0 text-xs"
+                  type="button"
                   onClick={() => router.push("/forgot-password")}
                 >
                   忘记密码？
                 </Button>
               </div>
-              <div className="group relative">
+              <div className="relative">
                 <Input
                   id="password"
                   type={showPassword ? "text" : "password"}
@@ -196,7 +169,7 @@ export default function Login() {
                   onChange={(e) =>
                     setFormData({ ...formData, password: e.target.value })
                   }
-                  className="h-12 rounded-lg border-gray-200 pl-4 text-sm transition-all hover:border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-600/20 dark:border-gray-700 dark:bg-gray-800/50 dark:focus:border-blue-500"
+                  className="h-11 text-sm"
                   required
                   disabled={isLoading}
                 />
@@ -204,26 +177,27 @@ export default function Login() {
                   type="button"
                   variant="ghost"
                   size="icon"
-                  className="absolute top-0 right-0 h-full px-3 py-2 hover:bg-transparent"
+                  className="absolute top-0 right-0 h-full px-3 py-2"
                   onClick={() => setShowPassword(!showPassword)}
                   disabled={isLoading}
+                  tabIndex={-1}
                 >
                   {showPassword ? (
-                    <EyeOff className="h-3.5 w-3.5 text-gray-500 transition-colors hover:text-blue-600" />
+                    <EyeOff className="text-muted-foreground h-4 w-4" />
                   ) : (
-                    <Eye className="h-3.5 w-3.5 text-gray-500 transition-colors hover:text-blue-600" />
+                    <Eye className="text-muted-foreground h-4 w-4" />
                   )}
                 </Button>
               </div>
             </div>
             <Button
               type="submit"
-              className={`mt-4 h-12 w-full transform rounded-lg bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 text-sm font-medium transition-all duration-300 hover:scale-[1.02] hover:from-blue-700 hover:via-purple-700 hover:to-indigo-700 hover:shadow-lg active:scale-[0.98] ${isLoading ? "cursor-not-allowed opacity-90" : ""}`}
+              className="mt-2 h-11 w-full text-sm font-medium"
               disabled={isLoading}
             >
               {isLoading ? (
                 <div className="flex items-center justify-center gap-2">
-                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white"></div>
+                  <div className="border-primary/30 border-t-primary h-4 w-4 animate-spin rounded-full border-2"></div>
                   <span>登录中...</span>
                 </div>
               ) : (
@@ -232,24 +206,27 @@ export default function Login() {
             </Button>
           </form>
         </CardContent>
-        <CardFooter className="flex flex-col space-y-2 pt-2 pb-4">
-          <div className="mt-2 text-center text-xs text-gray-500">
+        <CardFooter className="flex flex-col space-y-2 pt-2">
+          <div className="text-muted-foreground text-center text-xs">
             登录即表示您同意我们的
             <Button
               variant="link"
-              className="h-auto px-1 py-0 text-xs text-blue-600 hover:text-blue-700"
-              onClick={() => {}}
+              className="text-primary h-auto px-1 py-0 text-xs"
+              type="button"
             >
               服务条款
             </Button>
             和
             <Button
               variant="link"
-              className="h-auto px-1 py-0 text-xs text-blue-600 hover:text-blue-700"
-              onClick={() => {}}
+              className="text-primary h-auto px-1 py-0 text-xs"
+              type="button"
             >
               隐私政策
             </Button>
+          </div>
+          <div className="text-muted-foreground mt-2 text-center text-xs">
+            © {new Date().getFullYear()} 人才管理系统 - 版权所有
           </div>
         </CardFooter>
       </Card>
