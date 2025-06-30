@@ -1,4 +1,3 @@
-export const dynamic = "force-dynamic";
 import SWRProvider from "@/components/providers/SWRProvider";
 import "./globals.css";
 
