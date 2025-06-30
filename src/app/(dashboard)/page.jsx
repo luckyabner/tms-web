@@ -16,8 +16,7 @@ export default function Home() {
     // 设置一个延迟时间来确保角色信息已加载
     const timer = setTimeout(() => {
       setIsLoading(false);
-    }, 1000); // 1秒延迟，你可以根据需要调整
-
+    }, 1000);
     return () => clearTimeout(timer);
   }, []);
 
