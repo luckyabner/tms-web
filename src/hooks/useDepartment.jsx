@@ -1,7 +1,7 @@
 "use client";
 import {
-  deleteDepartment,
-  getAllDepartments,
+    deleteDepartment,
+    getAllDepartments,
 } from "@/lib/services/departmentService";
 import useSWR from "swr";
 
@@ -18,13 +18,20 @@ export function useDepartment() {
   };
 }
 
-export const handleDeleteDepartment = async (id) => {
+export const handleDeleteDepartment = async (id, refreshCallback) => {
   if (window.confirm("确定要删除该部门吗？此操作无法撤销。")) {
     try {
       await deleteDepartment(id);
+      // 如果提供了刷新回调，则调用它
+      if (typeof refreshCallback === 'function') {
+        refreshCallback();
+      }
+      return true;
     } catch (err) {
       console.error("删除部门失败:", err);
       alert("删除部门失败，请稍后重试");
+      return false;
     }
   }
+  return false;
 };

@@ -8,11 +8,11 @@ import { EditSheet } from "@/components/shared/sheet/EditSheet";
 import SheetFormButton from "@/components/shared/sheet/SheetFormButton";
 import { BasicTable } from "@/components/shared/tables/BasicTable";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
 } from "@/components/ui/card";
 import { useDepartment } from "@/hooks/useDepartment";
 import { Building2, TableIcon } from "lucide-react";
@@ -38,6 +38,11 @@ export default function DepartmentPage() {
 
   // 处理新建部门成功后刷新数据
   const handleCreateSuccess = () => {
+    refreshDepartments(); // 刷新部门数据
+  };
+
+  // 处理删除部门后刷新数据
+  const handleDeleteSuccess = () => {
     refreshDepartments(); // 刷新部门数据
   };
 
@@ -89,7 +94,10 @@ export default function DepartmentPage() {
         </CardHeader>
         <CardContent>
           <BasicTable
-            columns={departmentColumns({ onEdit: handleEditDepartment })}
+            columns={departmentColumns({ 
+              onEdit: handleEditDepartment,
+              onDelete: handleDeleteSuccess
+            })}
             data={departmentData}
           />
         </CardContent>
