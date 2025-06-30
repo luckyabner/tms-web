@@ -1,7 +1,5 @@
-import { AppSidebar } from "@/components/layout/AppSidebar";
-import Header from "@/components/layout/Header";
+export const dynamic = "force-dynamic";
 import SWRProvider from "@/components/providers/SWRProvider";
-import { SidebarProvider } from "@/components/ui/sidebar";
 import "./globals.css";
 
 export default function RootLayout({ children }) {

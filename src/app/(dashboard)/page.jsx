@@ -44,16 +44,29 @@ export default function Home() {
     // 如果是员工角色，可以重定向到员工专属页面或其他逻辑
     redirect(`/employees/${userInfo.empId}`);
   } else {
+    // 引导登录页面，简约风格，shadcn 组件
     return (
-      <div className="flex h-screen items-center justify-center">
-        <h1 className="text-2xl font-bold">未授权访问</h1>
-        <Button
-          onClick={() => {
-            window.location.href = "/login";
-          }}
-        >
-          请先登录
-        </Button>
+      <div className="bg-background flex h-screen items-center justify-center">
+        <div className="bg-card flex min-w-[320px] flex-col items-center gap-8 rounded-xl p-8 shadow-lg">
+          <div className="flex flex-col items-center gap-2">
+            <img src="/favicon.ico" alt="Logo" className="mb-2 h-12 w-12" />
+            <h1 className="text-foreground text-2xl font-bold">
+              欢迎使用人才管理系统
+            </h1>
+            <p className="text-muted-foreground max-w-xs text-center text-sm">
+              请先登录以访问您的专属工作台。
+            </p>
+          </div>
+          <Button
+            className="w-full text-base font-semibold"
+            size="lg"
+            onClick={() => {
+              window.location.href = "/login";
+            }}
+          >
+            登录
+          </Button>
+        </div>
       </div>
     );
   }
