@@ -2,8 +2,8 @@ export default function AuthLayout({ children }) {
   return (
     <div className="bg-muted/50 dark:bg-background flex min-h-screen">
       {/* 左侧宣传栏（大屏显示） */}
-      <div className="bg-primary/90 relative hidden w-1/2 flex-col justify-between p-12 text-white lg:flex">
-        <div>
+      <div className="bg-primary/90 relative hidden w-1/2 flex-col justify-center items-center p-12 text-white lg:flex">
+        <div className="flex flex-col items-center text-center">
           <div className="mb-8 flex items-center">
             <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white/10">
               <svg
@@ -23,10 +23,10 @@ export default function AuthLayout({ children }) {
               人才管理系统
             </span>
           </div>
-          <h2 className="mb-4 text-4xl font-bold">
+          <h2 className="mb-4 text-4xl font-bold text-center">
             优化人才管理 · 提升组织效能
           </h2>
-          <p className="mb-10 max-w-md text-lg text-white/90">
+          <p className="mb-10 max-w-md text-lg text-white/90 text-center">
             科学的人才评估体系，高效的绩效管理流程，助力企业实现可持续发展。
           </p>
           <div className="grid max-w-md grid-cols-3 gap-4">
@@ -44,7 +44,7 @@ export default function AuthLayout({ children }) {
             </div>
           </div>
         </div>
-        <div className="mt-8 text-sm text-white/70">
+        <div className="mt-8 text-sm text-white/70 text-center absolute bottom-12">
           © {new Date().getFullYear()} 人才管理系统
         </div>
       </div>
