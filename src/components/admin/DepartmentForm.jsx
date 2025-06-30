@@ -5,27 +5,27 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import {
-  createDepartment,
-  getAllDepartments,
-  getAllEmployees,
-  updateDepartment,
+    createDepartment,
+    getAllDepartments,
+    getAllEmployees,
+    updateDepartment,
 } from "@/lib/services/departmentService";
 import {
-  AlertCircle,
-  Building2,
-  FileText,
-  FolderTree,
-  Loader2,
-  UserCircle,
-  Users,
+    AlertCircle,
+    Building2,
+    FileText,
+    FolderTree,
+    Loader2,
+    UserCircle,
+    Users,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 
@@ -37,11 +37,11 @@ export default function DepartmentForm({
   const isEditing = !!department;
 
   const [formData, setFormData] = useState({
-    name: department?.name || "",
-    managerId: department?.managerId || null,
-    parentId: department?.parentId || null,
-    employeeCount: department?.employeeCount || 0,
-    description: department?.description || "",
+    name: "",
+    managerId: null,
+    parentId: null,
+    employeeCount: 0,
+    description: "",
   });
 
   const [loading, setLoading] = useState(false);
@@ -49,6 +49,19 @@ export default function DepartmentForm({
   const [departments, setDepartments] = useState([]);
   const [employees, setEmployees] = useState([]);
   const [loadingOptions, setLoadingOptions] = useState(false);
+
+  // 初始化表单数据
+  useEffect(() => {
+    if (department) {
+      setFormData({
+        name: department.name || "",
+        managerId: department.managerId ? department.managerId.toString() : null,
+        parentId: department.parentId ? department.parentId.toString() : null,
+        employeeCount: department.empCount || 0,
+        description: department.description || "",
+      });
+    }
+  }, [department]);
 
   // 加载部门和员工数据用于选择器
   useEffect(() => {

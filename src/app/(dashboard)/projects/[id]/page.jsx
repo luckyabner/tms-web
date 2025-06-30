@@ -4,66 +4,66 @@ import EmployeeProjectForm from "@/components/hr/EmployeeProjectForm";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
+    Card,
+    CardContent,
+    CardDescription,
+    CardFooter,
+    CardHeader,
+    CardTitle,
 } from "@/components/ui/card";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Pagination } from "@/components/ui/pagination";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
 } from "@/components/ui/select";
 import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
+    Sheet,
+    SheetContent,
+    SheetHeader,
+    SheetTitle,
 } from "@/components/ui/sheet";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
 } from "@/components/ui/table";
 import {
-  deleteEmployeeProject,
-  getEmployeeProjectsByProjectId,
-  getProjectById,
+    deleteEmployeeProject,
+    getEmployeeProjectsByProjectId,
+    getProjectById,
 } from "@/lib/services/projectService";
 import { format } from "date-fns";
 import {
-  AlertCircle,
-  ArrowLeft,
-  BookOpen,
-  Briefcase,
-  Calendar,
-  CheckCircle2,
-  Eye,
-  FileEdit,
-  Loader2,
-  MoreHorizontal,
-  Plus,
-  Search,
-  Trash2,
-  User,
-  Users,
+    AlertCircle,
+    ArrowLeft,
+    BookOpen,
+    Briefcase,
+    Calendar,
+    CheckCircle2,
+    Eye,
+    FileEdit,
+    Loader2,
+    MoreHorizontal,
+    Plus,
+    Search,
+    Trash2,
+    User,
+    Users,
 } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
@@ -435,7 +435,7 @@ export default function ProjectDetailPage() {
             <div className="text-muted-foreground flex h-60 flex-col items-center justify-center">
               <Users className="mb-4 h-12 w-12 opacity-20" />
               <p className="text-base font-medium">暂无项目成员数据</p>
-              <p className="text-xs">点击“新增成员”按钮添加团队成员</p>
+              <p className="text-xs">点击"新增成员"按钮添加团队成员</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
@@ -545,7 +545,7 @@ export default function ProjectDetailPage() {
               {selectedEmployeeProject ? "编辑项目成员" : "新增项目成员"}
             </SheetTitle>
           </SheetHeader>
-          <div className="px-6 py-6">
+          <div className="px-6 py-6 overflow-y-auto h-[calc(100vh-80px)]">
             <EmployeeProjectForm
               employeeProject={selectedEmployeeProject}
               projectId={parseInt(id)}

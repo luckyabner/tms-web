@@ -1,21 +1,21 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
 } from "@/components/ui/select";
-import { Loader2, AlertCircle, User, Briefcase, FileText, Save, BarChart3, Brain, Users, Lightbulb, BookOpen } from 'lucide-react';
-import { createEmployeeProject, updateEmployeeProject } from '@/lib/services/projectService';
+import { Textarea } from "@/components/ui/textarea";
 import { getAllEmployees } from '@/lib/services/employeeService';
+import { createEmployeeProject, updateEmployeeProject } from '@/lib/services/projectService';
+import { AlertCircle, BarChart3, BookOpen, Brain, Briefcase, FileText, Lightbulb, Loader2, Save, User, Users } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
 
 export default function EmployeeProjectForm({ employeeProject, projectId, onSuccess, onCancel }) {
   const [formData, setFormData] = useState({
@@ -352,7 +352,7 @@ export default function EmployeeProjectForm({ employeeProject, projectId, onSucc
           </div>
         </CardContent>
         
-        <CardFooter className="flex justify-end space-x-3 border-t pt-4 bg-gray-50 rounded-b-xl">
+        <CardFooter className="flex justify-end space-x-3 border-t pt-4 bg-gray-50 rounded-b-xl sticky bottom-0">
           <Button 
             type="button" 
             variant="outline" 
