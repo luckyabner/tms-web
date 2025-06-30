@@ -47,7 +47,13 @@ export default function Home() {
     return (
       <div className="flex h-screen items-center justify-center">
         <h1 className="text-2xl font-bold">未授权访问</h1>
-        <Button>请先登录</Button>
+        <Button
+          onClick={() => {
+            window.location.href = "/login";
+          }}
+        >
+          请先登录
+        </Button>
       </div>
     );
   }

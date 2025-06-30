@@ -12,6 +12,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Role, useAuth } from "@/hooks/auth";
+import { useNextAuth } from "@/hooks/useNextAuth";
 import { Bell, ChevronDown, LogOut, Search, User } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -21,7 +22,8 @@ export default function Header() {
   const pathname = usePathname();
   const router = useRouter();
   const isAdminPath = pathname?.startsWith("/admin");
-  const { changeRole, userInfo } = useAuth();
+  const { changeRole, userInfo, clearAuth } = useAuth();
+  const { logout } = useNextAuth();
   const role = userInfo?.empType;
 
   // 处理退出登录
@@ -29,11 +31,8 @@ export default function Header() {
     // 在实际应用中，这里会调用API清除会话、令牌等
     // 可以添加确认对话框
     if (window.confirm("确定要退出登录吗？")) {
-      // 清除本地存储的用户信息（如果有）
-      localStorage.removeItem("user");
-      localStorage.removeItem("token");
-      sessionStorage.removeItem("user");
-
+      clearAuth();
+      logout();
       // 重定向到登录页面
       router.push("/login");
     }
