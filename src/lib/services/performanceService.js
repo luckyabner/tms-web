@@ -789,20 +789,31 @@ export const createEmployeePerformance = async (employeePerformanceData) => {
   try {
     console.log("创建员工绩效评估，前端提交数据:", employeePerformanceData);
 
-    // 转换为API需要的格式
+    // 确保ID值是数值类型
+    const employeeId = parseInt(employeePerformanceData.employeeId);
+    const performanceId = parseInt(employeePerformanceData.performanceId);
+    const approverId = parseInt(employeePerformanceData.approverId);
+    
+    if (isNaN(employeeId) || isNaN(performanceId) || isNaN(approverId)) {
+      throw new Error("无效的ID值: employeeId, performanceId 或 approverId 必须是有效的数字");
+    }
+
+    // 转换为API需要的格式 - 根据接口文档修改字段名称
     const apiData = {
-      approver_id: employeePerformanceData.approverId,
-      emp_id: employeePerformanceData.employeeId,
-      per_id: employeePerformanceData.performanceId,
-      score: employeePerformanceData.score || 0,
+      empId: employeeId,
+      perId: performanceId,
+      approverId: approverId,
+      score: employeePerformanceData.score ? parseFloat(employeePerformanceData.score) : 0,
       state: employeePerformanceData.state || "未完成",
-      description: employeePerformanceData.description || "",
+      isDeleted: false,
+      description: employeePerformanceData.description || null
     };
 
     console.log("转换后的API数据:", JSON.stringify(apiData, null, 2));
 
     try {
       const response = await api.post("/employee-performances", apiData);
+      console.log("API响应:", response);
 
       // 处理响应
       if (response.data && response.data.code === "200") {
@@ -813,14 +824,12 @@ export const createEmployeePerformance = async (employeePerformanceData) => {
         return { success: true, message: "创建成功" };
       }
 
-      console.log("API响应:", response);
       return { success: true, message: "创建成功" };
     } catch (apiError) {
       console.error("API调用失败:", apiError);
-      if (apiError.response && apiError.response.status === 404) {
-        // 如果API不存在，模拟成功响应
-        console.log("API端点不存在，模拟成功响应");
-        return { success: true, message: "创建成功（模拟）" };
+      if (apiError.response) {
+        console.error("错误响应数据:", apiError.response.data);
+        console.error("错误状态码:", apiError.response.status);
       }
       throw apiError;
     }
@@ -848,9 +857,9 @@ export const updateEmployeePerformance = async (
 
     // 转换为API需要的格式
     const apiData = {
-      score: employeePerformanceData.score,
-      state: employeePerformanceData.state,
-      description: employeePerformanceData.description || "",
+      score: employeePerformanceData.score ? parseFloat(employeePerformanceData.score) : 0,
+      state: employeePerformanceData.state || "未完成",
+      description: employeePerformanceData.description || null
     };
 
     console.log("转换后的API数据:", JSON.stringify(apiData, null, 2));
@@ -878,14 +887,12 @@ export const updateEmployeePerformance = async (
         return { success: true, message: "更新成功" };
       }
 
-      console.log("API响应:", response);
       return { success: true, message: "更新成功" };
     } catch (apiError) {
       console.error("API调用失败:", apiError);
-      if (apiError.response && apiError.response.status === 404) {
-        // 如果API不存在，模拟成功响应
-        console.log("API端点不存在，模拟成功响应");
-        return { success: true, message: "更新成功（模拟）" };
+      if (apiError.response) {
+        console.error("错误响应数据:", apiError.response.data);
+        console.error("错误状态码:", apiError.response.status);
       }
       throw apiError;
     }

@@ -477,7 +477,7 @@ export default function PerformanceDetailPage() {
               {selectedEmployeePerformance ? "编辑绩效" : "添加绩效"}
             </SheetTitle>
           </SheetHeader>
-          <div className="py-2">
+          <div className="py-2 overflow-y-auto h-[calc(100vh-80px)]">
             <EmployeePerformanceForm
               employeePerformance={selectedEmployeePerformance}
               performanceId={parseInt(id)}

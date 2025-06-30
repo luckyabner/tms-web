@@ -6,11 +6,84 @@ import api from "../api";
  */
 export async function getAllEmployees() {
   try {
+    console.log("正在获取所有员工数据...");
     const res = await api.get("/employees/details");
-    return res.data.data || [];
+    
+    // 处理API返回的数据
+    let employees = [];
+    
+    if (res.data && res.data.data && Array.isArray(res.data.data)) {
+      employees = res.data.data;
+    } else if (Array.isArray(res.data)) {
+      employees = res.data;
+    } else {
+      console.error("未知的员工API响应格式:", res.data);
+      return [];
+    }
+    
+    // 确保员工数据包含部门信息
+    console.log(`获取到 ${employees.length} 名员工数据`);
+    
+    // 尝试获取员工部门关系数据
+    try {
+      const deptRes = await api.get("/employee-departments?is_current=1");
+      let employeeDepartments = [];
+      
+      if (deptRes.data && deptRes.data.data && Array.isArray(deptRes.data.data)) {
+        employeeDepartments = deptRes.data.data;
+      } else if (Array.isArray(deptRes.data)) {
+        employeeDepartments = deptRes.data;
+      }
+      
+      console.log(`获取到 ${employeeDepartments.length} 条员工-部门关系数据`);
+      
+      // 获取所有部门信息
+      const deptsRes = await api.get("/departments");
+      let departments = [];
+      
+      if (deptsRes.data && deptsRes.data.data && Array.isArray(deptsRes.data.data)) {
+        departments = deptsRes.data.data;
+      } else if (Array.isArray(deptsRes.data)) {
+        departments = deptsRes.data;
+      }
+      
+      console.log(`获取到 ${departments.length} 个部门数据`);
+      
+      // 为每个员工添加部门信息
+      const processedEmployees = employees.map(emp => {
+        // 查找员工的当前部门关系
+        const empDept = employeeDepartments.find(
+          ed => (ed.empId === emp.id || ed.emp_id === emp.id) && 
+                (ed.isCurrent === 1 || ed.is_current === 1)
+        );
+        
+        if (empDept) {
+          // 查找部门名称
+          const department = departments.find(
+            dept => dept.id === (empDept.depId || empDept.dep_id)
+          );
+          
+          return {
+            ...emp,
+            departmentId: empDept.depId || empDept.dep_id,
+            departmentName: department ? (department.name || department.dep_name) : "未知部门",
+            position: empDept.position || emp.position || "",
+          };
+        }
+        
+        return emp;
+      });
+      
+      console.log("处理后的员工数据包含部门信息");
+      return processedEmployees;
+      
+    } catch (deptError) {
+      console.error("获取员工部门关系失败，返回原始员工数据:", deptError);
+      return employees;
+    }
   } catch (err) {
-    console.error("Error fetching employees:", err);
-    throw err; // 重新抛出错误，让调用者处理
+    console.error("获取员工数据失败:", err);
+    return [];
   }
 }
 
