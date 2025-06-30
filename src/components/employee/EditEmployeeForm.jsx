@@ -11,6 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Role, useAuth } from "@/hooks/auth";
 import { updateEmployeeAction } from "@/lib/actions/employee-actions";
 import { Edit3 } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -22,6 +23,7 @@ const initialState = {
 };
 
 export default function EditEmployeeForm({ employee, departments = [] }) {
+  const { userInfo } = useAuth();
   const [state, formAction] = useActionState(
     updateEmployeeAction,
     initialState
@@ -143,14 +145,19 @@ export default function EditEmployeeForm({ employee, departments = [] }) {
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="role">员工类型</Label>
-              <Select name="role" defaultValue={employee.empType}>
+              <Select
+                name="role"
+                defaultValue={employee.empType}
+                disabled={userInfo.empType !== Role.ADMIN}
+              >
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="普通用户">普通用户</SelectItem>
-                  <SelectItem value="部门主管">部门主管</SelectItem>
-                  <SelectItem value="公司高层">公司高层</SelectItem>
+                  <SelectItem value={Role.ADMIN}>{Role.ADMIN}</SelectItem>
+                  <SelectItem value={Role.EMPLOYEE}>{Role.EMPLOYEE}</SelectItem>
+                  <SelectItem value={Role.LEADER}>{Role.LEADER}</SelectItem>
+                  <SelectItem value={Role.HR}>{Role.HR}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
