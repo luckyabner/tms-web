@@ -13,7 +13,7 @@ import {
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
 
-export const departmentColumns = ({ onEdit } = {}) => [
+export const departmentColumns = () => [
   {
     id: "select",
     header: ({ table }) => (
@@ -88,20 +88,8 @@ export const departmentColumns = ({ onEdit } = {}) => [
             >
               查看详情
             </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={() => {
-                onEdit && onEdit(department);
-              }}
-            >
-              编辑
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={() => {
-                handleDeleteDepartment(department.id);
-              }}
-            >
-              删除
-            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => {}}>编辑</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => {}}>删除</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       );

@@ -27,7 +27,8 @@ export default function AISummary({
   const [hasGenerated, setHasGenerated] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
   const { analyseResult: aiResult, id: aiSummaryId } = summary;
-  const { role } = useAuth();
+  const { userInfo } = useAuth();
+  const role = userInfo?.empType;
 
   // 组装员工信息用于AI分析
   const employeeInfo = {

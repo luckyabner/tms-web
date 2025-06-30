@@ -16,47 +16,6 @@ export async function getEmployeeDepartmentHistory(id) {
 }
 
 /**
- * 获取所有员工数据，并缓存结果
- * @returns {Promise<Array>} 员工数据列表
- */
-const fetchEmployeesData = async () => {
-  if (employeesCache) {
-    return employeesCache;
-  }
-
-  try {
-    const response = await api.get("/employees");
-
-    // 处理可能的不同数据格式
-    let employees = [];
-
-    if (Array.isArray(response.data)) {
-      employees = response.data;
-    } else if (
-      response.data &&
-      response.data.data &&
-      Array.isArray(response.data.data)
-    ) {
-      employees = response.data.data;
-    } else {
-      console.error("未知的员工API响应格式:", response.data);
-      employees = [];
-    }
-
-    // 缓存员工数据
-    employeesCache = employees.map((emp) => ({
-      id: emp.id || emp.emp_id,
-      name: emp.name || emp.emp_name || "",
-    }));
-
-    return employeesCache;
-  } catch (error) {
-    console.error("获取员工数据失败:", error);
-    return [];
-  }
-};
-
-/**
  * 获取所有部门列表
  * @returns {Promise} 返回部门列表数据
  */

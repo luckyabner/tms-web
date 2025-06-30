@@ -11,7 +11,9 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { login } from "@/lib/services/authService";
+import { useAuth } from "@/hooks/auth";
+import { useNextAuth } from "@/hooks/useNextAuth";
+import { loginServer } from "@/lib/services/authService";
 import {
   AlertCircle,
   CheckCircle2,
@@ -34,6 +36,8 @@ export default function Login() {
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [animationComplete, setAnimationComplete] = useState(false);
+  const { login } = useNextAuth();
+  const { setUserInfo } = useAuth();
 
   // 添加动画效果
   useEffect(() => {
@@ -68,9 +72,20 @@ export default function Login() {
     }
 
     try {
-      const res = await login(formData.phone, formData.password);
-      console.log("登录成功:", res);
-      router.push("/");
+      const res = await loginServer(formData.phone, formData.password);
+      if (res.token) {
+        const loginData = {
+          token: res.token,
+          empId: res.empId,
+          name: res.name,
+          phone: res.phone,
+          empType: res.empType,
+        };
+        setUserInfo(loginData);
+        await login(loginData);
+        console.log("登录成功:", res);
+        router.push("/");
+      }
     } catch (err) {
       setError("登录失败，请检查您的手机号和密码");
     } finally {

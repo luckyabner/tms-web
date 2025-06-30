@@ -6,15 +6,9 @@ import {
 import useSWR from "swr";
 
 export function useDepartment() {
-  const { data, error, isLoading, mutate } = useSWR(
-    "departments",
-    getAllDepartments,
-    {
-      refreshInterval: 5000, // 每5秒刷新一次
-      revalidateOnFocus: false, // 不在页面重新获取焦点时重新验证
-      dedupingInterval: 5000, // 5秒内不重复请求
-    }
-  );
+  const { data, error, isLoading, mutate } = useSWR("departments", async () => {
+    return getAllDepartments();
+  });
 
   return {
     departments: data,

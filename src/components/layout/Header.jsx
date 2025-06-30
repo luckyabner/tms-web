@@ -21,7 +21,8 @@ export default function Header() {
   const pathname = usePathname();
   const router = useRouter();
   const isAdminPath = pathname?.startsWith("/admin");
-  const { changeRole, role } = useAuth();
+  const { changeRole, userInfo } = useAuth();
+  const role = userInfo?.empType;
 
   // 处理退出登录
   const handleLogout = () => {

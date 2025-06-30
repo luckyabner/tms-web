@@ -114,7 +114,8 @@ const employeeNav = [
 
 export function AppSidebar() {
   const pathname = usePathname();
-  const role = useAuth((state) => state.role);
+  const { userInfo } = useAuth();
+  const role = userInfo?.empType;
 
   let navItems = [];
   if (role === Role.HR) {
