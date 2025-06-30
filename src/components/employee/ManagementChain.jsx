@@ -1,9 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { EMPLOYEE_RELATIONS } from "@/lib/mockRelationData";
-import { getManagementChain } from '@/lib/services/relationService';
 import { ArrowUp, ChevronUp, GitBranch, Loader2, RefreshCw } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 
@@ -95,7 +93,7 @@ export default function ManagementChain({ employeeId }) {
   }, [employeeId]);
 
   return (
-    <div className="h-full w-full relative">
+    <div className="h-full w-full relative overflow-auto">
       {loading ? (
         <div className="flex h-full w-full items-center justify-center">
           <div className="text-center space-y-3">
@@ -113,11 +111,11 @@ export default function ManagementChain({ employeeId }) {
           </div>
         </div>
       ) : (
-        <div className="h-full relative flex flex-col items-center justify-center p-4 bg-slate-50">
+        <div className="h-full relative p-4 bg-slate-50 overflow-auto">
           <Button 
             variant="outline" 
             size="sm" 
-            className="absolute top-2 right-2 bg-white"
+            className="sticky top-2 left-2 z-10 bg-white"
             onClick={loadChainData}
             disabled={loading}
           >
@@ -135,88 +133,91 @@ export default function ManagementChain({ employeeId }) {
           </Button>
           
           {/* 管理链条图表 */}
-          <div className="relative mt-10 w-full max-w-xl">
-            {/* 垂直连接线 */}
-            <div className="absolute top-10 bottom-10 left-1/2 w-1 bg-gradient-to-b from-blue-500 via-blue-300 to-red-400 transform -translate-x-1/2 rounded-full"></div>
-            
-            {/* 管理链条卡片 */}
-            <div className="space-y-28 relative py-8">
-              {chain.map((employee, index) => (
-                <div 
-                  key={index} 
-                  className="flex flex-col items-center relative"
-                >
-                  {/* 连接线箭头 */}
-                  {index < chain.length - 1 && (
-                    <div className="absolute top-[100px] left-1/2 transform -translate-x-1/2 z-10">
-                      <div className="bg-white rounded-full p-1 shadow-md">
-                        <ArrowUp className="text-blue-500 h-6 w-6" />
-                      </div>
-                    </div>
-                  )}
-                  
-                  {/* 员工卡片 */}
+          <div className="flex justify-center">
+            <div className="relative w-full max-w-md pb-10">
+              {/* 垂直连接线 */}
+              <div className="absolute left-1/2 w-0.5 bg-gradient-to-b from-blue-500 via-blue-300 to-red-400 transform -translate-x-1/2 rounded-full"
+                  style={{ top: '40px', bottom: '70px' }}></div>
+              
+              {/* 管理链条卡片 */}
+              <div className="space-y-16 relative py-4">
+                {chain.map((employee, index) => (
                   <div 
-                    className={`relative w-72 p-5 rounded-xl shadow-lg border z-20 transition-all duration-300 transform hover:scale-105 ${
-                      index === 0 
-                        ? 'bg-gradient-to-br from-red-50 to-red-100 border-red-200' 
-                        : index === chain.length - 1 
-                          ? 'bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200'
-                          : 'bg-gradient-to-br from-green-50 to-green-100 border-green-200'
-                    }`}
+                    key={index} 
+                    className="flex flex-col items-center relative"
                   >
-                    <div className="flex items-center space-x-4">
-                      {/* 员工头像 */}
-                      <div className={`flex-shrink-0 w-16 h-16 rounded-full flex items-center justify-center text-white font-bold shadow-md ${
+                    {/* 连接线箭头 */}
+                    {index < chain.length - 1 && (
+                      <div className="absolute top-[70px] left-1/2 transform -translate-x-1/2 z-10">
+                        <div className="bg-white rounded-full p-0.5 shadow-md">
+                          <ArrowUp className="text-blue-500 h-4 w-4" />
+                        </div>
+                      </div>
+                    )}
+                    
+                    {/* 员工卡片 */}
+                    <div 
+                      className={`relative w-56 p-3 rounded-lg shadow-md border z-20 transition-all duration-300 transform hover:scale-105 ${
                         index === 0 
-                          ? 'bg-gradient-to-br from-red-400 to-red-600' 
+                          ? 'bg-gradient-to-br from-red-50 to-red-100 border-red-200' 
                           : index === chain.length - 1 
-                            ? 'bg-gradient-to-br from-blue-400 to-blue-600'
-                            : 'bg-gradient-to-br from-green-400 to-green-600'
-                      }`}>
-                        {employee.name?.charAt(0) || '?'}
+                            ? 'bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200'
+                            : 'bg-gradient-to-br from-green-50 to-green-100 border-green-200'
+                      }`}
+                    >
+                      <div className="flex items-center space-x-3">
+                        {/* 员工头像 */}
+                        <div className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center text-white font-bold shadow-md ${
+                          index === 0 
+                            ? 'bg-gradient-to-br from-red-400 to-red-600' 
+                            : index === chain.length - 1 
+                              ? 'bg-gradient-to-br from-blue-400 to-blue-600'
+                              : 'bg-gradient-to-br from-green-400 to-green-600'
+                        }`}>
+                          {employee.name?.charAt(0) || '?'}
+                        </div>
+                        
+                        {/* 员工信息 */}
+                        <div className="flex-1">
+                          <h3 className="font-medium text-gray-800">{employee.name}</h3>
+                          {employee.position && (
+                            <p className="text-xs text-gray-600">{employee.position}</p>
+                          )}
+                          {employee.department && (
+                            <p className="text-xs text-gray-500 mt-0.5">{employee.department}</p>
+                          )}
+                        </div>
                       </div>
                       
-                      {/* 员工信息 */}
-                      <div className="flex-1">
-                        <h3 className="font-medium text-gray-800 text-lg">{employee.name}</h3>
-                        {employee.position && (
-                          <p className="text-sm text-gray-600">{employee.position}</p>
-                        )}
-                        {employee.department && (
-                          <p className="text-xs text-gray-500 mt-1">{employee.department}</p>
-                        )}
+                      {/* 层级标签 */}
+                      <div className="mt-2 flex justify-center">
+                        <span className={`text-[11px] px-2 py-1 rounded-full font-medium ${
+                          index === 0 
+                            ? 'bg-red-100 text-red-700' 
+                            : index === chain.length - 1 
+                              ? 'bg-blue-100 text-blue-700'
+                              : 'bg-green-100 text-green-700'
+                        }`}>
+                          {index === 0 
+                            ? '当前员工' 
+                            : index === 1
+                              ? '直接上级'
+                            : index === chain.length - 1 
+                              ? '最高管理层'
+                              : `第 ${chain.length - index} 级管理层`}
+                        </span>
                       </div>
                     </div>
                     
-                    {/* 层级标签 */}
-                    <div className="mt-4 flex justify-center">
-                      <span className={`text-xs px-3 py-1.5 rounded-full font-medium ${
-                        index === 0 
-                          ? 'bg-red-100 text-red-700' 
-                          : index === chain.length - 1 
-                            ? 'bg-blue-100 text-blue-700'
-                            : 'bg-green-100 text-green-700'
-                      }`}>
-                        {index === 0 
-                          ? '当前员工' 
-                          : index === 1
-                            ? '直接上级'
-                          : index === chain.length - 1 
-                            ? '最高管理层'
-                            : `第 ${chain.length - index} 级管理层`}
-                      </span>
-                    </div>
+                    {/* 管理关系描述 */}
+                    {index < chain.length - 1 && (
+                      <div className="absolute top-[52px] right-5 bg-white rounded-lg shadow-sm p-1 border border-gray-200 text-xs text-gray-600 z-10">
+                        汇报关系
+                      </div>
+                    )}
                   </div>
-                  
-                  {/* 管理关系描述 */}
-                  {index < chain.length - 1 && (
-                    <div className="absolute top-[70px] right-0 bg-white rounded-lg shadow-md p-2 border border-gray-200 text-xs text-gray-600">
-                      管理 / 汇报
-                    </div>
-                  )}
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
           </div>
           

@@ -57,47 +57,94 @@ export const syncRelations = async () => {
 };
 
 /**
- * 模拟管理链条数据
- * @param {number} employeeId 员工ID
- * @returns {Array} 返回模拟的管理链条数据
+ * 获取员工数据（带循环检测以避免循环引用）
+ * @param {string} employeeName 员工名称
+ * @param {Set} visitedEmployees 已访问的员工集合（避免循环引用）
+ * @returns {Object|null} 员工数据或null
  */
-export const getMockChainData = (employeeId) => {
-  const id = parseInt(employeeId) || 1;
+const getEmployeeByName = (employeeName, visitedEmployees = new Set()) => {
+  if (visitedEmployees.has(employeeName)) {
+    return null; // 避免循环引用
+  }
   
-  // 从静态数据中查找员工
-  const employee = EMPLOYEE_RELATIONS.find(emp => emp.emp_id === id) || EMPLOYEE_RELATIONS[0];
+  const employee = EMPLOYEE_RELATIONS.find(emp => emp.emp_name === employeeName);
+  return employee || null;
+};
+
+/**
+ * 构建管理链条（带循环检测）
+ * @param {number} employeeId 员工ID
+ * @param {Set} visitedEmployees 已访问的员工集合
+ * @returns {Array} 管理链条数据
+ */
+const buildManagementChain = (employeeId, visitedEmployees = new Set()) => {
+  const id = parseInt(employeeId);
+  const employee = EMPLOYEE_RELATIONS.find(emp => emp.emp_id === id);
   
-  // 构建管理链条 - 当前员工为第一层
-  const chain = [
-    [
-      {
-        id: employee.emp_id.toString(),
-        name: employee.emp_name,
-      }
-    ]
-  ];
+  if (!employee || visitedEmployees.has(employee.emp_name)) {
+    return []; // 避免循环引用
+  }
   
-  // 解析上级管理
+  const chain = [];
+  
+  // 添加当前员工
+  chain.push({
+    id: employee.emp_id.toString(),
+    name: employee.emp_name,
+    position: "当前员工"
+  });
+  
+  // 拷贝已访问员工集合并添加当前员工
+  const visited = new Set(visitedEmployees);
+  visited.add(employee.emp_name);
+  
+  // 递归构建上级链条
   if (employee.management && employee.management.length > 0) {
-    for (const manager of employee.management) {
-      // 从"名字 (上级)"格式中提取名字
-      const managerName = manager.split(' ')[0];
+    for (const managerStr of employee.management) {
+      const managerName = managerStr.split(' ')[0];
+      const manager = getEmployeeByName(managerName);
       
-      // 尝试在员工列表中找到该上级
-      const managerData = EMPLOYEE_RELATIONS.find(emp => emp.emp_name === managerName);
-      
-      if (managerData) {
-        chain.push([
-          {
-            id: managerData.emp_id.toString(),
-            name: managerData.emp_name,
+      if (manager && !visited.has(managerName)) {
+        chain.push({
+          id: manager.emp_id.toString(),
+          name: manager.emp_name,
+          position: "上级领导"
+        });
+        
+        // 添加当前管理者到已访问集合
+        visited.add(managerName);
+        
+        // 处理再上一级
+        if (manager.management && manager.management.length > 0) {
+          for (const higherManagerStr of manager.management) {
+            const higherManagerName = higherManagerStr.split(' ')[0];
+            const higherManager = getEmployeeByName(higherManagerName);
+            
+            if (higherManager && !visited.has(higherManagerName)) {
+              chain.push({
+                id: higherManager.emp_id.toString(),
+                name: higherManager.emp_name,
+                position: "高级管理层"
+              });
+              
+              visited.add(higherManagerName);
+            }
           }
-        ]);
+        }
       }
     }
   }
   
   return chain;
+};
+
+/**
+ * 模拟管理链条数据
+ * @param {number} employeeId 员工ID
+ * @returns {Array} 返回模拟的管理链条数据
+ */
+export const getMockChainData = (employeeId) => {
+  return buildManagementChain(employeeId);
 };
 
 /**
@@ -122,6 +169,9 @@ export const getMockNetworkData = (employeeId) => {
     collaborators: []
   };
   
+  // 避免循环引用的访问集合
+  const visitedEmployees = new Set([employee.emp_name]);
+  
   // 第一层 - 当前员工
   networkData.management.push([
     {
@@ -138,14 +188,48 @@ export const getMockNetworkData = (employeeId) => {
       // 从"名字 (上级)"格式中提取名字
       const managerName = manager.split(' ')[0];
       
-      // 尝试在员工列表中找到该上级
-      const managerData = EMPLOYEE_RELATIONS.find(emp => emp.emp_name === managerName);
-      
-      if (managerData) {
-        managementLayer.push({
-          id: managerData.emp_id.toString(),
-          name: managerData.emp_name,
-        });
+      // 确保不存在循环引用
+      if (!visitedEmployees.has(managerName)) {
+        // 尝试在员工列表中找到该上级
+        const managerData = EMPLOYEE_RELATIONS.find(emp => emp.emp_name === managerName);
+        
+        if (managerData) {
+          managementLayer.push({
+            id: managerData.emp_id.toString(),
+            name: managerData.emp_name,
+          });
+          
+          // 将此上级标记为已访问
+          visitedEmployees.add(managerName);
+          
+          // 添加第三层 - 更高级管理层
+          if (managerData.management && managerData.management.length > 0) {
+            const higherManagementLayer = [];
+            
+            for (const higherManager of managerData.management) {
+              const higherManagerName = higherManager.split(' ')[0];
+              
+              // 确保不存在循环引用
+              if (!visitedEmployees.has(higherManagerName)) {
+                const higherManagerData = EMPLOYEE_RELATIONS.find(emp => emp.emp_name === higherManagerName);
+                
+                if (higherManagerData) {
+                  higherManagementLayer.push({
+                    id: higherManagerData.emp_id.toString(),
+                    name: higherManagerData.emp_name,
+                  });
+                  
+                  // 将此高级管理者标记为已访问
+                  visitedEmployees.add(higherManagerName);
+                }
+              }
+            }
+            
+            if (higherManagementLayer.length > 0) {
+              networkData.management.push(higherManagementLayer);
+            }
+          }
+        }
       }
     }
     

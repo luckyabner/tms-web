@@ -3,13 +3,15 @@
 import { Button } from "@/components/ui/button";
 import { getMockNetworkData } from '@/lib/services/relationService';
 import { BriefcaseBusiness, Loader2, Network, RefreshCw, Users } from 'lucide-react';
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import ReactFlow, {
-  Background,
-  Controls,
-  MarkerType,
-  MiniMap,
-  Panel
+    Background,
+    Controls,
+    MarkerType,
+    MiniMap,
+    Panel,
+    useEdgesState,
+    useNodesState
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 
@@ -17,18 +19,18 @@ import 'reactflow/dist/style.css';
 const nodeTypes = {
   employee: ({ data }) => (
     <div 
-      className="px-1 py-1 shadow-md rounded border-2"
+      className="px-2 py-2 shadow-md rounded-md border-2"
       style={{ 
-        width: '90px', 
-        height: '50px', 
-        fontSize: '10px', 
+        width: '100px', 
+        height: '55px', 
+        fontSize: '11px', 
         textAlign: 'center',
         borderColor: getNodeBorderColor(data.role),
         backgroundColor: getNodeBgColor(data.role)
       }}
     >
       <div className="font-bold text-xs truncate">{data.label}</div>
-      <div className="text-[8px] truncate">{data.position}</div>
+      <div className="text-[9px] truncate">{data.position}</div>
       {data.project && (
         <div className="mt-1 text-[8px] text-emerald-600 truncate flex items-center justify-center">
           <BriefcaseBusiness className="inline-block h-2 w-2 mr-0.5" />
@@ -67,7 +69,7 @@ function getEdgeStyle(type) {
     case 'management':
       return {
         stroke: '#3b82f6',
-        strokeWidth: 1.5
+        strokeWidth: 2
       };
     case 'colleague':
       return {
@@ -88,8 +90,8 @@ function getEdgeStyle(type) {
 }
 
 export default function RelationshipNetwork({ employeeId }) {
-  const [nodes, setNodes] = useState([]);
-  const [edges, setEdges] = useState([]);
+  const [nodes, setNodes, onNodesChange] = useNodesState([]);
+  const [edges, setEdges, onEdgesChange] = useEdgesState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [syncing, setSyncing] = useState(false);
@@ -164,12 +166,14 @@ export default function RelationshipNetwork({ employeeId }) {
                 id: `e-manage-${manager.id}-${targetId}`,
                 source: manager.id.toString(),
                 target: targetId,
-                type: 'straight',
+                type: 'step',
                 animated: true,
                 style: getEdgeStyle('management'),
                 markerEnd: {
                   type: MarkerType.ArrowClosed,
-                  color: '#3b82f6'
+                  color: '#3b82f6',
+                  width: 15,
+                  height: 15
                 }
               });
             }
@@ -180,11 +184,13 @@ export default function RelationshipNetwork({ employeeId }) {
     
     // 3. 添加同事节点和边
     if (data.colleagues && data.colleagues.length > 0) {
+      const angleStep = Math.min(Math.PI / 2, (Math.PI / 2) / data.colleagues.length);
+      
       data.colleagues.forEach((colleague, index) => {
         if (colleague && colleague.id && colleague.name) {
           // 计算位置 - 右侧半圆
-          const angle = -Math.PI / 4 + (index / Math.max(1, data.colleagues.length - 1)) * (Math.PI / 2);
-          const radius = 150;
+          const angle = -Math.PI / 4 + (index * angleStep);
+          const radius = 180;
           const x = 250 + radius * Math.cos(angle);
           const y = 250 + radius * Math.sin(angle);
           
@@ -205,26 +211,32 @@ export default function RelationshipNetwork({ employeeId }) {
             id: `e-colleague-${colleague.id}`,
             source: data.employee.id.toString(),
             target: colleague.id.toString(),
-            type: 'straight',
+            type: 'smoothstep',
             style: getEdgeStyle('colleague'),
             markerEnd: {
               type: MarkerType.ArrowClosed,
-              color: '#8b5cf6'
+              color: '#8b5cf6',
+              width: 10,
+              height: 10
             }
           });
         }
       });
       
-      // 添加同事之间的连接
-      for (let i = 0; i < data.colleagues.length; i++) {
-        for (let j = i + 1; j < data.colleagues.length; j++) {
-          if (data.colleagues[i] && data.colleagues[j]) {
+      // 添加同事之间的连接 (减少连接数量以提高可视化效果)
+      if (data.colleagues.length > 1) {
+        for (let i = 0; i < data.colleagues.length - 1; i++) {
+          if (data.colleagues[i] && data.colleagues[i+1]) {
             newEdges.push({
-              id: `e-colleague-net-${data.colleagues[i].id}-${data.colleagues[j].id}`,
+              id: `e-colleague-net-${data.colleagues[i].id}-${data.colleagues[i+1].id}`,
               source: data.colleagues[i].id.toString(),
-              target: data.colleagues[j].id.toString(),
+              target: data.colleagues[i+1].id.toString(),
               type: 'straight',
-              style: getEdgeStyle('colleague')
+              style: {
+                ...getEdgeStyle('colleague'),
+                strokeDasharray: '5,5',
+                opacity: 0.6
+              }
             });
           }
         }
@@ -233,11 +245,13 @@ export default function RelationshipNetwork({ employeeId }) {
     
     // 4. 添加合作者节点和边
     if (data.collaborators && data.collaborators.length > 0) {
+      const angleStep = Math.min(Math.PI / 2, (Math.PI / 2) / data.collaborators.length);
+      
       data.collaborators.forEach((collaborator, index) => {
         if (collaborator && collaborator.id && collaborator.name) {
           // 计算位置 - 左侧半圆
-          const angle = Math.PI / 2 + (index / Math.max(1, data.collaborators.length - 1)) * (Math.PI / 2);
-          const radius = 150;
+          const angle = Math.PI / 2 + (index * angleStep);
+          const radius = 180;
           const x = 250 + radius * Math.cos(angle);
           const y = 250 + radius * Math.sin(angle);
           
@@ -259,11 +273,13 @@ export default function RelationshipNetwork({ employeeId }) {
             id: `e-collaborator-${collaborator.id}`,
             source: data.employee.id.toString(),
             target: collaborator.id.toString(),
-            type: 'straight',
+            type: 'smoothstep',
             style: getEdgeStyle('collaboration'),
             markerEnd: {
               type: MarkerType.ArrowClosed,
-              color: '#f59e0b'
+              color: '#f59e0b',
+              width: 10,
+              height: 10
             }
           });
         }
@@ -282,37 +298,22 @@ export default function RelationshipNetwork({ employeeId }) {
       
       // 添加同项目合作者之间的连接
       Object.values(projectGroups).forEach(group => {
-        for (let i = 0; i < group.length; i++) {
-          for (let j = i + 1; j < group.length; j++) {
+        if (group.length > 1) {
+          for (let i = 0; i < group.length - 1; i++) {
             newEdges.push({
-              id: `e-project-${group[i]}-${group[j]}`,
+              id: `e-project-${group[i]}-${group[i+1]}`,
               source: group[i].toString(),
-              target: group[j].toString(),
+              target: group[i+1].toString(),
               type: 'straight',
-              style: getEdgeStyle('collaboration')
+              style: {
+                ...getEdgeStyle('collaboration'),
+                strokeDasharray: '5,5',
+                opacity: 0.6
+              }
             });
           }
         }
       });
-    }
-    
-    // 5. 添加一些跨组连接，增强网络感
-    if (data.colleagues && data.collaborators) {
-      const maxCrossLinks = Math.min(3, Math.min(data.colleagues.length, data.collaborators.length));
-      for (let i = 0; i < maxCrossLinks; i++) {
-        const colleagueIdx = i % data.colleagues.length;
-        const collaboratorIdx = i % data.collaborators.length;
-        
-        if (data.colleagues[colleagueIdx] && data.collaborators[collaboratorIdx]) {
-          newEdges.push({
-            id: `e-cross-${data.colleagues[colleagueIdx].id}-${data.collaborators[collaboratorIdx].id}`,
-            source: data.colleagues[colleagueIdx].id.toString(),
-            target: data.collaborators[collaboratorIdx].id.toString(),
-            type: 'straight',
-            style: { stroke: '#94a3b8', strokeWidth: 1, opacity: 0.6 }
-          });
-        }
-      }
     }
     
     setNodes(newNodes);
@@ -383,12 +384,14 @@ export default function RelationshipNetwork({ employeeId }) {
             nodes={nodes}
             edges={edges}
             nodeTypes={nodeTypes}
+            onNodesChange={onNodesChange}
+            onEdgesChange={onEdgesChange}
             fitView
+            fitViewOptions={{ padding: 0.3 }}
             minZoom={0.2}
             maxZoom={1.5}
             defaultEdgeOptions={{
-              type: 'straight',
-              animated: false
+              type: 'smoothstep'
             }}
             proOptions={{ hideAttribution: true }}
           >
