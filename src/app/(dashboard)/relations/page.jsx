@@ -6,10 +6,11 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { EMPLOYEE_RELATIONS } from "@/lib/mockRelationData";
 import { getAllEmployees } from "@/lib/services/employeeService";
 import { syncRelations } from "@/lib/services/relationService";
 import { cn } from "@/lib/utils";
-import { GitBranch, Loader2, Network, RefreshCw, Search } from "lucide-react";
+import { GitBranch, Loader2, Network, RefreshCw, Search, Users } from "lucide-react";
 import { useEffect, useState } from "react";
 
 export default function RelationsPage() {
@@ -45,52 +46,43 @@ export default function RelationsPage() {
     loadEmployees();
   }, []);
 
-  // 模拟员工数据
+  // 模拟员工数据 - 使用静态关系数据
   const getMockEmployees = () => {
-    return [
-      {
-        id: 1,
-        name: "张三",
-        position: "部门经理",
-        department: "研发部",
-        hireDate: "2020-01-15",
-      },
-      {
-        id: 2,
-        name: "李四",
-        position: "总监",
-        department: "研发部",
-        hireDate: "2018-05-20",
-      },
-      {
-        id: 3,
-        name: "王五",
-        position: "开发工程师",
-        department: "研发部",
-        hireDate: "2021-03-10",
-      },
-      {
-        id: 4,
-        name: "赵六",
-        position: "测试工程师",
-        department: "研发部",
-        hireDate: "2022-07-01",
-      },
-      {
-        id: 5,
-        name: "钱七",
-        position: "人力资源专员",
-        department: "人力资源部",
-        hireDate: "2019-11-05",
-      },
-      {
-        id: 6,
-        name: "孙八",
-        position: "产品经理",
-        department: "产品部",
-        hireDate: "2021-09-15",
-      },
+    return EMPLOYEE_RELATIONS.map(emp => ({
+      id: emp.emp_id,
+      name: emp.emp_name,
+      position: getRandomPosition(),
+      department: getRandomDepartment(),
+      hireDate: getRandomHireDate(),
+    }));
+  };
+
+  // 随机生成职位名称
+  const getRandomPosition = () => {
+    const positions = [
+      "部门经理", "总监", "开发工程师", "测试工程师", 
+      "产品经理", "UI设计师", "人力资源专员", "财务经理", 
+      "市场专员", "销售经理", "项目经理", "数据分析师"
     ];
+    return positions[Math.floor(Math.random() * positions.length)];
+  };
+
+  // 随机生成部门名称
+  const getRandomDepartment = () => {
+    const departments = [
+      "研发部", "产品部", "设计部", "测试部", 
+      "人力资源部", "财务部", "市场部", "销售部"
+    ];
+    return departments[Math.floor(Math.random() * departments.length)];
+  };
+
+  // 随机生成入职日期 (2018-2023)
+  const getRandomHireDate = () => {
+    const start = new Date(2018, 0, 1).getTime();
+    const end = new Date(2023, 11, 31).getTime();
+    const randomTime = start + Math.random() * (end - start);
+    const date = new Date(randomTime);
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
   };
 
   // 同步关系数据
@@ -118,6 +110,15 @@ export default function RelationsPage() {
       employee.department?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       employee.position?.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  // 获取当前员工的关系数据
+  const getEmployeeRelations = () => {
+    if (!selectedEmployee) return null;
+    
+    return EMPLOYEE_RELATIONS.find(emp => emp.emp_id === selectedEmployee.id) || null;
+  };
+
+  const employeeRelations = getEmployeeRelations();
 
   return (
     <div className="flex-1 space-y-6 p-8 pt-6">
@@ -247,64 +248,105 @@ export default function RelationsPage() {
                 </CardContent>
               </Card>
 
+              {/* 关系摘要卡片 */}
+              {employeeRelations && (
+                <Card className="mb-4">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-base">关系摘要</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div className="space-y-2 p-3 bg-blue-50 rounded-lg">
+                        <p className="text-sm font-semibold text-blue-600 flex items-center">
+                          <GitBranch className="mr-2 h-4 w-4" />
+                          管理关系
+                        </p>
+                        {employeeRelations.management.length > 0 ? (
+                          <ul className="space-y-1 text-sm">
+                            {employeeRelations.management.map((manager, index) => (
+                              <li key={index}>• {manager}</li>
+                            ))}
+                          </ul>
+                        ) : (
+                          <p className="text-sm text-gray-500">无管理关系</p>
+                        )}
+                      </div>
+                      
+                      <div className="space-y-2 p-3 bg-purple-50 rounded-lg">
+                        <p className="text-sm font-semibold text-purple-600 flex items-center">
+                          <Users className="mr-2 h-4 w-4" />
+                          同事关系
+                        </p>
+                        {employeeRelations.colleagues.length > 0 ? (
+                          <ul className="space-y-1 text-sm">
+                            {employeeRelations.colleagues.filter(c => c !== employeeRelations.emp_name).slice(0, 3).map((colleague, index) => (
+                              <li key={index}>• {colleague}</li>
+                            ))}
+                            {employeeRelations.colleagues.filter(c => c !== employeeRelations.emp_name).length > 3 && (
+                              <li className="text-gray-500">+{employeeRelations.colleagues.filter(c => c !== employeeRelations.emp_name).length - 3}人</li>
+                            )}
+                          </ul>
+                        ) : (
+                          <p className="text-sm text-gray-500">无同事关系</p>
+                        )}
+                      </div>
+                      
+                      <div className="space-y-2 p-3 bg-amber-50 rounded-lg">
+                        <p className="text-sm font-semibold text-amber-600 flex items-center">
+                          <Network className="mr-2 h-4 w-4" />
+                          合作关系
+                        </p>
+                        {employeeRelations.collaborators.length > 0 ? (
+                          <ul className="space-y-1 text-sm">
+                            {employeeRelations.collaborators.map((collaborator, index) => (
+                              <li key={index}>• {collaborator}</li>
+                            ))}
+                          </ul>
+                        ) : (
+                          <p className="text-sm text-gray-500">无合作关系</p>
+                        )}
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
               {/* 关系图表 */}
-              <Card>
-                <CardHeader>
-                  <Tabs
-                    value={activeTab}
-                    onValueChange={setActiveTab}
-                    className="w-full"
-                  >
-                    <TabsList className="grid w-full grid-cols-2">
-                      <TabsTrigger
-                        value="network"
-                        className="flex items-center gap-2"
-                      >
-                        <Network className="h-4 w-4" />
-                        关系网络
-                      </TabsTrigger>
-                      <TabsTrigger
-                        value="chain"
-                        className="flex items-center gap-2"
-                      >
-                        <GitBranch className="h-4 w-4" />
-                        管理链条
-                      </TabsTrigger>
-                    </TabsList>
-                  </Tabs>
-                </CardHeader>
-                <CardContent>
-                  <Tabs value={activeTab} onValueChange={setActiveTab}>
-                    <TabsContent value="network" className="mt-0">
-                      <RelationshipNetwork employeeId={selectedEmployee.id} />
-                    </TabsContent>
-                    <TabsContent value="chain" className="mt-0">
-                      <ManagementChain employeeId={selectedEmployee.id} />
-                    </TabsContent>
-                  </Tabs>
-                </CardContent>
-              </Card>
+              <Tabs
+                defaultValue="network"
+                value={activeTab}
+                onValueChange={setActiveTab}
+                className="w-full"
+              >
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="network" className="flex items-center">
+                    <Network className="mr-2 h-4 w-4" />
+                    关系网络图
+                  </TabsTrigger>
+                  <TabsTrigger value="chain" className="flex items-center">
+                    <GitBranch className="mr-2 h-4 w-4" />
+                    管理链条图
+                  </TabsTrigger>
+                </TabsList>
+                <TabsContent value="network" className="border rounded-md mt-2">
+                  <div className="h-[600px] w-full">
+                    <RelationshipNetwork employeeId={selectedEmployee.id} />
+                  </div>
+                </TabsContent>
+                <TabsContent value="chain" className="border rounded-md mt-2">
+                  <div className="h-[600px] w-full">
+                    <ManagementChain employeeId={selectedEmployee.id} />
+                  </div>
+                </TabsContent>
+              </Tabs>
             </>
           ) : (
-            <Card>
-              <CardContent className="flex h-[400px] items-center justify-center">
-                {loading ? (
-                  <div className="text-muted-foreground flex items-center space-x-2">
-                    <Loader2 className="h-6 w-6 animate-spin" />
-                    <span>加载员工数据中...</span>
-                  </div>
-                ) : (
-                  <div className="space-y-2 text-center">
-                    <p className="text-muted-foreground">
-                      请从左侧选择一名员工
-                    </p>
-                    <p className="text-muted-foreground text-sm">
-                      查看其关系网络和管理链条
-                    </p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+            <div className="flex items-center justify-center h-[400px] bg-muted/10 rounded-lg border border-dashed">
+              <div className="text-center space-y-2">
+                <Network className="h-10 w-10 mx-auto text-muted-foreground" />
+                <p>请从左侧选择一名员工</p>
+              </div>
+            </div>
           )}
         </div>
       </div>

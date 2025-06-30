@@ -1,496 +1,440 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { getMockNetworkData, getRelationNetwork, syncRelations } from '@/lib/services/relationService';
-import { Loader2, Network, RefreshCw, Users } from 'lucide-react';
-import React, { useCallback, useEffect, useState } from 'react';
+import { getMockNetworkData } from '@/lib/services/relationService';
+import { BriefcaseBusiness, Loader2, Network, RefreshCw, Users } from 'lucide-react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import ReactFlow, {
   Background,
   Controls,
   MarkerType,
   MiniMap,
-  Panel,
-  useEdgesState,
-  useNodesState
+  Panel
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 
-// 自定义节点样式
+// 节点类型 - 极简版本
 const nodeTypes = {
   employee: ({ data }) => (
-    <div className={`px-4 py-2 shadow-md rounded-md border ${getNodeColorClass(data.role)}`}>
-      <div className="flex items-center">
-        <div className={`w-10 h-10 rounded-full flex items-center justify-center ${getIconColorClass(data.role)}`}>
-          {data.avatar ? (
-            <img src={data.avatar} alt={data.label} className="rounded-full" />
-          ) : (
-            <span className="text-lg font-bold">{data.label.charAt(0)}</span>
-          )}
+    <div 
+      className="px-1 py-1 shadow-md rounded border-2"
+      style={{ 
+        width: '90px', 
+        height: '50px', 
+        fontSize: '10px', 
+        textAlign: 'center',
+        borderColor: getNodeBorderColor(data.role),
+        backgroundColor: getNodeBgColor(data.role)
+      }}
+    >
+      <div className="font-bold text-xs truncate">{data.label}</div>
+      <div className="text-[8px] truncate">{data.position}</div>
+      {data.project && (
+        <div className="mt-1 text-[8px] text-emerald-600 truncate flex items-center justify-center">
+          <BriefcaseBusiness className="inline-block h-2 w-2 mr-0.5" />
+          <span className="truncate">{data.project}</span>
         </div>
-        <div className="ml-2">
-          <div className="text-sm font-bold">{data.label}</div>
-          <div className="text-xs">{data.position}</div>
-        </div>
-      </div>
-      {data.department && (
-        <div className="mt-1 text-xs text-gray-500">{data.department}</div>
       )}
     </div>
   )
 };
 
-// 根据角色获取节点颜色
-const getNodeColorClass = (role) => {
+// 获取节点边框颜色
+function getNodeBorderColor(role) {
   switch (role) {
-    case 'leader':
-      return 'border-blue-500 bg-blue-50';
-    case 'manager':
-      return 'border-green-500 bg-green-50';
-    case 'hr':
-      return 'border-purple-500 bg-purple-50';
-    case 'employee':
-      return 'border-gray-300 bg-white';
-    case 'current':
-      return 'border-red-500 bg-red-50';
-    default:
-      return 'border-gray-300 bg-white';
+    case 'current': return '#ef4444';
+    case 'leader': return '#3b82f6'; 
+    case 'colleague': return '#8b5cf6';
+    case 'collaborator': return '#f59e0b';
+    default: return '#64748b';
   }
-};
+}
 
-// 根据角色获取图标颜色
-const getIconColorClass = (role) => {
+// 获取节点背景颜色
+function getNodeBgColor(role) {
   switch (role) {
-    case 'leader':
-      return 'bg-blue-100 text-blue-500';
-    case 'manager':
-      return 'bg-green-100 text-green-500';
-    case 'hr':
-      return 'bg-purple-100 text-purple-500';
-    case 'employee':
-      return 'bg-gray-100 text-gray-500';
-    case 'current':
-      return 'bg-red-100 text-red-500';
-    default:
-      return 'bg-gray-100 text-gray-500';
+    case 'current': return '#fee2e2';
+    case 'leader': return '#dbeafe';
+    case 'colleague': return '#f3e8ff';
+    case 'collaborator': return '#fef3c7';
+    default: return '#f8fafc';
   }
-};
+}
 
-// 边的样式配置
-const getEdgeStyle = (type) => {
+// 获取边样式
+function getEdgeStyle(type) {
   switch (type) {
-    case 'manages':
+    case 'management':
       return {
-        stroke: '#10b981', // emerald-500
-        strokeWidth: 2,
-        markerEnd: {
-          type: MarkerType.ArrowClosed,
-          color: '#10b981',
-        },
+        stroke: '#3b82f6',
+        strokeWidth: 1.5
       };
-    case 'same_department':
+    case 'colleague':
       return {
-        stroke: '#a855f7', // purple-500
-        strokeWidth: 2,
-        strokeDasharray: '5,5',
-        markerEnd: {
-          type: MarkerType.ArrowClosed,
-          color: '#a855f7',
-        },
+        stroke: '#8b5cf6',
+        strokeWidth: 1.5
       };
-    case 'collaborates_with':
+    case 'collaboration':
       return {
-        stroke: '#f59e0b', // amber-500
-        strokeWidth: 2,
-        strokeDasharray: '3,3',
-        markerEnd: {
-          type: MarkerType.ArrowClosed,
-          color: '#f59e0b',
-        },
+        stroke: '#f59e0b',
+        strokeWidth: 1.5
       };
     default:
       return {
-        stroke: '#94a3b8', // slate-400
-        strokeWidth: 1,
+        stroke: '#94a3b8',
+        strokeWidth: 1
       };
   }
-};
+}
 
 export default function RelationshipNetwork({ employeeId }) {
-  const [nodes, setNodes, onNodesChange] = useNodesState([]);
-  const [edges, setEdges, onEdgesChange] = useEdgesState([]);
+  const [nodes, setNodes] = useState([]);
+  const [edges, setEdges] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [syncing, setSyncing] = useState(false);
 
-  // 处理API返回的关系网络数据
-  const processApiNetworkData = useCallback((data) => {
-    const nodes = [];
-    const edges = [];
+  // 加载和处理关系数据
+  useEffect(() => {
+    const fetchRelationData = async () => {
+      setLoading(true);
+      try {
+        const data = getMockNetworkData(employeeId);
+        buildNetworkGraph(data);
+      } catch (err) {
+        console.error("加载关系网络失败:", err);
+        setError("加载关系网络数据失败，请稍后再试");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchRelationData();
+  }, [employeeId]);
+
+  // 构建网络图
+  const buildNetworkGraph = (data) => {
+    const newNodes = [];
+    const newEdges = [];
     
-    // 处理当前员工 - 放在中心位置
+    // 1. 添加中心节点（当前员工）
     if (data.employee) {
-      const currentEmployee = data.employee;
-      nodes.push({
-        id: currentEmployee.id.toString(),
+      newNodes.push({
+        id: data.employee.id.toString(),
         type: 'employee',
-        position: { x: 300, y: 300 },
+        position: { x: 250, y: 250 },
         data: {
-          label: currentEmployee.name || `员工 ${currentEmployee.id}`,
+          label: data.employee.name,
           position: '当前员工',
-          role: 'current' // 特殊角色，高亮显示
+          role: 'current'
         }
       });
     }
     
-    // 计算圆形布局的位置
-    const calculateCirclePosition = (index, total, radius, centerX, centerY) => {
-      const angle = (index / total) * 2 * Math.PI;
-      const x = centerX + radius * Math.cos(angle);
-      const y = centerY + radius * Math.sin(angle);
-      return { x, y };
-    };
-    
-    // 处理管理链条 - 上方垂直排列
-    if (data.management && Array.isArray(data.management)) {
+    // 2. 添加管理链节点和边
+    if (data.management && data.management.length > 1) {
       // 跳过第一个（当前员工）
-      const managers = data.management.slice(1);
-      
-      managers.forEach((level, levelIndex) => {
-        if (Array.isArray(level) && level.length > 0) {
-          const manager = level[0];
-          if (manager && manager.id && manager.name) {
-            // 添加管理者节点 - 上方垂直排列
-            nodes.push({
-              id: manager.id.toString(),
-              type: 'employee',
-              position: { x: 300, y: 150 - levelIndex * 100 }, // 越高级的管理者越靠上
-              data: {
-                label: manager.name,
-                position: levelIndex === 0 ? '直接上级' : `上级 L${levelIndex + 1}`,
-                role: 'leader'
-              }
-            });
-            
-            // 添加管理关系边 - 连接到下一级
-            const targetId = levelIndex === 0 
-              ? data.employee.id.toString() 
-              : data.management[levelIndex][0].id.toString();
-            
-            edges.push({
-              id: `e-manage-${edges.length}`,
-              source: manager.id.toString(),
-              target: targetId,
-              label: '管理',
-              type: 'smoothstep',
-              style: getEdgeStyle('manages')
-            });
-            
-            // 如果不是最后一级，添加跨级连接
-            if (data.employee && levelIndex > 0) {
-              edges.push({
-                id: `e-manage-skip-${edges.length}`,
+      for (let i = 1; i < data.management.length; i++) {
+        const level = data.management[i];
+        
+        if (Array.isArray(level)) {
+          const levelWidth = level.length * 120;
+          const startX = 250 - (levelWidth / 2) + 60;
+          
+          level.forEach((manager, idx) => {
+            if (manager && manager.id && manager.name) {
+              // 添加管理者节点
+              newNodes.push({
+                id: manager.id.toString(),
+                type: 'employee',
+                position: { x: startX + (idx * 120), y: 100 - (i * 70) },
+                data: {
+                  label: manager.name,
+                  position: i === 1 ? '直接上级' : `上级 L${i}`,
+                  role: 'leader'
+                }
+              });
+              
+              // 添加管理边
+              const targetId = i === 1 
+                ? data.employee.id.toString() 
+                : data.management[i-1][0].id.toString();
+              
+              newEdges.push({
+                id: `e-manage-${manager.id}-${targetId}`,
                 source: manager.id.toString(),
-                target: data.employee.id.toString(),
-                label: '间接管理',
-                type: 'smoothstep',
-                style: { ...getEdgeStyle('manages'), strokeDasharray: '5,5', opacity: 0.6 }
+                target: targetId,
+                type: 'straight',
+                animated: true,
+                style: getEdgeStyle('management'),
+                markerEnd: {
+                  type: MarkerType.ArrowClosed,
+                  color: '#3b82f6'
+                }
               });
             }
-          }
+          });
         }
-      });
+      }
     }
     
-    // 处理同事 - 环绕当前员工的圆形布局
-    if (data.colleagues && Array.isArray(data.colleagues) && data.colleagues.length > 0) {
-      const totalColleagues = data.colleagues.length;
+    // 3. 添加同事节点和边
+    if (data.colleagues && data.colleagues.length > 0) {
       data.colleagues.forEach((colleague, index) => {
         if (colleague && colleague.id && colleague.name) {
-          // 计算圆形布局位置
-          const position = calculateCirclePosition(
-            index, totalColleagues, 150, 300, 300
-          );
+          // 计算位置 - 右侧半圆
+          const angle = -Math.PI / 4 + (index / Math.max(1, data.colleagues.length - 1)) * (Math.PI / 2);
+          const radius = 150;
+          const x = 250 + radius * Math.cos(angle);
+          const y = 250 + radius * Math.sin(angle);
           
           // 添加同事节点
-          nodes.push({
+          newNodes.push({
             id: colleague.id.toString(),
             type: 'employee',
-            position,
+            position: { x, y },
             data: {
               label: colleague.name,
               position: '同事',
-              role: 'employee'
+              role: 'colleague'
             }
           });
           
-          // 添加同事关系边 - 双向连接
-          if (data.employee) {
-            edges.push({
-              id: `e-colleague-${edges.length}`,
-              source: data.employee.id.toString(),
-              target: colleague.id.toString(),
-              label: '同事',
+          // 添加同事边
+          newEdges.push({
+            id: `e-colleague-${colleague.id}`,
+            source: data.employee.id.toString(),
+            target: colleague.id.toString(),
+            type: 'straight',
+            style: getEdgeStyle('colleague'),
+            markerEnd: {
+              type: MarkerType.ArrowClosed,
+              color: '#8b5cf6'
+            }
+          });
+        }
+      });
+      
+      // 添加同事之间的连接
+      for (let i = 0; i < data.colleagues.length; i++) {
+        for (let j = i + 1; j < data.colleagues.length; j++) {
+          if (data.colleagues[i] && data.colleagues[j]) {
+            newEdges.push({
+              id: `e-colleague-net-${data.colleagues[i].id}-${data.colleagues[j].id}`,
+              source: data.colleagues[i].id.toString(),
+              target: data.colleagues[j].id.toString(),
               type: 'straight',
-              style: getEdgeStyle('same_department')
-            });
-            
-            // 同事之间也相互连接，形成网络
-            data.colleagues.forEach((otherColleague, otherIndex) => {
-              if (otherIndex > index && otherColleague && otherColleague.id) {
-                edges.push({
-                  id: `e-colleague-net-${edges.length}`,
-                  source: colleague.id.toString(),
-                  target: otherColleague.id.toString(),
-                  type: 'straight',
-                  style: { ...getEdgeStyle('same_department'), strokeWidth: 1, opacity: 0.3 }
-                });
-              }
+              style: getEdgeStyle('colleague')
             });
           }
         }
-      });
+      }
     }
     
-    // 处理合作者 - 底部区域布局
-    if (data.collaborators && Array.isArray(data.collaborators) && data.collaborators.length > 0) {
-      const totalCollaborators = data.collaborators.length;
+    // 4. 添加合作者节点和边
+    if (data.collaborators && data.collaborators.length > 0) {
       data.collaborators.forEach((collaborator, index) => {
         if (collaborator && collaborator.id && collaborator.name) {
-          // 计算位置 - 底部扇形区域
-          const position = calculateCirclePosition(
-            (index + 0.5) / (totalCollaborators + 1), 
-            1, 
-            200, 
-            300, 
-            450
-          );
+          // 计算位置 - 左侧半圆
+          const angle = Math.PI / 2 + (index / Math.max(1, data.collaborators.length - 1)) * (Math.PI / 2);
+          const radius = 150;
+          const x = 250 + radius * Math.cos(angle);
+          const y = 250 + radius * Math.sin(angle);
           
           // 添加合作者节点
-          nodes.push({
+          newNodes.push({
             id: collaborator.id.toString(),
             type: 'employee',
-            position,
+            position: { x, y },
             data: {
               label: collaborator.name,
-              position: '合作者',
-              role: 'hr' // 使用HR样式以区分
+              position: '项目合作',
+              role: 'collaborator',
+              project: collaborator.projectName
             }
           });
           
-          // 添加合作关系边
-          if (data.employee) {
-            edges.push({
-              id: `e-collab-${edges.length}`,
-              source: data.employee.id.toString(),
-              target: collaborator.id.toString(),
-              label: '合作',
-              type: 'bezier',
-              style: getEdgeStyle('collaborates_with')
-            });
-            
-            // 合作者之间也可能有连接
-            if (index > 0) {
-              edges.push({
-                id: `e-collab-net-${edges.length}`,
-                source: collaborator.id.toString(),
-                target: data.collaborators[0].id.toString(),
-                type: 'bezier',
-                style: { ...getEdgeStyle('collaborates_with'), strokeWidth: 1, opacity: 0.3 }
-              });
+          // 添加合作边
+          newEdges.push({
+            id: `e-collaborator-${collaborator.id}`,
+            source: data.employee.id.toString(),
+            target: collaborator.id.toString(),
+            type: 'straight',
+            style: getEdgeStyle('collaboration'),
+            markerEnd: {
+              type: MarkerType.ArrowClosed,
+              color: '#f59e0b'
             }
+          });
+        }
+      });
+      
+      // 分组项目合作者
+      const projectGroups = {};
+      data.collaborators.forEach(collaborator => {
+        if (collaborator && collaborator.projectName) {
+          if (!projectGroups[collaborator.projectName]) {
+            projectGroups[collaborator.projectName] = [];
+          }
+          projectGroups[collaborator.projectName].push(collaborator.id);
+        }
+      });
+      
+      // 添加同项目合作者之间的连接
+      Object.values(projectGroups).forEach(group => {
+        for (let i = 0; i < group.length; i++) {
+          for (let j = i + 1; j < group.length; j++) {
+            newEdges.push({
+              id: `e-project-${group[i]}-${group[j]}`,
+              source: group[i].toString(),
+              target: group[j].toString(),
+              type: 'straight',
+              style: getEdgeStyle('collaboration')
+            });
           }
         }
       });
     }
     
-    return { nodes, edges };
-  }, []);
-
-  // 处理关系数据，转换为React Flow格式 (用于模拟数据)
-  const processNetworkData = useCallback((data) => {
-    // 处理节点
-    const processedNodes = data.nodes?.map((node, index) => ({
-      id: node.id.toString(),
-      type: 'employee',
-      position: { x: 100 + (index % 3) * 200, y: 100 + Math.floor(index / 3) * 150 },
-      data: {
-        label: node.name || `员工 ${node.id}`,
-        position: node.position || '职位未知',
-        department: node.department || '部门未知',
-        role: node.role || 'employee',
-        avatar: node.avatar || null
+    // 5. 添加一些跨组连接，增强网络感
+    if (data.colleagues && data.collaborators) {
+      const maxCrossLinks = Math.min(3, Math.min(data.colleagues.length, data.collaborators.length));
+      for (let i = 0; i < maxCrossLinks; i++) {
+        const colleagueIdx = i % data.colleagues.length;
+        const collaboratorIdx = i % data.collaborators.length;
+        
+        if (data.colleagues[colleagueIdx] && data.collaborators[collaboratorIdx]) {
+          newEdges.push({
+            id: `e-cross-${data.colleagues[colleagueIdx].id}-${data.collaborators[collaboratorIdx].id}`,
+            source: data.colleagues[colleagueIdx].id.toString(),
+            target: data.collaborators[collaboratorIdx].id.toString(),
+            type: 'straight',
+            style: { stroke: '#94a3b8', strokeWidth: 1, opacity: 0.6 }
+          });
+        }
       }
-    })) || [];
-
-    // 处理边，移除汇报关系
-    const processedEdges = data.edges?.filter(edge => 
-      edge.relationship !== 'reports_to'
-    ).map((edge, index) => ({
-      id: `e${index}`,
-      source: edge.source.toString(),
-      target: edge.target.toString(),
-      label: edge.relationship || '',
-      type: 'bezier',
-      style: getEdgeStyle(edge.relationship)
-    })) || [];
-
-    return { nodes: processedNodes, edges: processedEdges };
-  }, []);
-
-  // 加载关系网络数据
-  const loadNetworkData = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const data = await getRelationNetwork(employeeId);
-      
-      // 检查是否有实际的API返回数据
-      if (data && data.employee && data.employee.id) {
-        // 处理API返回的数据结构
-        const { nodes: apiNodes, edges: apiEdges } = processApiNetworkData(data);
-        setNodes(apiNodes);
-        setEdges(apiEdges);
-      } else if (!data || Object.keys(data).length === 0) {
-        // 如果没有数据，显示默认的模拟数据
-        const mockData = getMockNetworkData(employeeId);
-        // 处理模拟数据
-        const { nodes: apiNodes, edges: apiEdges } = processApiNetworkData(mockData);
-        setNodes(apiNodes);
-        setEdges(apiEdges);
-      } else {
-        // 如果数据格式不符合预期，使用模拟数据
-        const mockData = getMockNetworkData(employeeId);
-        const { nodes: apiNodes, edges: apiEdges } = processApiNetworkData(mockData);
-        setNodes(apiNodes);
-        setEdges(apiEdges);
-      }
-    } catch (err) {
-      console.error("加载关系网络数据失败:", err);
-      setError("无法加载关系网络数据，请稍后再试");
-      // 加载失败时使用模拟数据
-      const mockData = getMockNetworkData(employeeId);
-      const { nodes: apiNodes, edges: apiEdges } = processApiNetworkData(mockData);
-      setNodes(apiNodes);
-      setEdges(apiEdges);
-    } finally {
-      setLoading(false);
     }
-  }, [employeeId, processNetworkData, processApiNetworkData, setNodes, setEdges]);
-
-  // 同步关系数据
-  const handleSyncRelations = async () => {
-    setSyncing(true);
-    try {
-      await syncRelations();
-      // 同步后重新加载数据
-      await loadNetworkData();
-    } catch (err) {
-      console.error("同步关系数据失败:", err);
-      setError("同步关系数据失败，请稍后再试");
-    } finally {
-      setSyncing(false);
-    }
+    
+    setNodes(newNodes);
+    setEdges(newEdges);
   };
 
-  // 初始加载数据
-  useEffect(() => {
-    loadNetworkData();
-  }, [loadNetworkData]);
+  // 手动同步关系数据
+  const handleSyncRelations = () => {
+    setSyncing(true);
+    setTimeout(() => {
+      try {
+        const data = getMockNetworkData(employeeId);
+        buildNetworkGraph(data);
+        alert("同步关系数据成功（模拟）");
+      } catch (err) {
+        console.error("同步关系数据失败:", err);
+        alert("同步关系数据失败，请稍后再试");
+      } finally {
+        setSyncing(false);
+      }
+    }, 1000);
+  };
+
+  // 图例组件
+  const Legend = () => (
+    <div className="bg-white p-2 rounded-md shadow-md text-xs">
+      <h4 className="font-bold mb-1">图例</h4>
+      <div className="space-y-1">
+        <div className="flex items-center">
+          <div className="w-2 h-2 rounded-full bg-red-500 mr-1"></div>
+          <span>当前员工</span>
+        </div>
+        <div className="flex items-center">
+          <div className="w-2 h-2 rounded-full bg-blue-500 mr-1"></div>
+          <span>管理关系</span>
+        </div>
+        <div className="flex items-center">
+          <div className="w-2 h-2 rounded-full bg-purple-500 mr-1"></div>
+          <span>同事关系</span>
+        </div>
+        <div className="flex items-center">
+          <div className="w-2 h-2 rounded-full bg-amber-500 mr-1"></div>
+          <span>合作关系</span>
+        </div>
+      </div>
+    </div>
+  );
 
   return (
-    <Card className="w-full h-[600px]">
-      <CardHeader className="pb-2">
-        <div className="flex justify-between items-center">
-          <CardTitle className="flex items-center gap-2">
-            <Network className="h-5 w-5 text-blue-600" />
-            员工关系网络
-          </CardTitle>
-          <div className="flex gap-2">
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={loadNetworkData}
-              disabled={loading}
-            >
-              {loading ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <RefreshCw className="h-4 w-4 mr-1" />}
-              刷新
-            </Button>
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={handleSyncRelations}
-              disabled={syncing}
-            >
-              {syncing ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <Users className="h-4 w-4 mr-1" />}
-              同步关系数据
-            </Button>
+    <div className="w-full h-full relative">
+      {loading ? (
+        <div className="flex h-full w-full items-center justify-center">
+          <div className="text-center space-y-3">
+            <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" />
+            <p className="text-muted-foreground">加载关系网络中...</p>
           </div>
         </div>
-      </CardHeader>
-      <CardContent className="p-0">
-        {loading ? (
-          <div className="flex items-center justify-center h-[550px]">
-            <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
-            <span className="ml-2 text-gray-500">加载关系网络中...</span>
+      ) : error ? (
+        <div className="flex h-full w-full items-center justify-center">
+          <div className="text-center space-y-3">
+            <p className="text-red-500">{error}</p>
+            <Button variant="outline" size="sm" onClick={() => window.location.reload()}>重试</Button>
           </div>
-        ) : error ? (
-          <div className="flex items-center justify-center h-[550px] text-red-500">
-            {error}
-          </div>
-        ) : (
-          <div style={{ width: '100%', height: '550px' }}>
-            <ReactFlow
-              nodes={nodes}
-              edges={edges}
-              onNodesChange={onNodesChange}
-              onEdgesChange={onEdgesChange}
-              nodeTypes={nodeTypes}
-              fitView
-              minZoom={0.5}
-              maxZoom={1.5}
-              defaultZoom={0.8}
-              attributionPosition="bottom-right"
-            >
-              <Background color="#f1f5f9" gap={16} />
-              <Controls />
-              <MiniMap 
-                nodeColor={(node) => {
-                  switch (node.data.role) {
-                    case 'leader': return '#3b82f6';
-                    case 'manager': return '#10b981';
-                    case 'hr': return '#a855f7';
-                    case 'current': return '#ef4444';
-                    default: return '#94a3b8';
-                  }
-                }}
-                maskColor="rgba(241, 245, 249, 0.6)"
-              />
-              <Panel position="top-left" className="bg-white p-2 rounded shadow-md">
-                <div className="text-xs font-medium mb-1">关系类型:</div>
-                <div className="flex flex-col gap-1">
-                  <div className="flex items-center">
-                    <div className="w-3 h-3 rounded-full bg-emerald-500 mr-1"></div>
-                    <span className="text-xs">管理关系</span>
-                  </div>
-                  <div className="flex items-center">
-                    <div className="w-3 h-3 rounded-full bg-purple-500 mr-1"></div>
-                    <span className="text-xs">同部门</span>
-                  </div>
-                  <div className="flex items-center">
-                    <div className="w-3 h-3 rounded-full bg-amber-500 mr-1"></div>
-                    <span className="text-xs">合作关系</span>
-                  </div>
-                  <div className="flex items-center mt-1">
-                    <div className="w-3 h-3 rounded-full bg-red-500 mr-1"></div>
-                    <span className="text-xs">当前员工</span>
-                  </div>
+        </div>
+      ) : (
+        <div style={{ width: '100%', height: '100%', border: '1px solid #e2e8f0' }}>
+          <ReactFlow
+            nodes={nodes}
+            edges={edges}
+            nodeTypes={nodeTypes}
+            fitView
+            minZoom={0.2}
+            maxZoom={1.5}
+            defaultEdgeOptions={{
+              type: 'straight',
+              animated: false
+            }}
+            proOptions={{ hideAttribution: true }}
+          >
+            <Background color="#e2e8f0" gap={16} />
+            <Controls />
+            <MiniMap 
+              nodeColor={(node) => getNodeBorderColor(node.data.role)}
+              maskColor="rgba(0, 0, 0, 0.05)"
+              style={{ border: '1px solid #e2e8f0' }}
+            />
+            <Panel position="top-right">
+              <Legend />
+            </Panel>
+            <Panel position="top-left">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="bg-white" 
+                onClick={handleSyncRelations}
+                disabled={syncing}
+              >
+                {syncing ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    同步中...
+                  </>
+                ) : (
+                  <>
+                    <RefreshCw className="mr-2 h-4 w-4" />
+                    刷新关系数据
+                  </>
+                )}
+              </Button>
+            </Panel>
+            
+            {nodes.length === 0 && (
+              <div className="absolute inset-0 flex items-center justify-center bg-white/80">
+                <div className="text-center space-y-3">
+                  <Network className="h-12 w-12 mx-auto text-muted-foreground" />
+                  <p className="text-muted-foreground text-lg">暂无关系数据</p>
                 </div>
-              </Panel>
-            </ReactFlow>
-          </div>
-        )}
-      </CardContent>
-    </Card>
+              </div>
+            )}
+          </ReactFlow>
+        </div>
+      )}
+    </div>
   );
 } 
