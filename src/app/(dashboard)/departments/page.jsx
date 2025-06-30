@@ -14,6 +14,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Role, useAuth } from "@/hooks/auth";
 import { useDepartment } from "@/hooks/useDepartment";
 import { Building2, TableIcon } from "lucide-react";
 import React, { useState } from "react";
@@ -22,6 +23,7 @@ export default function DepartmentPage() {
   const { departments, error, isLoading, refreshDepartments } = useDepartment();
   const [editingDepartment, setEditingDepartment] = useState(null);
   const [isEditFormOpen, setIsEditFormOpen] = useState(false);
+  const { userInfo } = useAuth();
 
   // 处理编辑部门
   const handleEditDepartment = (department) => {
@@ -52,18 +54,20 @@ export default function DepartmentPage() {
           <h1 className="text-3xl font-bold tracking-tight">部门管理</h1>
           <p className="text-muted-foreground mt-2">管理组织架构和部门信息</p>
         </div>
-        <SheetFormButton
-          buttonLabel={"新建部门"}
-          renderForm={(onClose) => (
-            <DepartmentForm
-              onSuccess={() => {
-                onClose();
-                handleCreateSuccess();
-              }}
-              onCancel={onClose}
-            />
-          )}
-        />
+        {userInfo.empType !== Role.LEADER && (
+          <SheetFormButton
+            buttonLabel={"新建部门"}
+            renderForm={(onClose) => (
+              <DepartmentForm
+                onSuccess={() => {
+                  onClose();
+                  handleCreateSuccess();
+                }}
+                onCancel={onClose}
+              />
+            )}
+          />
+        )}
       </div>
 
       {/* 统计卡片 */}

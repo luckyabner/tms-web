@@ -3,6 +3,7 @@ import { BasicTable } from "@/components/shared/tables/BasicTable";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { StatCard } from "@/components/ui/stat-card";
+import { useNextAuth } from "@/hooks/useNextAuth";
 import { getAllEmployees } from "@/lib/services/employeeService";
 import {
   Building2,
@@ -13,11 +14,16 @@ import {
   UserCheck,
   Users,
 } from "lucide-react";
+import { cookies } from "next/headers";
 import Link from "next/link";
 import React from "react";
 
 export default async function EmployeesPage() {
   const employees = await getAllEmployees();
+  const cookieStore = cookies();
+  const userInfoStr = cookieStore.get("tms_userinfo")?.value;
+  const userInfo = userInfoStr ? JSON.parse(userInfoStr) : {};
+  console.log("User Info:", userInfo);
 
   // 计算统计数据
   const totalEmployees = employees.length;
@@ -59,12 +65,15 @@ export default async function EmployeesPage() {
           <h1 className="text-3xl font-bold tracking-tight">员工管理</h1>
           <p className="text-muted-foreground mt-2">管理和查看所有员工信息</p>
         </div>
-        <Link href="/employees/new">
-          <Button className="flex items-center gap-2">
-            <Plus className="h-4 w-4" />
-            添加员工
-          </Button>
-        </Link>
+        {(userInfo.empType == "人事专员" ||
+          userInfo.empType == "系统管理员") && (
+          <Link href="/employees/new">
+            <Button className="flex items-center gap-2">
+              <Plus className="h-4 w-4" />
+              添加员工
+            </Button>
+          </Link>
+        )}
       </div>
 
       {/* 统计卡片 */}

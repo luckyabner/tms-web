@@ -17,7 +17,6 @@ api.interceptors.request.use(
     if (typeof window !== "undefined" && typeof document !== "undefined") {
       // 客户端环境
       token = Cookies.get("auth_token");
-      console.log("客户端请求拦截器，当前token:", token);
     } else {
       // 服务器端环境
       try {
