@@ -41,7 +41,16 @@ export default function HrPage() {
   const { data: allTransfers } = useSWR("allTransfers", async () => {
     return await getAllTransfers();
   });
-  console.log("所有的调动信息", allTransfers);
+  console.log(
+    "所有的调动信息",
+    allTransfers,
+    "待审批的调动",
+    transfers,
+    "员工信息",
+    employees,
+    "部门信息",
+    departments
+  );
 
   // 获取员工姓名
   const getEmployeeName = (empId) => {
@@ -76,13 +85,6 @@ export default function HrPage() {
     return date.toLocaleDateString("zh-CN");
   };
 
-  const activityTypeConfig = {
-    join: { bg: "bg-emerald-500", label: "入职" },
-    training: { bg: "bg-blue-500", label: "培训" },
-    recruitment: { bg: "bg-orange-500", label: "招聘" },
-    award: { bg: "bg-purple-500", label: "奖励" },
-  };
-
   return (
     <div className="bg-background min-h-screen p-6">
       <div className="mx-auto max-w-7xl space-y-8">
@@ -112,36 +114,54 @@ export default function HrPage() {
         {/* 统计卡片 */}
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
           <StatCard
-            title="总员工数"
-            value="1,245"
+            title="在职员工数"
+            value={
+              employees
+                ? employees.filter((e) => e.status === "在职").length
+                : 0
+            }
             icon={Users}
-            trend="up"
-            trendValue="+12 本月"
-            color="blue"
+            iconClassName="h-6 w-6 text-blue-500"
+            description="当前在职员工总数"
           />
           <StatCard
-            title="在招职位"
-            value="28"
-            icon={UserPlus}
-            trend="up"
-            trendValue="+5 本周"
-            color="green"
-          />
-          <StatCard
-            title="绩效评估"
-            value="892"
-            icon={TrendingUp}
-            trend="up"
-            trendValue="+3.2% 提升"
-            color="orange"
-          />
-          <StatCard
-            title="培训进行中"
-            value="156"
+            title="部门总数"
+            value={departments ? departments.length : 0}
             icon={Calendar}
-            trend="down"
-            trendValue="-8 本周"
-            color="purple"
+            iconClassName="h-6 w-6 text-green-500"
+            description="公司下属部门数量"
+          />
+          <StatCard
+            title="今年新入职"
+            value={
+              employees
+                ? employees.filter(
+                    (e) =>
+                      e.hireDate &&
+                      new Date(e.hireDate).getFullYear() ===
+                        new Date().getFullYear()
+                  ).length
+                : 0
+            }
+            icon={UserPlus}
+            iconClassName="h-6 w-6 text-emerald-500"
+            description="本年度新入职员工"
+          />
+          <StatCard
+            title="本月调动次数"
+            value={
+              allTransfers
+                ? allTransfers.filter(
+                    (t) =>
+                      new Date(t.updatedAt).getFullYear() ===
+                        new Date().getFullYear() &&
+                      new Date(t.updatedAt).getMonth() === new Date().getMonth()
+                  ).length
+                : 0
+            }
+            icon={TrendingUp}
+            iconClassName="h-6 w-6 text-purple-500"
+            description="本月所有调动记录数"
           />
         </div>
 
