@@ -1,7 +1,7 @@
 "use client";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { ArrowUpDown, MoreHorizontal } from "lucide-react";
+import { ArrowUpDown, Eye, MoreHorizontal } from "lucide-react";
 import { useState } from "react";
 import { TableColumnHeader } from "../shared/tables/TableColumnHeader";
 import {
@@ -86,6 +86,27 @@ export const employeeColumns = [
     header: "状态",
   },
   {
+    id: "viewDetails",
+    cell: ({ row }) => {
+      const employee = row.original;
+      return (
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => {
+            window.location.href = `/employees/${employee.id}`;
+          }}
+          className="h-8 w-8 cursor-pointer p-0"
+          aria-label="查看详情"
+        >
+          <Eye className="h-5 w-5" />
+        </Button>
+      );
+    },
+    enableSorting: false,
+    enableHiding: false,
+  },
+  {
     id: "actions",
     enableHiding: false,
     cell: ({ row }) => {
@@ -96,7 +117,7 @@ export const employeeColumns = [
         <>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-8 w-8 p-0">
+              <Button variant="ghost" className="h-8 w-8 cursor-pointer p-0">
                 <span className="sr-only">Open menu</span>
                 <MoreHorizontal />
               </Button>
@@ -137,5 +158,6 @@ export const employeeColumns = [
       );
     },
   },
+
   // ...
 ];

@@ -210,7 +210,8 @@ export default async function EmployeesPage() {
               .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
               .slice(0, 6)
               .map((employee) => (
-                <div
+                <Link
+                  href={`/employees/${employee.id}`}
                   key={employee.id}
                   className="flex items-center space-x-3 rounded-lg border p-3 transition-colors hover:bg-gray-50"
                 >
@@ -229,7 +230,7 @@ export default async function EmployeesPage() {
                       {new Date(employee.createdAt).toLocaleDateString("zh-CN")}
                     </p>
                   </div>
-                </div>
+                </Link>
               ))}
           </div>
         </CardContent>

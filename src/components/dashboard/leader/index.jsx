@@ -329,12 +329,12 @@ export default function LeaderPage() {
                         <div
                           className="bg-primary h-2 rounded-full transition-all"
                           style={{
-                            width: `${Math.min(100, Math.max(10, dept.employeeCount * 5))}%`,
+                            width: `${Math.min(100, Math.max(10, dept.empCount * 5))}%`,
                           }}
                         ></div>
                       </div>
                       <span className="text-muted-foreground w-8 text-right text-sm">
-                        {dept.employeeCount || 0}
+                        {dept.empCount || 0}
                       </span>
                     </div>
                   </div>
@@ -349,57 +349,6 @@ export default function LeaderPage() {
           </CardContent>
         </Card>
       </div>
-
-      {/* 快捷操作 */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <LayoutDashboard className="h-4 w-4" />
-            快捷操作
-          </CardTitle>
-          <CardDescription>常用功能入口</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            <Button variant="outline" className="justify-start" asChild>
-              <a href="/executive/employees">
-                <Users className="mr-2 h-4 w-4" />
-                查看所有员工
-              </a>
-            </Button>
-            <Button variant="outline" className="justify-start" asChild>
-              <a href="/executive/departments">
-                <Building2 className="mr-2 h-4 w-4" />
-                查看所有部门
-              </a>
-            </Button>
-            <Button variant="outline" className="justify-start" asChild>
-              <a href="/executive/relations">
-                <Network className="mr-2 h-4 w-4" />
-                员工关系网络
-              </a>
-            </Button>
-            <Button variant="outline" className="justify-start" asChild>
-              <a href="/executive/transfers/new">
-                <UserCog className="mr-2 h-4 w-4" />
-                发起人事调动
-              </a>
-            </Button>
-            <Button variant="outline" className="justify-start" asChild>
-              <a href="/executive/analysis">
-                <TrendingUp className="mr-2 h-4 w-4" />
-                部门绩效分析
-              </a>
-            </Button>
-            <Button variant="outline" className="justify-start" asChild>
-              <a href="/executive/projects">
-                <Briefcase className="mr-2 h-4 w-4" />
-                项目管理
-              </a>
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 }

@@ -50,14 +50,6 @@ export default function Header() {
         </div>
       </div>
 
-      {/* 中间：搜索框 */}
-      <div className="mx-8 max-w-md flex-1">
-        <div className="relative">
-          <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform" />
-          <Input placeholder="搜索员工、部门、职位..." className="pr-4 pl-10" />
-        </div>
-      </div>
-
       {/* 右侧：通知和用户菜单 */}
       <div className="flex items-center space-x-4">
         {/* 用户菜单 */}
