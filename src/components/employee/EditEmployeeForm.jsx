@@ -182,7 +182,7 @@ export default function EditEmployeeForm({ employee, departments = [] }) {
               <Label htmlFor="departmentId">所属部门</Label>
               <Select
                 name="departmentId"
-                defaultValue={employee.departmentId?.toString() || "none"}
+                defaultValue={employee.depId?.toString() || "none"}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="选择部门" />
